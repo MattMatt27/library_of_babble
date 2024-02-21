@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ book.title }}</title>
+    <style>
+        /* CSS styles for book-specific page */
+        body {
+            background-color: #333; /* Dark grey background color */
+            color: #fff; /* White text color */
+            font-family: Arial, sans-serif; /* Optional: specify font family */
+            margin: 0; /* Optional: remove default body margin */
+            padding: 0; /* Optional: remove default body padding */
+        }
+        .header-text {
+            padding-left: 20px;
+            text-align: center;
+        }
+        .header-container {
+            display: flex; /* Use flexbox for layout */
+            align-items: center; /* Center vertically */
+            
+        }
+        .back-button {
+            background-color: #007bff; /* Blue background color for button */
+            color: #ffffff; /* White text color */
+            padding: 10px 20px; /* Add padding */
+            margin-left: 20px;
+            border-radius: 5px; /* Rounded corners */
+            text-decoration: none; /* Remove underline from button */
+            transition: background-color 0.3s; /* Smooth transition for background color */
+            display: flex; /* Use flexbox for layout */
+            align-items: center; /* Center vertically */
+        }
+        .back-button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+        h2 {
+            margin-left: 20px; /* Add space below section titles */
+        }
+        table {
+            width: 96%; /* Make table fill its container */
+            border-collapse: collapse; /* Collapse table borders */
+            margin-left: 20px;
+            margin-bottom: 20px; /* Add space below table */
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #444;
+        }
+        .quotes-section {
+            margin-top: 20px; /* Add some space between the header and quotes */
+        }
+        blockquote {
+            background-color: #444; /* Dark grey background color for quotes */
+            color: #fff; /* White text color */
+            padding: 20px; /* Add padding around the quote */
+            margin-bottom: 20px; /* Add space between quotes */
+            border-left: 5px solid #007bff; /* Blue border on the left */
+        }
+
+        blockquote p {
+            margin: 0; /* Remove default margin for paragraphs inside blockquote */
+        }
+
+        blockquote footer {
+            margin-top: 10px; /* Add space between quote and page number */
+        }
+        .missing-data {
+            margin-left: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-container">
+        <p><a href="/books" class="back-button">← Back</a></p>
+        <h1 class="header-text">{{ book.title }}</h1>
+    </div>
+    <div class="book-details">
+        <!-- Notes Section: Per book have a way to save notes that are separate from reviews (Bertram recs etc.) Maybe make a book_notes.csv so that all notes live in one csv document. One weakness of csvs is formatting which needs to be resolved -->
+        <div class="reviews-section">
+            <h2>Reviews</h2>
+            <!-- Check if there are reviews for the book -->
+            {% if reviews %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date Finished</th>
+                        <th>Rating</th>
+                        <th>Review</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Loop through book reviews -->
+                    {% for review in reviews %}
+                    <tr>
+                        <td>{{ review.date_read }}</td>
+                        <td>{{ review.my_rating }}</td>
+                        <td>{{ review.my_review }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="missing-data">No reviews available for this book.</p>
+            {% endif %}
+        </div>
+        <div class="quotes-section">
+            <h2>Quotes</h2>
+            {% if quotes %}
+            <div class="quotes">
+                {% for quote in quotes %}
+                <blockquote>
+                    <p>{{ quote.text }}</p>
+                    <footer>Page Number: <strong>{{ quote.page_number }}</strong></footer>
+                </blockquote>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="missing-data">No quotes available for this book.</p>
+            {% endif %}
+        </div>
+
+    </div>
+</body>

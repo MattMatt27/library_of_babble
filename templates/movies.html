@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movies</title>
+    <style>
+        /* CSS styles for book list */
+        body {
+            background-color: #333; /* Dark grey background color */
+            color: #fff; /* White text color */
+            font-family: Arial, sans-serif; /* Optional: specify font family */
+            margin: 0; /* Optional: remove default body margin */
+            padding: 0; /* Optional: remove default body padding */
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #444;
+        }
+        .center-header {
+            text-align: center;
+        }
+        .image-column {
+            width: 150px; /* Fixed width for image column */
+        }
+        .details-column {
+            width: 200px;
+        }
+        .date-column {
+            width: 100px;
+        }
+        .rating-column {
+            width: 50px;
+        }
+        img {
+            max-height: 150px; /* Limit image height */
+            max-width: 100%; /* Ensure image fits within its container */
+            display: block; /* Ensure proper sizing */
+            margin: auto; /* Center the image horizontally */
+        }
+        .header-text {
+            padding-left: 20px;
+            text-align: center;
+        }
+        .header-container {
+            display: flex; /* Use flexbox for layout */
+            align-items: center; /* Center vertically */
+            
+        }
+        .back-button {
+            background-color: #007bff; /* Blue background color for button */
+            color: #ffffff; /* White text color */
+            padding: 10px 20px; /* Add padding */
+            margin-left: 20px;
+            border-radius: 5px; /* Rounded corners */
+            text-decoration: none; /* Remove underline from button */
+            transition: background-color 0.3s; /* Smooth transition for background color */
+            display: flex; /* Use flexbox for layout */
+            align-items: center; /* Center vertically */
+        }
+        .back-button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+        blockquote {
+            background-color: #444; /* Dark grey background color for quotes */
+            color: #fff; /* White text color */
+            padding: 20px; /* Add padding around the quote */
+            margin-bottom: 20px; /* Add space between quotes */
+            border-left: 5px solid #007bff; /* Blue border on the left */
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-container">
+        <p><a href="/" class="back-button">←Back</a></p>
+        <h1 class="header-text">Recently Watched</h1>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th class="center-header">Cover</th>
+                <th>Details</th>
+                <th>Date Watched</th>
+                <th>My Rating</th>
+                <th>My Review</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for movie in movies %}
+                <tr>
+                    <td class="image-column"><img src="{{ movie['cover_image_url'] }}" alt="{{ movie['title'] }}"></td>
+                    <td class="details-column">
+                        <strong>Title:</strong> {{ movie['title'] }}<br><br>
+                        <strong>Director:</strong> {{ movie['director'] }}<br>
+                        <strong>Year:</strong> {{ movie['year'] }}
+                    </td>
+                    <td class="date-column">{{ movie['date_watched'] }}</td>
+                    <td class="rating-column">{{ movie['my_rating'] }}</td>
+                    <td>
+                        {% set review_parts = movie['my_review'].split('<blockquote>') %}
+                        {% if review_parts|length > 1 %}
+                            {% set blockquote_text = review_parts[1].split('</blockquote>') %}
+                            {% if blockquote_text|length > 1 %}
+                                <blockquote>{{ blockquote_text[0] }}</blockquote>
+                                {{ review_parts[0] }} {{ blockquote_text[1] }}
+                            {% else %}
+                                {{ review_parts[0] }} {{ blockquote_text[0] }}
+                            {% endif %}
+                        {% else %}
+                            {{ movie['my_review'] }}
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

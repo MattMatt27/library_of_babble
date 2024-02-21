@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library of Babble</title>
+    <style>
+        body {
+            background-color: #121212; /* Dark background color */
+            color: #ffffff; /* White text color */
+            font-family: Arial, sans-serif; /* Use a common sans-serif font */
+            padding: 20px; /* Add padding to the body */
+        }
+        h1 {
+            font-size: 24px; /* Increase heading font size */
+            margin-bottom: 20px; /* Add margin below heading */
+        }
+        h2 {
+            font-size: 20px; /* Set font size for section title */
+            margin-bottom: 10px; /* Add margin below section title */
+        }
+        p {
+            font-size: 16px; /* Set paragraph font size */
+            line-height: 1.5; /* Increase line height for better readability */
+            margin-bottom: 10px; /* Add margin below paragraphs */
+        }
+        a {
+            color: #ffffff; /* White color for links */
+            text-decoration: none; /* Remove underline from links */
+        }
+        a:hover {
+            text-decoration: underline; /* Add underline on hover */
+        }
+        .recently-read-container {
+            margin-top: 20px; /* Add margin above recently read section */
+            display: flex; /* Use flexbox for layout */
+            justify-content: space-between; /* Align items to each end */
+            align-items: center; /* Center vertically */
+        }
+        .recently-read {
+            display: flex; /* Use flexbox layout for equal spacing */
+            justify-content: space-between; /* Evenly distribute items */
+            flex-wrap: wrap; /* Allow items to wrap to the next line */
+        }
+        .recently-read-books {
+            width: calc(100% - 200px); /* Calculate width to leave space for the button */
+        }
+        .see-all-button {
+            background-color: #007bff; /* Blue background color for button */
+            color: #ffffff; /* White text color */
+            padding: 10px 20px; /* Add padding */
+            border-radius: 5px; /* Rounded corners */
+            text-decoration: none; /* Remove underline from button */
+            transition: background-color 0.3s; /* Smooth transition for background color */
+            display: flex; /* Use flexbox for layout */
+            align-items: center; /* Center vertically */
+        }
+        .see-all-button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+        .see-all-button::after {
+            content: ' →'; /* Add arrow after button text */
+            margin-left: 5px; /* Add spacing between text and arrow */
+        }
+        .book {
+            width: 18%; /* Set width for each book container */
+            margin-bottom: 10px; /* Add bottom margin */
+            padding: 10px; /* Add padding */
+            background-color: #333333; /* Dark background color for book container */
+            border-radius: 5px; /* Rounded corners */
+            box-sizing: border-box; /* Include padding and border in width */
+            text-align: center; /* Center align text */
+        }
+        .book img {
+            max-height: 200px; /* Limit image height */
+            width: auto; /* Auto-adjust width */
+            display: block; /* Ensure proper alignment */
+            margin: 0 auto 10px; /* Center image and add bottom margin */
+        }
+        .book p {
+            margin: 0; /* Remove default margin for paragraphs */
+            font-size: 14px; /* Set font size */
+            overflow: hidden; /* Hide overflow text */
+            text-overflow: ellipsis; /* Show ellipsis for overflow text */
+            white-space: nowrap; /* Prevent wrapping */
+        }
+        .recently-watched-container {
+		    margin-top: 20px; /* Add margin above recently read section */
+            display: flex; /* Use flexbox for layout */
+            justify-content: space-between; /* Align items to each end */
+            align-items: center; /* Center vertically */
+		}
+
+		.recently-watched {
+		    display: flex; /* Use flexbox layout for equal spacing */
+		    justify-content: space-between; /* Evenly distribute items */
+		    flex-wrap: wrap; /* Allow items to wrap to the next line */
+		}
+
+		.movie {
+		    width: 18%; /* Set width for each movie container */
+		    margin-bottom: 10px; /* Add bottom margin */
+		    padding: 10px; /* Add padding */
+		    background-color: #333333; /* Dark background color for movie container */
+		    border-radius: 5px; /* Rounded corners */
+		    box-sizing: border-box; /* Include padding and border in width */
+		    text-align: center; /* Center align text */
+		}
+
+		.movie img {
+		    max-height: 200px; /* Limit image height */
+		    width: auto; /* Auto-adjust width */
+		    display: block; /* Ensure proper alignment */
+		    margin: 0 auto 10px; /* Center image and add bottom margin */
+		}
+
+		.movie p {
+		    margin: 0; /* Remove default margin for paragraphs */
+		    font-size: 14px; /* Set font size */
+		    overflow: hidden; /* Hide overflow text */
+		    text-overflow: ellipsis; /* Show ellipsis for overflow text */
+		    white-space: nowrap; /* Prevent wrapping */
+		}
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script>
+	    $(document).ready(function() {
+	        // Function to adjust number of displayed books based on window width
+	        function adjustDisplayedBooks() {
+	            var windowWidth = $(window).width();
+	            var maxBooks = 5; // Default maximum number of books to display
+	            if (windowWidth < 768) {
+	                maxBooks = 3; // Adjust number of books for smaller screens
+	            }
+	            // Hide excess books
+	            $('.book').hide().slice(0, maxBooks).show();
+	        }
+	        
+	        // Call the adjustDisplayedBooks function when the page loads and when the window resizes
+	        adjustDisplayedBooks();
+	        $(window).resize(adjustDisplayedBooks);
+	    });
+	</script>
+</head>
+<body>
+    <h1>Welcome to Matt's Library of Babble</h1>
+    <p>I am finally tired of using a different website to track all my content (Goodreads, Letterboxd, Spotify) so I have created this page to start tracking things on my own.
+    <div class="recently-read-container">
+        <h2>Recently Read</h2>
+        <p><a href="/books" class="see-all-button">See All</a></p>
+    </div>
+    <div class="recently-read">
+        {% for book in recently_read_books %}
+            <div class="book">
+                <a href="/book/{{ book.id }}">
+                    <img src="{{ book['cover_image_url'] }}" alt="{{ book['title'] }}">
+                </a>
+                <p><strong>{{ book['title'] }}</strong></p>
+                <p>{{ book['author'] }}</p>
+                <p>{{ book['publication_year'] }}</p>
+                <p>My Rating: {{ book['my_rating'] }}</p>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="recently-watched-container">
+	    <h2>Recently Watched</h2>
+	    <p><a href="/movies" class="see-all-button">See All</a></p>
+	</div>
+    <div class="recently-watched">
+        {% for movie in recently_watched_movies %}
+            <div class="movie">
+                <img src="{{ movie['cover_image_url'] }}" alt="{{ movie['title'] }}">
+                <p><strong>{{ movie['title'] }}</strong></p>
+                <p>{{ movie['director'] }}</p>
+                <p>{{ movie['year'] }}</p>
+                <p>My Rating: {{ movie['my_rating'] }}</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Books</title>
+    <style>
+        /* CSS styles for book list */
+        body {
+            background-color: #333; /* Dark grey background color */
+            color: #fff; /* White text color */
+            font-family: Arial, sans-serif; /* Optional: specify font family */
+            margin: 0; /* Optional: remove default body margin */
+            padding: 0; /* Optional: remove default body padding */
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #444;
+        }
+        .center-header {
+            text-align: center;
+        }
+        .image-column {
+            width: 150px; /* Fixed width for image column */
+        }
+        .details-column {
+            width: 300px;
+        }
+        .date-column {
+            width: 100px;
+        }
+        .rating-column {
+            width: 50px;
+        }
+        img {
+            max-height: 150px; /* Limit image height */
+            max-width: 100%; /* Ensure image fits within its container */
+            display: block; /* Ensure proper sizing */
+            margin: auto; /* Center the image horizontally */
+        }
+        .header-text {
+            padding-left: 20px;
+            text-align: center;
+        }
+        .header-container {
+            display: flex; /* Use flexbox for layout */
+            align-items: center; /* Center vertically */
+            
+        }
+        .back-button {
+            background-color: #007bff; /* Blue background color for button */
+            color: #ffffff; /* White text color */
+            padding: 10px 20px; /* Add padding */
+            margin-left: 20px;
+            border-radius: 5px; /* Rounded corners */
+            text-decoration: none; /* Remove underline from button */
+            transition: background-color 0.3s; /* Smooth transition for background color */
+            display: flex; /* Use flexbox for layout */
+            align-items: center; /* Center vertically */
+        }
+        .back-button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="header-container">
+        <p><a href="/" class="back-button">←Back</a></p>
+        <h1 class="header-text">Recently Read</h1>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th class="center-header">Cover</th>
+                <th>Details</th>
+                <th>Date Finished</th>
+                <th>My Rating</th>
+                <th>My Review</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for book in books %}
+                <tr>
+                    <td class="image-column">
+                        <a href="/book/{{ book.id }}">
+                            <img src="{{ book['cover_image_url'] }}" alt="{{ book['title'] }}">
+                        </a>
+                    </td>
+                    <td class="details-column">
+                        <strong>Title:</strong> {{ book['title'] }}<br><br>
+                        <strong>Author:</strong> {{ book['author'] }}<br>
+                        <strong>Publication Year:</strong> {{ book['publication_year'] }}
+                    </td>
+                    <td class="date-column">{{ book['date_read'] }}</td>
+                    <td class="rating-column">{{ book['my_rating'] }}</td>
+                    <td>{{ book['my_review'] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

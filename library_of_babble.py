@@ -8,7 +8,7 @@ app = Flask(__name__)
 # Book CSV Parsing
 def read_books_from_csv():
     books = []
-    with open('read_books.csv', 'r', encoding='utf-8') as file:
+    with open('book_reviews.csv', 'r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         for row in reader:
             if row['Title'] and row['Author']:
@@ -31,7 +31,7 @@ def read_books_from_csv():
 # Function to read data from the CSV file
 def read_books_from_csv_new():
     books = {}
-    with open('read_books.csv', 'r', encoding='utf-8') as file:
+    with open('book_reviews.csv', 'r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         for row in reader:
             if row['Title'] and row['Author']:
@@ -84,7 +84,7 @@ def get_recently_read_books():
 # Movie CSV Parsing
 def watched_movies_from_csv():
     movies = []
-    with open('reviews.csv', 'r', encoding='utf-8') as file:
+    with open('movie_reviews.csv', 'r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         for row in reader:
             if row['Name'] and row['Watched Date']:

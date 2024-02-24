@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matt Ranking</title>
+    <style type="text/css">
+    	body {
+            background-color: #333; /* Dark grey background color */
+            color: #fff; /* White text color */
+            font-family: Arial, sans-serif; /* Optional: specify font family */
+            margin: 0; /* Optional: remove default body margin */
+            padding: 0; /* Optional: remove default body padding */
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #444;
+        }
+    </style>
+</head>
+<body>
+    <h1>Matt Ranking</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Collection</th>
+                <th>Mean Rating</th>
+                <th>Number of Movies</th>
+                <th>Standard Deviation</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for collection, data in ratings.iterrows() %}
+            <tr>
+                <td>{{ collection }}</td>
+                <td>{{ data['mean'] }}</td>
+                <td>{{ data['count'] }}</td>
+                <td>{{ data['std'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matt Flathers</title>
+    <style>
+        .navbar {
+            background-color: rgba(0, 0, 0, 0.5); /* Transparent black background */
+            overflow: hidden;
+            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
+            font-size: 20px;
+        }
+
+        .navbar a {
+            float: left;
+            display: block;
+            color: #fff;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+        .navbar a.active {
+            background-color: #555;
+        }
+
+        a:hover {
+            text-decoration: underline; /* Add underline on hover */
+        }
+
+        body {
+            background-color: #121212; /* Dark grey background color */
+            color: #fff; /* White text color */
+            font-family: Arial, sans-serif; /* Optional: specify font family */
+            margin: 0; /* Optional: remove default body margin */
+            padding: 0; /* Optional: remove default body padding */
+        }
+        table {
+            background-color: #333;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #444;
+        }
+        .center-header {
+            text-align: center;
+        }
+        .image-column {
+            width: 650px; /* Fixed width for image column */
+        }
+        .details-column {
+            width: 200px;
+        }
+        .offer-column {
+            width: 200px;
+        }
+        .offer-column {
+            padding: 20px;
+        }
+        img {
+            max-height: 650px; /* Limit image height */
+            max-width: 100%; /* Ensure image fits within its container */
+            display: block; /* Ensure proper sizing */
+            margin: auto; /* Center the image horizontally */
+        }
+        .header-text {
+            padding-left: 20px;
+            text-align: center;
+        }
+        .header-container {
+            display: flex; /* Use flexbox for layout */
+            align-items: center; /* Center vertically */
+            
+        }
+        .back-button {
+            background-color: #007bff; /* Blue background color for button */
+            color: #ffffff; /* White text color */
+            padding: 10px 20px; /* Add padding */
+            margin-left: 20px;
+            border-radius: 5px; /* Rounded corners */
+            text-decoration: none; /* Remove underline from button */
+            transition: background-color 0.3s; /* Smooth transition for background color */
+            display: flex; /* Use flexbox for layout */
+            align-items: center; /* Center vertically */
+        }
+        .back-button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+
+        .offer-button {
+            background-color: #007bff; /* Blue background color for button */
+            color: #ffffff; /* White text color */
+            padding: 10px 20px; /* Add padding */
+            margin-top: 5px;
+            border-radius: 5px; /* Rounded corners */
+            text-decoration: none; /* Remove underline from button */
+            transition: background-color 0.3s; /* Smooth transition for background color */
+            display: flex; /* Use flexbox for layout */
+            align-items: center; /* Center vertically */
+            text-align: center;
+            width: 40%;
+        }
+        .offer-button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div>
+            <a href="/">Home</a>
+            <a href="/writing">Writing</a>
+            <a href="/development">Development</a>
+            <a href="/library">Library</a>
+            <a href="/music">Music</a>
+            <a href="/antiques" class="active">Antiques</a>
+        </div>
+    </nav>
+    <div class="header-container">
+        <p><a href="/antiques" class="back-button">←Back</a></p>
+        <h1 class="header-text">Recently Added</h1>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th class="center-header">Image</th>
+                <th>Details</th>
+                <th>Notes</th>
+                <th>Make Offer</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pin in pins %}
+                <tr>
+                    <td class="image-column">
+                        <a href="/pin/{{ pin.id }}">
+                            <img src="{{ pin['image_url'] }}" alt="{{ pin['text'] }}">
+                        </a>
+                    </td>
+                    <td class="details-column">
+                        <strong>ID: </strong>{{ pin['id'] }}<br><br>
+                        <strong>Year:</strong> {{ pin['year'] }}<br>
+                        <strong>Type:</strong> {{ pin['type'] }}<br>
+                        <strong>Text:</strong> {{ pin['text'] }}<br>
+                    </td>
+                    <td class="notes-column">{{ pin['notes'] }}</td>
+                    <td class="offer-column">
+                        <strong>Number Owned: </strong>{{ pin['owned'] }}<br>
+                        <a href="mailto:MattFlathers27@gmail.com?subject=Offer For Pin Number {{ pin['id'] }}&body=Hi Matt, I am looking to make an offer for pin number {{ pin['id'] }}. I would pay X for it. Let me know if you are interested in selling. Thank you!" class="offer-button">Make Offer</a>
+                    </td>
+                    
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

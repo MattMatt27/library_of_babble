@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Music</title>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background-color: #121212; /* Dark background color */
+            color: #ffffff; /* White text color */
+            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
+            font-size: 20px;
+        }
+
+        .navbar {
+            background-color: rgba(0, 0, 0, 0.9); /* Transparent black background */
+            overflow: hidden;
+            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .navbar a {
+            float: left;
+            display: block;
+            color: #fff;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+        .navbar a.active {
+            background-color: #555;
+        }
+
+        .navbar a:link {
+            color: #fff;
+        }
+
+        .navbar a:visited {
+            color: #fff;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        .divider {
+            width: 5px;
+            background-color: #555;
+            cursor: ew-resize;
+        }
+
+        .playlist-browser {
+            flex: 0 0 60%;
+            padding: 20px;
+            padding-left: 30px;
+            overflow-y: auto;
+        }
+
+        .playlist-details {
+            flex: 0 0 30%;
+            padding: 20px;
+        }
+
+        .introduction {
+            padding: 20px;
+            padding-bottom: 0px;
+            padding-top: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            align-items: center;
+            background-color: #093249;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .monthly-playlists {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            align-items: center;
+            background-color: #093249;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .section-description {
+            margin: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            margin: 5px;
+        }
+
+        #datepickerInput {
+            text-align: center;
+            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
+            font-size: 20px;
+            max-width: calc(100% - 10px);
+        }
+
+        /* Additional styles for the playlist details */
+        .playlist-details iframe {
+            width: 100%;
+            height: calc(100vh - 90px); /* Adjust height to fit within the column */
+            border: none;
+        }
+
+        .color-playlists {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            align-items: center;
+            background-color: #093249;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .individual-playlists {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            align-items: center;
+            background-color: #093249;
+            border-radius: 10px;
+            margin-bottom: 50px;
+        }
+
+        .image-caption {
+          text-align: center;
+        }
+
+        .image-caption img {
+          width: 100%;
+          max-width: 200px;
+          height: auto;
+          cursor: pointer;
+          margin-bottom: 0px;
+        }
+
+        .caption-text {
+          margin: 0;
+          font-size: 14px; /* Adjust font size as needed */
+          color: #fff; /* Caption text color */
+        }
+
+        .playlist-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 2fr)); /* Adjust minmax values as needed */
+          grid-gap: 10px; /* Adjust the gap size as needed */
+          width: 100%;
+          justify-items: center; /* Center grid items horizontally */
+          align-items: center; /* Center grid items vertically */
+        }
+
+        .playlist-grid img {
+          width: 100%;
+          max-width: 200px; /* Adjust max-width as needed */
+          height: auto;
+          cursor: pointer;
+        }
+
+        .selected-playlist {
+          display: none;
+        }
+
+        .selected-playlist-content {
+          display: flex;
+          align-items: center;
+          margin-bottom: 10px;
+          background-color: #C1DFF0;
+          color: #121212;
+          padding: 20px;
+          border-radius: 5px;
+        }
+
+        .other-playlist-details {
+            text-align: left;
+            padding: 10px;
+        }
+
+        .playlist-art img {
+          width: 170px; /* Adjust the width of the playlist art */
+          height: auto;
+          margin-right: 10px;
+        }
+
+        .playlist-title {
+          font-size: 30px; /* Adjust the font size of the title */
+          font-weight: bold; /* Optionally, make the title bold */
+          margin-bottom: 5px;
+          margin-top: 0px;
+        }
+
+        .playlist-description {
+          font-size: 15px; /* Adjust the font size of the description */
+          margin: 0; /* Remove margin to avoid extra space */
+        }
+
+        .disable-selection {
+            user-select: none; /* Standard syntax */
+            -webkit-user-select: none; /* Webkit browsers */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+        }
+
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="navbar">
+                <a href="/">Home</a>
+                <a href="/writing">Writing</a>
+                <a href="/development">Development</a>
+                <a href="/library">Library</a>
+                <a href="/music" class="active">Music</a>
+                <a href="/antiques">Antiques</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="playlist-browser" id="playlist-browser">
+            <div class="introduction">
+                <p class="section-description"> As a data engineer and an archaeologist by training, classification and curation are hobbies of mine. I have no musical ability of my own but I get a lot of joy out of sorting songs and curating playlists. My public playlist profile on Spotify is a wasteland that is impossible to navigate, so I created this page to highlight some of my personal favorites hidden in the mass of abandoned playlists. Hope you enjoy.</p>
+            </div>
+            <div class="selected-playlist">
+                <div class="selected-playlist-content">
+                    <div class="playlist-art">
+                        <img src="small_playlist_art_url" alt="Playlist Art">
+                    </div>
+                    <div class="other-playlist-details">
+                        <p class="playlist-title">Playlist Title</p>
+                        <p class="playlist-description">Playlist Description</p>
+                    </div>
+                </div>
+            </div>
+            <div class="monthly-playlists">
+                <h1 class="section-title">Monthly Playlists</h1>
+                <p class="section-description">Every month I create a new playlist for songs that I am listening to on repeat. It is usually moslty new songs I heard for the first time that month with the occassional song I love thrown in. Use the search below to see what I was listening to in any given month since February 2019.</p>
+                <input type="text" id="datepickerInput" placeholder="Select month and year">
+                <!-- <button id="selectPlaylistBtn">Select Playlist</button> -->
+            </div>
+            <div class="color-playlists">
+                <h1 class="section-title">Color Playlists</h1>
+                <p class="section-description">Out of boredom, I went through my liked songs and created separate playlists based on the color of their album art. In most cases I have tried avoiding adding multiple songs from the same album to any of the playlists (choosing just my favorite track instead).</p>
+                <div class="playlist-grid">
+                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84f4597cdd4a269b2d6b99cb6b" id="5dSSoKT4XixyrMAfghFEnj" playlistname="Green" description="My playlist of songs with predominantly green album art"> <!-- Green -->
+                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da846cad4745d0bf2594fb6687c6" id="4LMgntTP6vsjkiEvvlHAbj" playlistname="Yellow" description="My playlist of songs with predominantly yellow album art"> <!-- Yellow -->
+                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da8443b69f66cabf6ae4b26a7ded" id="4BeLgttjCMKJ6gVEsWpZFf" playlistname="Orange" description="My playlist of songs with predominantly orange album art"> <!-- Orange -->
+                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84fa853badbffa5686cbd79556" id="1mCvZw2wuEQ80VoNuf2Z8I" playlistname="Red" description="My playlist of songs with predominantly red album art"> <!-- Red -->
+                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da842ff9ae2073e8711d9e0152e8" id="38qoJ0cp1jgomJd300eya6" playlistname="Pink" description="My playlist of songs with predominantly pink album art"> <!-- Pink -->
+                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84132105904431b23c5dbe97e3" id="1uuMuf5NLjCPkFQNa0q2zS" playlistname="Purple" description="My playlist of songs with predominantly purple album art"> <!-- Purple -->
+                </div>
+            </div>
+            <div class="individual-playlists">
+                <h1 class="section-title" style="margin-bottom: 15px;">Other Playlists</h1>
+                <div class="playlist-grid">
+                    <div class="image-caption">
+                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da844c2cbd2d38af7f56de8ee543" id="2Ia174qqdwXwpzJk5ncb3F" playlistname="Seltzer Surface" description="My playlist of smooth indie rock songs featuring female vocalists. Heavy emphasis on groovy guitar runs with that grainy and bouncy quality that reminds me of carbonated beverages. Features songs by artists like Lake Street Dive, Lola Marsh, Wallice and more.">
+                      <!-- <p class="caption-text">Groovy Female Indie Rock</p> -->
+                    </div>
+                    <div class="image-caption">
+                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da840d9a3cdb625dc5e63815857a" id="5gnrs5hpJw6Ym0UMcAfCEy" playlistname="Straddling Suicide" description="My playlist of dark pop rock featuring female vocalists. Equal parts sad and angry, emphasis is on lyrics capturing relationship instability in the fluctuation between fierce independence and painful isolation. Featuring songs by artists like Chandler Leighton, Emei, girli, Sam Short and more.">
+                      <!-- <p class="caption-text">Sad and Angry Female Indie Pop</p> -->
+                    </div>
+                    <div class="image-caption">
+                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da842062633e69750625236bd161" id="5Ceo4MZgv5wbCt07e3wHVY" playlistname="Watching Them Drive Away" description="My playlist of moody indie rock songs featuring (mostly) female vocalists. Emphasis is on frayed vocals, introspective pain, and undercommunicated anger. Featuring songs by artists like Lucy Dacus, Atta Boy, Snail Mail and more.">
+                      <!-- <p class="caption-text">Sad Female Indie Rock</p> -->
+                    </div>
+
+                    <div class="image-caption">
+                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da8456f2aa40ed2e55f1cefeb715" id="5CBDG0aW5oqWY1Mk4AwOXn" playlistname="Mom Music" description="My playlist of classic rock and alternative pop songs featuring commanding female vocalists. Emphasis is on a sense of nostalgia, like riding in a minivan on a lazy Sunday afternoon. Featuring songs by artists like Fleetwood Mac, 10,000 Maniacs, KT Tunstall and more.">
+                      <!-- <p class="caption-text">1990s Female Mainstream</p> -->
+                    </div>
+                    <div class="image-caption">
+                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da843a2d63740b38cbd79fb9b3a2" id="2UiX8Gyb5bKkPMe6JzrS7l" playlistname="Dad Music" description="My playlist of folk-rock and alternative tunes featuring male vocalists. The focus is on a laid-back, nostalgic brunch music, evocative of hand-me-down guitars. Featuring songs by artists like Jack Johnson, Dave Matthews Band, Barenaked Ladies and more.">
+                      <!-- <p class="caption-text">1990s Male Mainstream</p> -->
+                    </div>
+                    <div class="image-caption">
+                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da844d69242223d4cc440cf18f73" id="5svcCcfdzTqYIQimtwKy0d" playlistname="Going 80 in Suburbia" description="My playlist of synthwave, outrun, and indie-synthpop music. The focus is on futuristic, high-tempo, heavily filtered-- almost grainy-- sounding music. Featuring songs by artists like Kavinsky, The Weeknd, VHS Collection and more.">
+                      <!-- <p class="caption-text">1990s Male Mainstream</p> -->
+                    </div>
+
+                    <div class="image-caption">
+                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da8440601b7f3fa37def9f66579d" id="4qev3Fh6ZGQsBhWRKCTjNP" playlistname="All Weather is Shorts Weather" description="My playlist of melodic rock and introspective alt-pop ballads from the early 2000s. Emphasis is on catchy choruses and emotional resonance that gives me a sense of predictable defiance of the conventional. Featuring songs from artists like Five For Fighting, Snow Patrol, The Fray and more.">
+                      <!-- <p class="caption-text">1990s Male Mainstream</p> -->
+                    </div>
+
+                    <div class="image-caption">
+                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84cd5d7acea98297af77047b25" id="2szcovXkkXIaLexppzFp36" playlistname="My Twenty-Something Angst Renaissance" description="My playlist of late 90s and early 2000s pop punk, alt-rock, and grunge adjacent hits. Emphasis is on powerful vocals, catchy riffs, and some level of notoriety. Featuring songs by artists like Panic! At The Disco, Fall Out Boy, Green Day and more.">
+                      <!-- <p class="caption-text">2000s Pop-Punk Adjacent</p> -->
+                    </div>
+
+                    <!-- <div class="image-caption">
+                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84b400d46eebad790463707f07" id="3NTMuG81XJdGosarEThzDJ" playlistname="Emergency Exit, Alarm Will Sound" description="My playlist of late 90s and early 2000s grunge and post-grunge hits. Emphasis is on gravelly vocals, angry guitars. Featuring songs by artists like Panic! At The Disco, Fall Out Boy, Green Day and more.">
+                    <p class="caption-text">Grunge</p> 
+                    </div> -->
+
+                    <div class="image-caption">
+                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84840c6468a9170eeb0d5fe6ec" id="6UO3Pm59MuSeyalkWWeEsb" playlistname="Train Windows and Subway Nights" description="My playlist of wistful indie-pop-folk featuring male vocalists. Emphasis is on songs that I feel capture the way you can lose your sense of self staring out train windows late at night. Featuring songs by artists like Bon Iver, Charlie Cunningham, Novo Amor and more.">
+                      <!-- <p class="caption-text">Male Wistful Depression</p> -->
+                    </div>
+
+                    <div class="image-caption">
+                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84afc3361147c9bea7097e0cfd" id="2obGYQoVnJJTghRYid9BlP" playlistname="Lifeless Lifelike Companions" description="My playlist of wistful singer-songwriter ballads featuring male vocalists. Emphasis is on songs that typify my experience of depression numbness. Featuring songs by artists like Max Jury, Axel Flóvent, Josh Ritter and more.">
+                      <!-- <p class="caption-text">Male Numb Depression</p> -->
+                    </div>
+
+
+                    <div class="image-caption">
+                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da8404fbd2b758443464dd2e4b0e" id="3hPBQo19X0JdRmNM0xV0Gx">
+                      <!-- <p class="caption-text">Upbeat Female Indie Pop</p> -->
+                    </div>
+                    <div class="image-caption">
+                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da8474ace4efa2a930dec252be6d" id="0U8BgkS71f4Hidw11Hl0Zt">
+                      <!-- <p class="caption-text">Wistful Female Indie Pop</p> -->
+                    </div>
+                    
+                    
+                    
+                </div>
+            </div>
+        </div>
+        <div class="divider" id="divider"></div>
+        <div class="playlist-details" id="playlist-details">
+            <iframe id="playlistFrame" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+        </div>
+    </div>
+
+    <script>
+        $(function() {
+            $("#datepickerInput").datepicker({
+                dateFormat: "MM yy", // Display format for month and year
+                changeMonth: true, // Enable month dropdown
+                changeYear: true, // Enable year dropdown
+                minDate: new Date(2019, 2 - 1), // February 2019
+                maxDate: new Date(2024, 4 - 1), // April 2024
+                showButtonPanel: true, // Show button panel for navigation
+                onClose: function(dateText, inst) {
+                    var month = $("#ui-datepicker-div .ui-datepicker-month option:selected").val();
+                    var year = $("#ui-datepicker-div .ui-datepicker-year option:selected").val();
+                    console.log(month)
+                    console.log(year)
+                    $(this).datepicker('setDate', new Date(year, month, 1)); // Set the selected date to the first day of the selected month and year -- this does not work well at all currently
+                    
+                    var monthCodes = ["Jan ", "Feb ", "Mar ", "Apr ", "May ", "June ", "July ", "Aug ", "Sep ", "Oct ", "Nov ", "Dec "];
+                    var monthCode = monthCodes[month];
+                    var yearCode = year.toString().substr(-2);
+
+                    var selectedPlaylist = monthCode + yearCode; // Combine month code and last two digits of the year
+                    console.log(selectedPlaylist); // Display the selected playlist code (e.g., Mar23 for March 2023)
+
+                    // Fetch playlist details based on selectedPlaylist (you need to implement this)
+                    fetch('/music', {
+                        method: 'POST',
+                        body: JSON.stringify({ 
+                            month: month + 1, // Adding 1 to match Python's month numbering (1-12)
+                            year: year,
+                            playlist_code: selectedPlaylist
+                        }),
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (!data || data.error) {
+                            throw new Error('Invalid or empty JSON data received');
+                        } else {
+                            var playlistId = data.playlist_id;
+                            var iframeSrc = `https://open.spotify.com/embed/playlist/${playlistId}`;
+                            $("#playlistFrame").attr('src', iframeSrc);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                }
+            });
+
+            // Hide the day selection and navigation
+            $("#datepickerInput").focus(function() {
+                $(".ui-datepicker-calendar").hide();
+                $("#ui-datepicker-div").position({
+                    my: "center top",
+                    at: "center bottom",
+                    of: $(this)
+                });
+            });
+        });
+    </script>
+    <script type="text/javascript">
+        $(function() {
+            // Event listener for image clicks
+            $(".playlist-grid img").click(function() {
+                var imageId = $(this).attr("id"); // Get the id of the clicked image
+                var imagesrc = $(this).attr("src");
+                var playlistTitle = $(this).attr("playlistname");
+                var playlistDesc = $(this).attr("description");
+                var playlistId = imageId; // Initialize selectedPlaylist variable
+                var iframeSrc = `https://open.spotify.com/embed/playlist/${playlistId}`;
+                $(".selected-playlist .playlist-art img").attr("src", imagesrc);
+                $(".selected-playlist .playlist-title").text(playlistTitle);
+                $(".selected-playlist .playlist-description").text(playlistDesc);
+                $(".selected-playlist").show();
+                $("#playlistFrame").attr('src', iframeSrc);
+                $('.playlist-browser').scrollTop(0);
+            });
+        });
+    </script>
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            const divider = document.getElementById('divider');
+            const playlistBrowser = document.getElementById('playlist-browser');
+            const playlistDetails = document.getElementById('playlist-details');
+
+            let isResizing = false;
+
+            divider.addEventListener('mousedown', function (e) {
+                isResizing = true;
+                document.body.classList.add('disable-selection');
+                console.log('mousedown event fired');
+            });
+
+            document.addEventListener('mousemove', function (e) {
+                if (!isResizing) return;
+                console.log('mousemove event fired');
+                let containerWidth = document.querySelector('.container').offsetWidth;
+                console.log(`containerWidth: ${containerWidth}`);
+                let newWidth = (e.clientX / containerWidth) * 100;
+                let adjustedWidth = 95
+                if (containerWidth > 2000) {
+                    adjustedWidth = 95;
+                } else {
+                    let decreaseFactor = Math.ceil((2000 - containerWidth) / 200);
+                    adjustedWidth -= decreaseFactor * 1;
+                }
+                console.log(`adjustedWidth: ${adjustedWidth}`);
+                if (newWidth > 30 && newWidth < 70) {
+                    playlistBrowser.style.flex = `0 0 ${newWidth}%`;
+                    playlistDetails.style.flex = `0 0 ${adjustedWidth - newWidth}%`;
+                    console.log(`newWidth: ${newWidth}%`);
+                }
+            });
+
+            document.addEventListener('mouseup', function (e) {
+                if (isResizing) {
+                    console.log('mouseup event fired');
+                    isResizing = false;
+                    document.body.classList.remove('disable-selection');
+                }
+            });
+        });
+
+        // Need to implement logic so that the resizing triggers on window resize
+
+        // document.addEventListener('DOMContentLoaded', function () {
+        //     const divider = document.getElementById('divider');
+        //     const playlistBrowser = document.getElementById('playlist-browser');
+        //     const playlistDetails = document.getElementById('playlist-details');
+
+        //     let isResizing = false;
+
+        //     divider.addEventListener('mousedown', function (e) {
+        //         isResizing = true;
+        //         document.body.classList.add('disable-selection');
+        //         console.log('mousedown event fired');
+        //     });
+
+        //     document.addEventListener('mousemove', handleMouseMove);
+
+        //     document.addEventListener('mouseup', function (e) {
+        //         if (isResizing) {
+        //             console.log('mouseup event fired');
+        //             isResizing = false;
+        //             document.body.classList.remove('disable-selection');
+        //         }
+        //     });
+
+        //     window.addEventListener('resize', function () {
+        //         isResizing = true;
+        //         console.log('window resizing');
+        //         handleMouseMove(event);
+        //         console.log('updated');
+        //         isResizing = false;
+        //     });
+
+        //     function handleMouseMove(e) {
+        //         if (!isResizing) return;
+        //         console.log('mousemove event fired');
+        //         let containerWidth = document.querySelector('.container').offsetWidth;
+        //         console.log(`containerWidth: ${containerWidth}`);
+        //         let newWidth = (e.clientX / containerWidth) * 100;
+        //         let adjustedWidth = 95
+        //         if (containerWidth > 2000) {
+        //             adjustedWidth = 95;
+        //         } else {
+        //             let decreaseFactor = Math.ceil((2000 - containerWidth) / 200);
+        //             adjustedWidth -= decreaseFactor * 1;
+        //         }
+        //         console.log(`adjustedWidth: ${adjustedWidth}`);
+        //         if (newWidth > 10 && newWidth < 90) {
+        //             playlistBrowser.style.flex = `0 0 ${newWidth}%`;
+        //             playlistDetails.style.flex = `0 0 ${adjustedWidth - newWidth}%`;
+        //             console.log(`newWidth: ${newWidth}%`);
+        //         }
+        //     }
+        // });
+    </script>
+</body>
+</html>

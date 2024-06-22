@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Writing</title>
+    <style type="text/css">
+        .navbar {
+            background-color: rgba(0, 0, 0, 0.5); /* Transparent black background */
+            overflow: hidden;
+            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .navbar a {
+            float: left;
+            display: block;
+            color: #fff;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+        .navbar a.active {
+            background-color: #555;
+        }
+
+        .navbar a:link {
+            color: #fff;
+        }
+
+        .navbar a:visited {
+            color: #fff;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+
+        body {
+            background-color: #121212; /* Dark background color */
+            color: #ffffff; /* White text color */
+            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
+            margin: 0px;
+            font-size: 20px;
+        }
+
+        header {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+        }
+
+        section {
+            padding-left: 50px;
+            padding-right: 50px;
+        }
+
+        h2 {
+            margin-top: 10px;
+            margin-bottom: 10px;
+            font-size: 30px;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .piece {
+            background-color: #333;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            padding: 10px;
+            cursor: pointer; /* Eventually want to make it so the title is only clickable part */
+            font-size: 20px;
+        }
+
+        .piece:hover {
+            background-color: #444;
+        }
+
+        .piece-content {
+            display: none; /* Hide content div by default */
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        .piece-content:target {
+            display: block; /* Show content div when targeted (clicked) */
+        }
+
+        .piece-title {
+            padding-left: 5px;
+            color: #fff;
+        }
+
+        .piece-description {
+            padding-left: 15px;
+        }
+
+        .description-text {
+            color: #fff;
+            margin-bottom: 0;
+        }
+
+        #research {
+            background-color: #093249;
+            padding: 50px;
+        }
+
+        #fiction {
+            background-color: #C1DFF0;
+            padding: 50px;
+            color: #121212;
+        }
+
+        #blog {
+            background-color: #093249;
+            padding: 50px;
+        }
+
+        .hidden {
+             display:none;
+        }
+
+        .button-container {
+            margin-top: 5px;
+        }
+
+        .full-text-button {
+            background-color: #C1DFF0; /* Blue background color for button */
+            color: #093249; /* White text color */
+            font-size: 17px;
+            padding: 10px 20px; /* Add padding */
+            border-radius: 5px; /* Rounded corners */
+            border: none;
+            text-decoration: none; /* Remove underline from button */
+            transition: background-color 0.3s; /* Smooth transition for background color */
+            align-items: center;
+            cursor: pointer;
+        }
+        .full-text-button::after {
+            content: ' →';
+        }
+
+        .full-text-button:hover {
+            background-color: #093249; /* Blue background color for button */
+            color: #C1DFF0;
+        }
+
+        h4 {
+        	margin-bottom: 0px;
+        	margin-top: 0px;
+        }
+
+        ul {
+        	margin-top: 0px;
+        }
+
+        li {
+        	padding-top: 5px;
+        	padding-bottom: 5px;
+        }
+
+    </style>
+
+    <script>
+        function toggleDescription(element) {
+            const description = element.querySelector('.piece-description');
+            description.classList.toggle('hidden');
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="navbar">
+                <a href="/">Home</a>
+                <a href="/writing" class="active">Writing</a>
+                <a href="/development">Development</a>
+                <a href="/library">Library</a>
+                <a href="/music">Music</a>
+                <a href="/antiques">Antiques</a>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <!-- Research Section -->
+        <section id="research">
+            <h2>Publications and Presentations</h2>
+            <h4>Conference Talks</h4>
+            <ul>
+            	<li>Hawes, M., <strong>Flathers, M.</strong> [To fill in] (July 2018). Ableism on Campus: Supporting College Students with Psychiatric Diagnoses and Neurodivergence. Alternatives Conference. Washington D.C. 
+            	<li>Sarcone, K., Laferriere, A., Spatz, J., and <strong>Flathers, M.</strong> (September 2018). Inclusive Design Panel: Beyond Accessibility & Across Industries. DesignxRI Design Week 2018. Providence, Rhode Island <a href="https://www.krystalsarcone.com/designxri" style="color: #C1DFF0;">[Event]</a></li>
+            	<li>Britto, V., <strong>Flathers, M.</strong>, Swinski, O., and Ellis, J. (January 2019). Rhode Island Higher Education Summit on Mental Health. Providence, Rhode Island. <a href="https://www.providencejournal.com/story/news/education/campus/2019/01/07/summit-tackles-mental-health-crisis-on-ri-campuses/6353875007/" style="color: #C1DFF0;">[Press]</a></li>
+            </ul>
+            <h4>Journal Articles</h4>
+            <ul>
+            </ul>
+            <div class="piece-list" id="research-list">
+                <div class="piece" data-category="fiction" data-title="The Aesthetics of Psychiatric Diagnosis" onclick="toggleDescription(this);">
+                    <h3 class="piece-title">The Aesthetics of Psychiatric Diagnosis</h3>
+                    <div class="piece-description hidden">
+                        <p class="description-text">Coming Soon.</p><br>
+                        <p class="button-container"><a href="psychiatric-aesthetics" class="full-text-button">View Full Text </a></p>
+                    </div>
+                </div>
+
+                <div class="piece" data-category="fiction" data-title="Diagnosis in Containment" onclick="toggleDescription(this);">
+                    <h3 class="piece-title">Diagnosis in Containment</h3>
+                    <div class="piece-description hidden">
+                        <p class="description-text">Coming Soon.</p><br>
+                        <p class="button-container"><a href="diagnosis-in-containment" class="full-text-button">View Full Text </a></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Fiction Section -->
+        <section id="fiction">
+            <h2>Fiction</h2>
+            <p>I am new to fiction writing, but have always been an avid reader. I am particularly drawn to emotionally rich and politically layered fiction. Some authors that have had the most direct impact on my own writing include Kurt Vonnegut, Jorge Luis Borges, Isabelle Allende, and Arthur Koestler. I am interested in themes of infinity, grief, etymology, lunacy, apparatus, classification, and time.
+
+            To see what I have been reading lately, check out the <a href="library" style="color: blue;">Library</a> section of my website. 
+            <div class="piece-list" id="fiction-list">
+                <!-- List of fiction pieces -->
+                <div class="piece" data-category="fiction" data-title="For Your Own Good" onclick="toggleDescription(this);">
+                    <h3 class="piece-title">For Your Own Good</h3>
+                    <div class="piece-description hidden">
+                        <p class="description-text">An exploration of technology, family, English, paternalism, politics, and Massachusetts.<br><br> This is my first attempt at short story writing high quality enough for me to feel comfortable sharing it with others. It is written in the format of a 2116 academic article in the <i>Journal of Hypothetical Situations with Ambiguous Implications</i>.</p><br>
+                        <p class="button-container"><a href="fyog" class="full-text-button">View Full Text </a></p>
+                    </div>
+                </div>
+                <!-- Add more fiction pieces as needed -->
+                <div class="piece" data-category="fiction" data-title="Xylothar's Exlie" onclick="toggleDescription(this);">
+                    <h3 class="piece-title">Xylothar's Exile</h3>
+                    <div class="piece-description hidden">
+                        <p class="description-text">Coming Soon.</p><br>
+                        <p class="button-container"><a href="xylothars-exile" class="full-text-button">View Full Text </a></p>
+                    </div>
+                </div>
+
+                <div class="piece" data-category="fiction" data-title="A Chip Off The Old Block" onclick="toggleDescription(this);">
+                    <h3 class="piece-title">A Chip Off The Old Block</h3>
+                    <div class="piece-description hidden">
+                        <p class="description-text">Coming Soon.</p><br>
+                        <p class="button-container"><a href="chip-off-the-old-block" class="full-text-button">View Full Text </a></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Blog Section -->
+        <!-- <section id="blog">
+            <h2>Blog</h2>
+            <p>I have been running a small meme page and blog since the beginning of the 2020 American presidential election as a way to vent my political thoughts without driving my friends and family crazy. <br><br>
+
+            A New Generation of Memes, like many of the things I sink way too much time into, started as a bad habit. I grew up as the internet grew up, getting my first flip phone going into high school and my first smartphone on my way into college. I watched firsthand as people realized comment sections could become battlefields, and joined the crowds of people who lost their minds in that clash. All of a sudden you could feel like you were 'making a difference' by going to the New York Times Facebook page and yelling at someone from all the way across the country. Things got so out of hand that cable news now spends an exorbitant amount of time covering political drama that happens on Twitter, in the middle of the single greatest technological revolution humans have ever witnessed.<br><br>
+
+            I created my Instagram page <a href="https://www.instagram.com/anewgenerationofmemes/" style="color:deepskyblue;">@anewgenerationofmemes</a> and the associated <a href="https://anewgenerationofmemes.substack.com/" style="color: deepskyblue;">Substack page</a> as a small corner of the internet where I could share content based on my nearly 10 years spent addicted to talking to people about politics on social media. Unlike my research, these posts are more experimental-- often utilizing state of the art language models, sharing only partially developed ideas, and haphazardly venturing into the realm of the controversial. My guiding light is what I call new generation thinking-- in contrast to next generation thinking-- that places human beings above the systems and apparatus we create. In my content I try my best to stubbornly march to the beat of my own dysfunctional drum in the hopes of shocking people out of their dogmatic beliefs through a blend of humor and rhetoric.
+
+            All the pieces I have written for my blog can be found at the Substack link above. Below I have transcribed a few of my favorite pieces that I have written over the years, including the one further detailing what I mean when I say 'New Generation' thinking.
+            <div class="piece-list" id="blog-list">
+               <div class="piece" data-category="blog" data-title="New Generation Thinking" onclick="toggleDescription(this);">
+                    <h3 class="piece-title">New Generation Thinking</h3>
+                    <div class="piece-description hidden">
+                        <p class="description-text">A brief intro to my goals through an exploration of my page’s name.<br><br> An essay that attempts to explain further what I mean when I say 'New Generation' thinking. Through back and forth OpenAI's GPT-4 Large Language Model and by contrasting usages of the phrases 'New Generation' and 'Next Gerneration' in literature, I try to circle in on exactly what it is I am getting at with all my yapping.</p><br>
+                        <p class="button-container"><a href="new-generation-thinking" class="full-text-button">View Full Text </a></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="piece" data-category="fiction" data-title="Post History" onclick="toggleDescription(this);">
+                <h3 class="piece-title">Post History</h3>
+                <div class="piece-description hidden">
+                    <p class="description-text">Coming Soon.</p><br>
+                    <p class="button-container"><a href="post-history" class="full-text-button">View Full Text </a></p>
+                </div>
+            </div>
+
+            <div class="piece" data-category="fiction" data-title="President's Day" onclick="toggleDescription(this);">
+                <h3 class="piece-title">Presidents Day</h3>
+                <div class="piece-description hidden">
+                    <p class="description-text">Coming Soon.</p> <br>
+                    <p class="button-container"><a href="presidents-day" class="full-text-button">View Full Text </a></p>
+                </div>
+            </div>
+        </section> -->
+    </main>
+</body>
+</html>

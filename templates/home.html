@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matt Flathers</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .navbar {
+            background-color: rgba(0, 0, 0, 0.8); /* Transparent black background */
+            overflow: hidden;
+            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .navbar a {
+            float: left;
+            display: block;
+            color: #fff;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+        .navbar a.active {
+            background-color: #555;
+        }
+
+        .navbar a:link {
+            color: #fff;
+        }
+
+        .navbar a:visited {
+            color: #fff;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+
+        a:hover {
+            text-decoration: underline; /* Add underline on hover */
+        }
+
+        .main-content {
+            background-image: url('../static/images/IMG_4712.JPG');
+            background-size: cover;
+            background-position: center;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .hero-section {
+            position: absolute;
+            top: 50%;
+            left: 50px; /* Adjust left positioning as needed */
+            transform: translateY(-50%);
+        }
+
+        .hero-section h1 {
+            font-size: 46px;
+            color: #ffffff;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+            margin: 0;
+        }
+
+    </style>
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const images = [
+                '20190817_065826308_iOS.jpg',
+                '20190322_012125224_iOS.jpg',
+                'DSC_0825.jpg',
+                'IMG_6649.JPG',
+                'IMG_4712.JPG',
+            ];
+
+            let currentIndex = 0;
+
+            function changeBackground() {
+                document.querySelector('.main-content').style.backgroundImage = `url('../static/images/${images[currentIndex]}')`;
+                currentIndex = (currentIndex + 1) % images.length;
+            }
+
+            setInterval(changeBackground, 15000); // Change background every 15 seconds (15000 milliseconds)
+        });
+    </script>
+</head>
+<body>
+    <div class="main-content">
+        <header>
+            <nav>
+                <div class="navbar">
+                    <a href="/" class="active">Home</a>
+                    <a href="/writing">Writing</a>
+                    <a href="/development">Development</a>
+                    <a href="/library">Library</a>
+                    <a href="/music">Music</a>
+                    <a href="/antiques">Antiques</a>
+                </div>
+            </nav>
+        </header>
+        <div class="hero-section">
+            <h1>Matt Flathers</h1>
+        </div>
+    </div>
+</body>
+</html>

@@ -5,7 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ book.title }}</title>
     <style>
-        /* CSS styles for book-specific page */
+        .navbar {
+            background-color: rgba(0, 0, 0, 0.5); /* Transparent black background */
+            overflow: hidden;
+            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
+            font-size: 20px;
+        }
+
+        .navbar a {
+            float: left;
+            display: block;
+            color: #fff;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+        .navbar a.active {
+            background-color: #555;
+        }
+        
         body {
             background-color: #333; /* Dark grey background color */
             color: #fff; /* White text color */
@@ -77,6 +96,16 @@
     </style>
 </head>
 <body>
+    <nav class="navbar">
+        <div>
+            <a href="/">Home</a>
+            <a href="/writing">Writing</a>
+            <a href="/development">Development</a>
+            <a href="/library" class="active">Library</a>
+            <a href="/music">Music</a>
+            <a href="/antiques">Antiques</a>
+        </div>
+    </nav>
     <div class="header-container">
         <p><a href="/books" class="back-button">← Back</a></p>
         <h1 class="header-text">{{ book.title }}</h1>

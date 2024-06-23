@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matt Flathers</title>
+    <style>
+        .navbar {
+            background-color: rgba(0, 0, 0, 0.8); /* Transparent black background */
+            overflow: hidden;
+            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
+            font-size: 20px;
+        }
+
+        .navbar a {
+            float: left;
+            display: block;
+            color: #fff;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+        .navbar a.active {
+            background-color: #555;
+        }
+
+        body {
+            background-color: #C1DFF0; /* Dark background color */
+            color: #093249; /* White text color */
+            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
+            font-size: 20px;
+            margin: 0px;
+        }
+        h1 {
+            font-size: 30px; /* Increase heading font size */
+            margin-bottom: 10px; /* Add margin below heading */
+            margin-left: 20px;
+        }
+
+        p {
+            font-size: 20px; /* Set paragraph font size */
+            line-height: 1.5; /* Increase line height for better readability */
+            margin-bottom: 10px; /* Add margin below paragraphs */
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .intro {
+            padding: 30px;
+            padding-bottom: 10px;
+        }
+
+        a {
+            color: #ffffff; /* White color for links */
+            text-decoration: none; /* Remove underline from links */
+        }
+        a:hover {
+            text-decoration: underline; /* Add underline on hover */
+        }
+
+        .recently-read {
+            background-color: #093249;
+            color: #C1DFF0;
+            margin: 20px;
+        }
+
+        .recently-read-header {
+            display: flex; /* Use flexbox for layout */
+            justify-content: space-between; /* Align items to each end */
+            align-items: center; /* Center vertically */
+            font-size: 20px;
+            padding-left: 50px;
+            padding-top: 10px;
+        }
+
+        .recently-read-books {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Adjust minmax values as needed */
+            grid-gap: 20px; /* Adjust the gap size as needed */
+            align-content: center;
+            padding: 20px;
+        }
+        
+        .book {
+            text-align: center; /* Center align text */
+        }
+        .book img {
+            max-height: 300px; /* Limit image height */
+            width: auto; /* Auto-adjust width */
+            display: block; /* Ensure proper alignment */
+            margin: 0 auto 10px; /* Center image and add bottom margin */
+            border-radius: 5px;
+        }
+        .book p {
+            margin: 0; /* Remove default margin for paragraphs */
+            font-size: 16px; /* Set font size */
+            overflow: hidden; /* Hide overflow text */
+            text-overflow: ellipsis; /* Show ellipsis for overflow text */
+            white-space: normal; /* Wrap text */
+        }
+
+
+        .recently-watched {
+            background-color: #093249;
+            color: #C1DFF0;
+            margin: 20px;
+        }
+
+        .recently-watched-header {
+		    display: flex; /* Use flexbox for layout */
+            justify-content: space-between; /* Align items to each end */
+            align-items: center; /* Center vertically */
+            font-size: 20px;
+            padding-left: 50px;
+            padding-top: 10px;
+            margin-top: 20px;
+		}
+
+		.recently-watched-movies {
+		    display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Adjust minmax values as needed */
+            grid-gap: 20px; /* Adjust the gap size as needed */
+            align-content: center;
+            padding: 20px;
+		}
+
+		.movie {
+		    text-align: center; /* Center align text */
+		}
+
+		.movie img {
+		    max-height: 300px; /* Limit image height */
+		    width: auto; /* Auto-adjust width */
+		    display: block; /* Ensure proper alignment */
+		    margin: 0 auto 10px; /* Center image and add bottom margin */
+            border-radius: 5px;
+		}
+
+		.movie p {
+		    margin: 0; /* Remove default margin for paragraphs */
+		    font-size: 16px; /* Set font size */
+		    overflow: hidden; /* Hide overflow text */
+		    text-overflow: ellipsis; /* Show ellipsis for overflow text */
+		    white-space: nowrap; /* Prevent wrapping */
+		}
+
+        .button-container {
+            margin-top: 5px;
+        }
+
+        .full-text-button {
+            background-color: #C1DFF0; /* Blue background color for button */
+            color: #093249; /* White text color */
+            font-size: 17px;
+            padding: 10px 20px; /* Add padding */
+            border-radius: 5px; /* Rounded corners */
+            border: none;
+            text-decoration: none; /* Remove underline from button */
+            transition: background-color 0.3s; /* Smooth transition for background color */
+            align-items: center;
+            cursor: pointer;
+            margin-right: 35px;
+        }
+        .full-text-button::after {
+            content: ' →';
+        }
+
+        .full-text-button:hover {
+            background-color: #093249; /* Blue background color for button */
+            color: #C1DFF0;
+            border: solid white 1px;
+            text-decoration: none;
+        }
+
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script>
+	    $(document).ready(function() {
+	        // Function to adjust number of displayed books based on window width
+	        function adjustDisplayedBooks() {
+	            var windowWidth = $(window).width();
+	            var maxBooks = 7; // Default maximum number of books to display
+	            if (windowWidth < 768) {
+	                maxBooks = 4; // Adjust number of books for smaller screens
+	            }
+	            // Hide excess books
+	            $('.book').hide().slice(0, maxBooks).show();
+	        }
+	        
+	        // Call the adjustDisplayedBooks function when the page loads and when the window resizes
+	        adjustDisplayedBooks();
+	        $(window).resize(adjustDisplayedBooks);
+	    });
+	</script>
+</head>
+<body>
+    <nav class="navbar">
+        <div>
+            <a href="/">Home</a>
+            <a href="/writing">Writing</a>
+            <a href="/development">Development</a>
+            <a href="/library" class="active">Library</a>
+            <a href="/music">Music</a>
+            <a href="/antiques">Antiques</a>
+        </div>
+    </nav>
+    <p class="intro">I have always wanted a central place to track all my content ratings instead of having to navigate between Goodreads, Letterboxd, Boredom Killer (The name of the giant spreadsheet of content my friends and I maintain), etc. so I have created this page to start tracking things on my own. I periodically export my data from all of the various trackers and this page updates whenever I load new data. I own none of the rights to anything on this page or any of the pages it leads to.<br><br>Last data update <strong>4/10/2024</strong>
+    <div class="recently-read">
+        <div class="recently-read-header">
+            <h2>Recently Read</h2>
+            <p class="button-container"><a href="/books" class="full-text-button">See All </a></p>
+        </div>
+        <div class="recently-read-books">
+            {% for book in recently_read_books %}
+                <div class="book">
+                    <a href="/book/{{ book.id }}">
+                        <img src="{{ book['cover_image_url'] }}" alt="{{ book['title'] }}">
+                    </a>
+                    <p><strong>{{ book['title'] }}</strong></p>
+                    <p>{{ book['author'] }}</p>
+                    <p>{{ book['publication_year'] }}</p>
+                    <p>My Rating: {{ book['my_rating'] }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="recently-watched">
+        <div class="recently-watched-header">
+    	    <h2>Recently Watched</h2>
+    	    <p class="button-container"><a href="/movies" class="full-text-button">See All </a></p>
+    	</div>
+        <div class="recently-watched-movies">
+            {% for movie in recently_watched_movies %}
+                <div class="movie">
+                    <img src="{{ movie['cover_image_url'] }}" alt="{{ movie['title'] }}">
+                    <p><strong>{{ movie['title'] }}</strong></p>
+                    <p>{{ movie['director'] }}</p>
+                    <p>{{ movie['year'] }}</p>
+                    <p>My Rating: {{ movie['my_rating'] }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

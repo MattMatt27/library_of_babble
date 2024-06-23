@@ -10,7 +10,7 @@ def truncate_title(title):
 # Book CSV Parsing
 def read_books_from_csv():
     books = []
-    with open('book_reviews.csv', 'r', encoding='utf-8') as file:
+    with open('data/book_reviews.csv', 'r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         for row in reader:
             if row['Title'] and row['Author']:
@@ -40,4 +40,4 @@ def get_recently_read_books():
         book['title'] = truncate_title(book['title'])
     # Sort the books by date read in descending order
     sorted_books = sorted(books, key=lambda x: x.get('date_read', datetime.min), reverse=True)
-    return sorted_books[:5]
+    return sorted_books[:7]

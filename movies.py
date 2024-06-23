@@ -7,7 +7,7 @@ import requests as tmdb
 # Movie CSV Parsing
 def watched_movies_from_csv():
     movies = []
-    with open('movie_reviews.csv', 'r', encoding='utf-8') as file:
+    with open('data/movie_reviews.csv', 'r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         for row in reader:
             if row['Name'] and row['Watched Date']:
@@ -34,4 +34,4 @@ def get_recently_watched_movies():
         #movie['title'] = truncate_title(movie['title'])
     # Sort the movies by date watched in descending order
     sorted_movies = sorted(movies, key=lambda x: x.get('date_watched', datetime.min), reverse=True)
-    return sorted_movies[:5]
+    return sorted_movies[:7]

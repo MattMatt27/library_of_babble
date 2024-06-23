@@ -1,0 +1,8 @@
+# Broken/Outdated files
+templates/music-dep.html
+templates/matt_ranking.html
+playlist.html
+
+# Temproary files
+.cache*
+__pycache__/

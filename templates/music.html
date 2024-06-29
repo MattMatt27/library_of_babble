@@ -451,6 +451,7 @@
                             var playlistId = data.playlist_id;
                             var iframeSrc = `https://open.spotify.com/embed/playlist/${playlistId}`;
                             $("#playlistFrame").attr('src', iframeSrc);
+                            $(".selected-playlist").hide();
                         }
                     })
                     .catch(error => {

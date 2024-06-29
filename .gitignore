@@ -1,8 +1,9 @@
 # Broken/Outdated files
 templates/music-dep.html
-templates/matt_ranking.html
+templates/matt_ranking-dep.html
 playlist.html
 
 # Temproary files
 .cache*
 __pycache__/
+Boredom Killer - Movies.csv

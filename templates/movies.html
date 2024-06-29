@@ -6,10 +6,11 @@
     <title>Matt Flathers</title>
     <style>
         .navbar {
-            background-color: rgba(0, 0, 0, 0.5); /* Transparent black background */
+            background-color: rgba(0, 0, 0, 0.8); /* Transparent black background */
             overflow: hidden;
             font-family: Garamond, sans-serif; /* Use a common sans-serif font */
             font-size: 20px;
+            color: #fff;
         }
 
         .navbar a {
@@ -25,21 +26,56 @@
             background-color: #555;
         }
 
+        .navbar a:link {
+            color: #fff;
+        }
+
+        .navbar a:visited {
+            color: #fff;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+
         a:hover {
             text-decoration: underline; /* Add underline on hover */
         }
 
+        .navbar-right {
+            float: right;
+        }
+
+        .login-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 7px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .navbar .login-button {
+            padding: 10px 10px;
+        }
+
         body {
-            background-color: #121212; /* Dark grey background color */
-            color: #fff; /* White text color */
-            font-family: Arial, sans-serif; /* Optional: specify font family */
-            margin: 0; /* Optional: remove default body margin */
-            padding: 0; /* Optional: remove default body padding */
+            background-color: #C1DFF0; 
+            color: #121212; 
+            font-family: Garamond, sans-serif;
+            font-size: 18px;
+            margin: 0;
+            padding: 0; 
         }
         table {
-            background-color: #333;
+            background-color: #093249;
+            color: #fff;
             border-collapse: collapse;
-            width: 100%;
+            margin: 10px;
         }
         th, td {
             padding: 8px;
@@ -47,22 +83,23 @@
             border-bottom: 1px solid #ddd;
         }
         th {
-            background-color: #444;
+            background-color: #121212;
+            color: #fff;
         }
         .center-header {
             text-align: center;
         }
         .image-column {
-            width: 250px; /* Fixed width for image column */
+            width: 150px; /* Fixed width for image column */
         }
         .details-column {
             width: 200px;
         }
         .date-column {
-            width: 100px;
+            width: 75px;
         }
         .rating-column {
-            width: 50px;
+            width: 100px;
         }
         img {
             max-height: 300px; /* Limit image height */
@@ -104,19 +141,28 @@
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div>
+    <nav>
+        <div class="navbar">
             <a href="/">Home</a>
             <a href="/writing">Writing</a>
-            <a href="/development">Development</a>
-            <a href="/library" class="active">Library</a>
-            <a href="/music">Music</a>
-            <a href="/antiques">Antiques</a>
+            <a href="/reading">Reading</a>
+            <a href="/library" class="active">Watching</a>
+            <a href="/creating">Creating</a>
+            <a href="/music">Listening</a>
+            <a href="/antiques">Collecting</a>
+
+            <div class="navbar-right">
+                {% if current_user.is_authenticated %}
+                    <a href="/logout" class="login-button">Logout</a> <!-- Link to logout endpoint -->
+                {% else %}
+                    <a href="/login" class="login-button">Login</a> <!-- Link to login endpoint -->
+                {% endif %}
+            </div>
         </div>
     </nav>
     <div class="header-container">
-        <p><a href="/library" class="back-button">←Back</a></p>
-        <h1 class="header-text">Recently Watched</h1>
+        <!-- <p><a href="/library" class="back-button">←Back</a></p>
+        <h1 class="header-text">Recently Watched</h1> -->
     </div>
     <table>
         <thead>
@@ -138,7 +184,9 @@
                         <strong>Year:</strong> {{ movie['year'] }}
                     </td>
                     <td class="date-column">{{ movie['date_watched'] }}</td>
-                    <td class="rating-column">{{ movie['my_rating'] }}</td>
+                    <td class="rating-column">
+                        <img src="{{ url_for('static', filename='images/stars/' + movie['my_rating'] + '.png') }}" alt="{{ movie['my_rating'] }} Stars">
+                    </td>
                     <td>
                         {% set review_parts = movie['my_review'].split('<blockquote>') %}
                         {% if review_parts|length > 1 %}

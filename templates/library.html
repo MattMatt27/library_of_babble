@@ -10,6 +10,7 @@
             overflow: hidden;
             font-family: Garamond, sans-serif; /* Use a common sans-serif font */
             font-size: 20px;
+            color: #fff;
         }
 
         .navbar a {
@@ -23,6 +24,43 @@
 
         .navbar a.active {
             background-color: #555;
+        }
+
+        .navbar a:link {
+            color: #fff;
+        }
+
+        .navbar a:visited {
+            color: #fff;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+
+        a:hover {
+            text-decoration: underline; /* Add underline on hover */
+        }
+
+        .navbar-right {
+            float: right;
+        }
+
+        .login-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 7px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .navbar .login-button {
+            padding: 10px 10px;
         }
 
         body {
@@ -195,14 +233,23 @@
 	</script>
 </head>
 <body>
-    <nav class="navbar">
-        <div>
+    <nav>
+        <div class="navbar">
             <a href="/">Home</a>
             <a href="/writing">Writing</a>
-            <a href="/development">Development</a>
-            <a href="/library" class="active">Library</a>
-            <a href="/music">Music</a>
-            <a href="/antiques">Antiques</a>
+            <a href="/reading">Reading</a>
+            <a href="/library" class="active">Watching</a>
+            <a href="/creating">Creating</a>
+            <a href="/music">Listening</a>
+            <a href="/antiques">Collecting</a>
+
+            <div class="navbar-right">
+                {% if current_user.is_authenticated %}
+                <a href="/logout" class="login-button">Logout</a> <!-- Link to logout endpoint -->
+                {% else %}
+                    <a href="/login" class="login-button">Login</a> <!-- Link to login endpoint -->
+                {% endif %}
+            </div>
         </div>
     </nav>
     <p class="intro">I have always wanted a central place to track all my content ratings instead of having to navigate between Goodreads, Letterboxd, Boredom Killer (The name of the giant spreadsheet of content my friends and I maintain), etc. so I have created this page to start tracking things on my own. I periodically export my data from all of the various trackers and this page updates whenever I load new data. I own none of the rights to anything on this page or any of the pages it leads to.<br><br>Last data update <strong>4/10/2024</strong>

@@ -18,7 +18,7 @@
         }
 
         .navbar {
-            background-color: rgba(0, 0, 0, 0.9); /* Transparent black background */
+            background-color: rgba(0, 0, 0, 0.5); /* Transparent black background */
             overflow: hidden;
             font-family: Garamond, sans-serif; /* Use a common sans-serif font */
             font-size: 20px;
@@ -266,10 +266,11 @@
             <div class="navbar">
                 <a href="/">Home</a>
                 <a href="/writing">Writing</a>
-                <a href="/development">Development</a>
-                <a href="/library">Library</a>
-                <a href="/music?next=/music" class="active">Music</a>
-                <a href="/antiques">Antiques</a>
+                <a href="/reading">Reading</a>
+                <a href="/library">Watching</a>
+                <a href="/creating">Creating</a>
+                <a href="/music" class="active">Listening</a>
+                <a href="/antiques">Collecting</a>
 
                 <div class="navbar-right">
                     {% if current_user.is_authenticated %}

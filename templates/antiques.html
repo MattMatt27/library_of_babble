@@ -6,10 +6,11 @@
     <title>Antiques</title>
     <style>
         .navbar {
-            background-color: rgba(0, 0, 0, 0.8); /* Transparent black background */
+            background-color: rgba(0, 0, 0, 0.5); /* Transparent black background */
             overflow: hidden;
             font-family: Garamond, sans-serif; /* Use a common sans-serif font */
             font-size: 20px;
+            color: #fff;
         }
 
         .navbar a {
@@ -23,6 +24,39 @@
 
         .navbar a.active {
             background-color: #555;
+        }
+
+        .navbar a:link {
+            color: #fff;
+        }
+
+        .navbar a:visited {
+            color: #fff;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+
+        .navbar-right {
+            float: right;
+        }
+
+        .login-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 7px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .navbar .login-button {
+            padding: 10px 10px;
         }
 
         body {
@@ -196,14 +230,23 @@
 	</script>
 </head>
 <body>
-    <nav class="navbar">
-        <div>
+    <nav>
+        <div class="navbar">
             <a href="/">Home</a>
             <a href="/writing">Writing</a>
-            <a href="/development">Development</a>
-            <a href="/library">Library</a>
-            <a href="/music">Music</a>
-            <a href="/antiques" class="active">Antiques</a>
+            <a href="/reading">Reading</a>
+            <a href="/library">Watching</a>
+            <a href="/creating">Creating</a>
+            <a href="/music">Listening</a>
+            <a href="/antiques" class="active">Collecting</a>
+
+            <div class="navbar-right">
+                {% if current_user.is_authenticated %}
+                <a href="/logout" class="login-button">Logout</a> <!-- Link to logout endpoint -->
+                {% else %}
+                    <a href="/login" class="login-button">Login</a> <!-- Link to login endpoint -->
+                {% endif %}
+            </div>
         </div>
     </nav>
     <p class="intro">As someone with an Archaeology degree, you might assume that I am interested in old objects. You would be correct. Over the years I have tried various different methods to organize my collection, without ever finding a solution that I particularly like. This page is my latest attempt to share my collecting hobby with people. Most of my notes and details are preliminary and based on a simple inventory pass and not detailed research yet.</p>

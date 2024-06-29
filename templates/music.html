@@ -50,6 +50,27 @@
             text-decoration: underline;
         }
 
+        .navbar-right {
+            float: right;
+        }
+
+        .login-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 7px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .navbar .login-button {
+            padding: 10px 10px;
+        }
+
         .container {
             display: flex;
             width: 100%;
@@ -135,6 +156,18 @@
             margin-bottom: 10px;
         }
 
+        .tv-playlists {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            align-items: center;
+            background-color: #093249;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
         .individual-playlists {
             padding: 20px;
             display: flex;
@@ -207,14 +240,14 @@
         }
 
         .playlist-title {
-          font-size: 30px; /* Adjust the font size of the title */
+          font-size: 40px; /* Adjust the font size of the title */
           font-weight: bold; /* Optionally, make the title bold */
           margin-bottom: 5px;
           margin-top: 0px;
         }
 
         .playlist-description {
-          font-size: 15px; /* Adjust the font size of the description */
+          font-size: 20px; /* Adjust the font size of the description */
           margin: 0; /* Remove margin to avoid extra space */
         }
 
@@ -235,8 +268,16 @@
                 <a href="/writing">Writing</a>
                 <a href="/development">Development</a>
                 <a href="/library">Library</a>
-                <a href="/music" class="active">Music</a>
+                <a href="/music?next=/music" class="active">Music</a>
                 <a href="/antiques">Antiques</a>
+
+                <div class="navbar-right">
+                    {% if current_user.is_authenticated %}
+                    <a href="/logout" class="login-button">Logout</a> <!-- Link to logout endpoint -->
+                    {% else %}
+                        <a href="/login" class="login-button">Login</a> <!-- Link to login endpoint -->
+                    {% endif %}
+                </div>
             </div>
         </nav>
     </header>
@@ -267,12 +308,23 @@
                 <h1 class="section-title">Color Playlists</h1>
                 <p class="section-description">Out of boredom, I went through my liked songs and created separate playlists based on the color of their album art. In most cases I have tried avoiding adding multiple songs from the same album to any of the playlists (choosing just my favorite track instead).</p>
                 <div class="playlist-grid">
-                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84f4597cdd4a269b2d6b99cb6b" id="5dSSoKT4XixyrMAfghFEnj" playlistname="Green" description="My playlist of songs with predominantly green album art"> <!-- Green -->
-                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da846cad4745d0bf2594fb6687c6" id="4LMgntTP6vsjkiEvvlHAbj" playlistname="Yellow" description="My playlist of songs with predominantly yellow album art"> <!-- Yellow -->
-                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da8443b69f66cabf6ae4b26a7ded" id="4BeLgttjCMKJ6gVEsWpZFf" playlistname="Orange" description="My playlist of songs with predominantly orange album art"> <!-- Orange -->
-                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84fa853badbffa5686cbd79556" id="1mCvZw2wuEQ80VoNuf2Z8I" playlistname="Red" description="My playlist of songs with predominantly red album art"> <!-- Red -->
-                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da842ff9ae2073e8711d9e0152e8" id="38qoJ0cp1jgomJd300eya6" playlistname="Pink" description="My playlist of songs with predominantly pink album art"> <!-- Pink -->
-                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84132105904431b23c5dbe97e3" id="1uuMuf5NLjCPkFQNa0q2zS" playlistname="Purple" description="My playlist of songs with predominantly purple album art"> <!-- Purple -->
+                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84f4597cdd4a269b2d6b99cb6b" id="5dSSoKT4XixyrMAfghFEnj" playlistname="Green" description="Songs with predominantly green album art"> <!-- Green -->
+                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da846cad4745d0bf2594fb6687c6" id="4LMgntTP6vsjkiEvvlHAbj" playlistname="Yellow" description="Songs with predominantly yellow album art"> <!-- Yellow -->
+                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da8443b69f66cabf6ae4b26a7ded" id="4BeLgttjCMKJ6gVEsWpZFf" playlistname="Orange" description="Songs with predominantly orange album art"> <!-- Orange -->
+                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84fa853badbffa5686cbd79556" id="1mCvZw2wuEQ80VoNuf2Z8I" playlistname="Red" description="Songs with predominantly red album art"> <!-- Red -->
+                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da842ff9ae2073e8711d9e0152e8" id="38qoJ0cp1jgomJd300eya6" playlistname="Pink" description="Songs with predominantly pink album art"> <!-- Pink -->
+                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84132105904431b23c5dbe97e3" id="1uuMuf5NLjCPkFQNa0q2zS" playlistname="Purple" description="Songs with predominantly purple album art"> <!-- Purple -->
+                </div>
+            </div>
+            <div class="tv-playlists">
+                <h1 class="section-title">TV Show Playlists</h1>
+                <p class="section-description">One of the things that will keep me invested in a TV show is good music. I have started making small playlists of songs I like from shows that I think had really solid soundtracks.</p>
+                <div class="playlist-grid">
+                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84f2ac5a21e21a897c6e82a77b" id="4wsBIj6PQgvgNEdE2Ky8OT" playlistname="The Young Pope" description="Songs I liked from the TV Show The Young Pope"> 
+                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da843fea3565ca39406587577d15" id="1kFAlfgQA3wC6tsEqSt0Oe" playlistname="Dollface" description="Songs I liked from the TV Show Dollface"> 
+                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84fb60a39a288da9b8eeefd469" id="3fq86UjfF4WxotFcGlpJtx" playlistname="Severance" description="Songs I liked from the TV Show Severance"> 
+                    <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da8473e64bcf66c0f22e258f7047" id="7M2R94ie1U0D4XbPRngKrl" playlistname="Death and Other Details" description="Songs I liked from the TV Show Death and Other Details"> 
+
                 </div>
             </div>
             <div class="individual-playlists">
@@ -287,12 +339,12 @@
                       <!-- <p class="caption-text">Sad and Angry Female Indie Pop</p> -->
                     </div>
                     <div class="image-caption">
-                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da842062633e69750625236bd161" id="5Ceo4MZgv5wbCt07e3wHVY" playlistname="Watching Them Drive Away" description="My playlist of moody indie rock songs featuring (mostly) female vocalists. Emphasis is on frayed vocals, introspective pain, and undercommunicated anger. Featuring songs by artists like Lucy Dacus, Atta Boy, Snail Mail and more.">
+                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da842062633e69750625236bd161" id="5Ceo4MZgv5wbCt07e3wHVY" playlistname="Watching them Drive Away" description="My playlist of moody indie rock songs featuring (mostly) female vocalists. Emphasis is on frayed vocals, introspective pain, and undercommunicated anger. Featuring songs by artists like Lucy Dacus, Atta Boy, Snail Mail and more.">
                       <!-- <p class="caption-text">Sad Female Indie Rock</p> -->
                     </div>
 
                     <div class="image-caption">
-                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da8456f2aa40ed2e55f1cefeb715" id="5CBDG0aW5oqWY1Mk4AwOXn" playlistname="Mom Music" description="My playlist of classic rock and alternative pop songs featuring commanding female vocalists. Emphasis is on a sense of nostalgia, like riding in a minivan on a lazy Sunday afternoon. Featuring songs by artists like Fleetwood Mac, 10,000 Maniacs, KT Tunstall and more.">
+                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da8456f2aa40ed2e55f1cefeb715" id="5CBDG0aW5oqWY1Mk4AwOXn" playlistname="Mom Music" description="My playlist of classic rock and alternative pop songs featuring commanding female vocalists. Emphasis is on a sense of nostalgia, like listening to the minivan radio on a lazy Sunday afternoon. Featuring songs by artists like Fleetwood Mac, 10,000 Maniacs, KT Tunstall and more.">
                       <!-- <p class="caption-text">1990s Female Mainstream</p> -->
                     </div>
                     <div class="image-caption">
@@ -300,8 +352,7 @@
                       <!-- <p class="caption-text">1990s Male Mainstream</p> -->
                     </div>
                     <div class="image-caption">
-                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da844d69242223d4cc440cf18f73" id="5svcCcfdzTqYIQimtwKy0d" playlistname="Going 80 in Suburbia" description="My playlist of synthwave, outrun, and indie-synthpop music. The focus is on futuristic, high-tempo, heavily filtered-- almost grainy-- sounding music. Featuring songs by artists like Kavinsky, The Weeknd, VHS Collection and more.">
-                      <!-- <p class="caption-text">1990s Male Mainstream</p> -->
+                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84c18c6f96682648d06905719d" id="5svcCcfdzTqYIQimtwKy0d" playlistname="Going 80 in Suburbia" description="My playlist of synthwave, outrun, and indie-synthpop music. The focus is on futuristic, high-tempo, heavily filtered-- almost grainy-- sounding music. Featuring songs by artists like Kavinsky, The Weeknd, VHS Collection and more.">
                     </div>
 
                     <div class="image-caption">
@@ -314,10 +365,9 @@
                       <!-- <p class="caption-text">2000s Pop-Punk Adjacent</p> -->
                     </div>
 
-                    <!-- <div class="image-caption">
-                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84b400d46eebad790463707f07" id="3NTMuG81XJdGosarEThzDJ" playlistname="Emergency Exit, Alarm Will Sound" description="My playlist of late 90s and early 2000s grunge and post-grunge hits. Emphasis is on gravelly vocals, angry guitars. Featuring songs by artists like Panic! At The Disco, Fall Out Boy, Green Day and more.">
-                    <p class="caption-text">Grunge</p> 
-                    </div> -->
+                    <div class="image-caption">
+                      <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84b400d46eebad790463707f07" id="3NTMuG81XJdGosarEThzDJ" playlistname="Emergency Exit, Alarm Will Sound" description="My playlist of late 90s and early 2000s grunge and post-grunge hits. Emphasis is on rough vocals, angry guitars, and darkness. Featuring songs by artists like Foo Fighters, The Offspring, Linkin Park and more.">
+                    </div>
 
                     <div class="image-caption">
                       <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84840c6468a9170eeb0d5fe6ec" id="6UO3Pm59MuSeyalkWWeEsb" playlistname="Train Windows and Subway Nights" description="My playlist of wistful indie-pop-folk featuring male vocalists. Emphasis is on songs that I feel capture the way you can lose your sense of self staring out train windows late at night. Featuring songs by artists like Bon Iver, Charlie Cunningham, Novo Amor and more.">
@@ -352,12 +402,14 @@
 
     <script>
         $(function() {
+            var currentDate = new Date();
+            var firstOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
             $("#datepickerInput").datepicker({
                 dateFormat: "MM yy", // Display format for month and year
                 changeMonth: true, // Enable month dropdown
                 changeYear: true, // Enable year dropdown
                 minDate: new Date(2019, 2 - 1), // February 2019
-                maxDate: new Date(2024, 4 - 1), // April 2024
+                maxDate: firstOfMonth, // April 2024
                 showButtonPanel: true, // Show button panel for navigation
                 onClose: function(dateText, inst) {
                     var month = $("#ui-datepicker-div .ui-datepicker-month option:selected").val();
@@ -447,14 +499,11 @@
             divider.addEventListener('mousedown', function (e) {
                 isResizing = true;
                 document.body.classList.add('disable-selection');
-                console.log('mousedown event fired');
             });
 
             document.addEventListener('mousemove', function (e) {
                 if (!isResizing) return;
-                console.log('mousemove event fired');
                 let containerWidth = document.querySelector('.container').offsetWidth;
-                console.log(`containerWidth: ${containerWidth}`);
                 let newWidth = (e.clientX / containerWidth) * 100;
                 let adjustedWidth = 95
                 if (containerWidth > 2000) {
@@ -463,17 +512,14 @@
                     let decreaseFactor = Math.ceil((2000 - containerWidth) / 200);
                     adjustedWidth -= decreaseFactor * 1;
                 }
-                console.log(`adjustedWidth: ${adjustedWidth}`);
                 if (newWidth > 30 && newWidth < 70) {
                     playlistBrowser.style.flex = `0 0 ${newWidth}%`;
                     playlistDetails.style.flex = `0 0 ${adjustedWidth - newWidth}%`;
-                    console.log(`newWidth: ${newWidth}%`);
                 }
             });
 
             document.addEventListener('mouseup', function (e) {
                 if (isResizing) {
-                    console.log('mouseup event fired');
                     isResizing = false;
                     document.body.classList.remove('disable-selection');
                 }

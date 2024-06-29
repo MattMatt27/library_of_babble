@@ -1,4 +1,8 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+
 from books import get_recently_read_books, read_books_from_csv, truncate_title
 from music import music_test, generate_monthly_playlists_df, select_playlist, get_tracks_artists
 from movies import get_recently_watched_movies, watched_movies_from_csv
@@ -10,8 +14,110 @@ import pandas as pd
 from datetime import datetime
 import csv
 import re
+import os
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+db = SQLAlchemy(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+    role = db.Column(db.String(50), nullable=False)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+@login_manager.unauthorized_handler
+def unauthorized_callback():
+    session['unauth_login'] = 1
+    session['next_url'] = request.url
+    return redirect(url_for('login'))
+
+def create_user(username, password, role):
+    hashed_password = generate_password_hash(password)
+    user = User.query.filter_by(username=username).first()
+
+    if user:
+        user.password = hashed_password
+        user.role = role
+    else:
+        user = User(username=username, password=hashed_password, role=role)
+
+    db.session.add(user)
+    db.session.commit()
+
+def init_db():
+    with app.app_context():
+        db.create_all()
+        create_user('admin', 'admin_password', 'admin')  # Replace with secure password
+        create_user('viewer', 'viewer_password', 'viewer')  # Replace with secure password
+
+@app.route('/users')
+@login_required
+def show_users():
+    if current_user.role != 'admin':
+        return "You do not have permission to access this page."
+    
+    users = User.query.all()
+    user_list = [{'username': user.username, 'password': user.password, 'role': user.role} for user in users]
+    return jsonify(user_list)
+
+@app.route('/check_login')
+@login_required
+def check_login():
+    if current_user.role != 'admin':
+        return "You do not have permission to access this page."
+        
+    if current_user.is_authenticated:
+        return f"User {current_user.username} is logged in."
+    else:
+        return "User is not logged in."
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(username=username).first()
+        if user and check_password_hash(user.password, password):
+            session['user_id'] = user.id  # Store user ID in session
+            flash('Login Successful', 'success')
+            login_user(user)
+            next_page = session.get('next_url', '/')
+            session.pop('next_url', None)
+
+            return redirect(next_page)
+        else:
+            flash('Login Unsuccessful. Please check username and password', 'danger')
+    else:
+        referrer = request.referrer
+        if 'unauth_login' in session and session['unauth_login'] == 1:
+            session.pop('unauth_login', None)
+            output = session['next_url']
+        else:
+            if 'login' not in request.url:
+                session['next_url'] = request.url
+                output = request.url
+            else:
+                session['next_url'] = referrer
+                output = referrer
+
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    session.clear()
+    logout_user()
+    return redirect(request.referrer or '/')
+
+
 
 @app.route('/')
 def home():
@@ -77,6 +183,7 @@ def alcohol_labels():
 #         return render_template('music.html')  # Render initial form
 
 @app.route('/music', methods=['GET', 'POST'])
+@login_required
 def music():
     # Currently this is limited to just the date changing functionality. Will need to think of a clever way
     # to allow for multiple sections to cause changes in what is displayed.
@@ -141,16 +248,18 @@ def movies():
     movies_data = watched_movies_from_csv()
     return render_template('movies.html', movies=movies_data)
 
-@app.route('/matt-ranking')
-def matt_ranking():
+# @app.route('/matt-ranking')
+# def matt_ranking():
 
-    #average_ratings = movie_analytics()
+#     #average_ratings = movie_analytics()
 
-    # Sort the DataFrame by mean rating in descending order
-    #sorted_ratings = average_ratings.sort_values(by='mean', ascending=False)
+#     # Sort the DataFrame by mean rating in descending order
+#     #sorted_ratings = average_ratings.sort_values(by='mean', ascending=False)
 
-    # ratings=sorted_ratings
-    return render_template('matt_ranking.html', table_html=table_html)
+#     # ratings=sorted_ratings
+#     return render_template('matt_ranking.html', table_html=table_html)
 
 if __name__ == '__main__':
+    init_db()
+
     app.run(debug=True)

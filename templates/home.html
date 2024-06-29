@@ -47,6 +47,27 @@
             text-decoration: underline; /* Add underline on hover */
         }
 
+        .navbar-right {
+            float: right;
+        }
+
+        .login-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 7px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .navbar .login-button {
+            padding: 10px 10px;
+        }
+
         .main-content {
             background-image: url('../static/images/IMG_4712.JPG');
             background-size: cover;
@@ -97,11 +118,20 @@
             <nav>
                 <div class="navbar">
                     <a href="/" class="active">Home</a>
-                    <a href="/writing">Writing</a>
                     <a href="/development">Development</a>
-                    <a href="/library">Library</a>
+                    <a href="/writing">Writing</a>
+                    <a href="/library">Reading</a>
+                    <a href="/art">Art</a>
                     <a href="/music">Music</a>
                     <a href="/antiques">Antiques</a>
+
+                    <div class="navbar-right">
+                        {% if current_user.is_authenticated %}
+                        <a href="/logout" class="login-button">Logout</a> <!-- Link to logout endpoint -->
+                        {% else %}
+                            <a href="/login" class="login-button">Login</a> <!-- Link to login endpoint -->
+                        {% endif %}
+                    </div>
                 </div>
             </nav>
         </header>

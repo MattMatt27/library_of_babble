@@ -16,7 +16,7 @@ def generate_monthly_playlists_df():
                   '(Jan 21)', '(Feb 21)', '(Mar 21)', '(Apr 21)', '(May 21)', '(June 21)', '(July 21)', '(Aug 21)', '(Sep 21)', '(Oct 21)', '(Nov 21)', '(Dec 21)',
                   '(Jan 22)', '(Feb 22)', '(Mar 22)', '(Apr 22)', '(May 22)', '(June 22)', '(July 22)', '(Aug 22)', '(Sep 22)', '(Oct 22)', '(Nov 22)', '(Dec 22)',
                   '(Jan 23)', '(Feb 23)', '(Mar 23)', '(Apr 23)', '(May 23)', '(June 23)', '(July 23)', '(Aug 23)', '(Sep 23)', '(Oct 23)', '(Nov 23)', '(Dec 23)',
-                  '(Jan 24)', '(Feb 24)', '(Mar 24)', '(Apr 24)']
+                  '(Jan 24)', '(Feb 24)', '(Mar 24)', '(Apr 24)', '(May 24)', '(June 24)']
 
     with open('data/matts_playlists.csv', 'r', encoding='iso-8859-1') as file:
         reader = csv.DictReader(file)

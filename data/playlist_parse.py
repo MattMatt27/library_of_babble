@@ -48,7 +48,7 @@ while escape < 1:
             print('UnknownError: Please write an exception case once you figure out what happened.')
         
         try:
-            playlistsDF.to_csv('matts_playlists.csv', index=False, mode='a',header=False)
+            playlistsDF.to_csv('6-26-2024_matts_playlists.csv', index=False, mode='a',header=False)
         except PermissionError: 
             print('PermissionError: Please close the file before writing to it.')
         except:

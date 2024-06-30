@@ -10,6 +10,7 @@
             overflow: hidden;
             font-family: Garamond, sans-serif; /* Use a common sans-serif font */
             font-size: 20px;
+            color: #fff;
         }
 
         .navbar a {
@@ -25,8 +26,37 @@
             background-color: #555;
         }
 
-        a:hover {
-            text-decoration: underline; /* Add underline on hover */
+        .navbar a:link {
+            color: #fff;
+        }
+
+        .navbar a:visited {
+            color: #fff;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+
+        .navbar-right {
+            float: right;
+        }
+
+        .login-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 7px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .navbar .login-button {
+            padding: 10px 10px;
         }
 
         body {
@@ -110,18 +140,27 @@
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div>
+    <nav>
+        <div class="navbar">
             <a href="/">Home</a>
             <a href="/writing">Writing</a>
-            <a href="/development">Development</a>
-            <a href="/library">Library</a>
-            <a href="/music">Music</a>
-            <a href="/antiques" class="active">Antiques</a>
+            <a href="/reading">Reading</a>
+            <a href="/watching">Watching</a>
+            <a href="/creating">Creating</a>
+            <a href="/listening">Listening</a>
+            <a href="/collecting" class="active">Collecting</a>
+
+            <div class="navbar-right">
+                {% if current_user.is_authenticated %}
+                <a href="/logout" class="login-button">Logout</a> <!-- Link to logout endpoint -->
+                {% else %}
+                    <a href="/login" class="login-button">Login</a> <!-- Link to login endpoint -->
+                {% endif %}
+            </div>
         </div>
     </nav>
     <div class="header-container">
-        <p><a href="/antiques" class="back-button">←Back</a></p>
+        <p><a href="/collecting" class="back-button">←Back</a></p>
         <h1 class="header-text">Recently Added</h1>
     </div>
     <table>

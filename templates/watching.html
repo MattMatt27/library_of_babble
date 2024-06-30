@@ -168,7 +168,7 @@
 		}
 
 		.movie img {
-		    max-height: 300px; /* Limit image height */
+		    max-height: 200px; /* Limit image height */
 		    width: auto; /* Auto-adjust width */
 		    display: block; /* Ensure proper alignment */
 		    margin: 0 auto 10px; /* Center image and add bottom margin */
@@ -218,7 +218,7 @@
 	        // Function to adjust number of displayed books based on window width
 	        function adjustDisplayedBooks() {
 	            var windowWidth = $(window).width();
-	            var maxBooks = 7; // Default maximum number of books to display
+	            var maxBooks = 8; // Default maximum number of books to display
 	            if (windowWidth < 768) {
 	                maxBooks = 4; // Adjust number of books for smaller screens
 	            }
@@ -231,6 +231,24 @@
 	        $(window).resize(adjustDisplayedBooks);
 	    });
 	</script>
+    <script>
+        $(document).ready(function() {
+            // Function to adjust number of displayed books based on window width
+            function adjustDisplayedMovies() {
+                var windowWidth = $(window).width();
+                var maxMovies = 8; // Default maximum number of books to display
+                if (windowWidth < 768) {
+                    maxMovies = 4; // Adjust number of books for smaller screens
+                }
+                // Hide excess books
+                $('.movie').hide().slice(0, maxMovies).show();
+            }
+            
+            // Call the adjustDisplayedBooks function when the page loads and when the window resizes
+            adjustDisplayedMovies();
+            $(window).resize(adjustDisplayedMovies);
+        });
+    </script>
 </head>
 <body>
     <nav>
@@ -240,8 +258,8 @@
             <a href="/reading">Reading</a>
             <a href="/library" class="active">Watching</a>
             <a href="/creating">Creating</a>
-            <a href="/music">Listening</a>
-            <a href="/antiques">Collecting</a>
+            <a href="/listening">Listening</a>
+            <a href="/collecting">Collecting</a>
 
             <div class="navbar-right">
                 {% if current_user.is_authenticated %}
@@ -252,7 +270,7 @@
             </div>
         </div>
     </nav>
-    <p class="intro">I have always wanted a central place to track all my content ratings instead of having to navigate between Goodreads, Letterboxd, Boredom Killer (The name of the giant spreadsheet of content my friends and I maintain), etc. so I have created this page to start tracking things on my own. I periodically export my data from all of the various trackers and this page updates whenever I load new data. I own none of the rights to anything on this page or any of the pages it leads to.<br><br>Last data update <strong>4/10/2024</strong>
+    <!-- <p class="intro">I have always wanted a central place to track all my content ratings instead of having to navigate between Goodreads, Letterboxd, Boredom Killer (The name of the giant spreadsheet of content my friends and I maintain), etc. so I have created this page to start tracking things on my own. I periodically export my data from all of the various trackers and this page updates whenever I load new data. I own none of the rights to anything on this page or any of the pages it leads to.<br><br>Last data update <strong>4/10/2024</strong>
     <div class="recently-read">
         <div class="recently-read-header">
             <h2>Recently Read</h2>
@@ -271,20 +289,22 @@
                 </div>
             {% endfor %}
         </div>
-    </div>
+    </div> -->
     <div class="recently-watched">
         <div class="recently-watched-header">
-    	    <h2>Recently Watched</h2>
+    	    <h2>Recently Watched Movies</h2>
     	    <p class="button-container"><a href="/movies" class="full-text-button">See All </a></p>
     	</div>
         <div class="recently-watched-movies">
             {% for movie in recently_watched_movies %}
                 <div class="movie">
                     <img src="{{ movie['cover_image_url'] }}" alt="{{ movie['title'] }}">
-                    <p><strong>{{ movie['title'] }}</strong></p>
+                    <p style="font-size: 18px;"><strong>{{ movie['title'] }}</strong></p>
                     <p>{{ movie['director'] }}</p>
                     <p>{{ movie['year'] }}</p>
-                    <p>My Rating: {{ movie['my_rating'] }}</p>
+                    <p>
+                        <img src="{{ url_for('static', filename='images/stars/' + movie['my_rating'] + '.png') }}" alt="{{ movie['my_rating'] }} Stars" style="width: 50%;">
+                    </p>
                 </div>
             {% endfor %}
         </div>

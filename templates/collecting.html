@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Antiques</title>
+    <title>Collecting</title>
     <style>
         .navbar {
             background-color: rgba(0, 0, 0, 0.5); /* Transparent black background */
@@ -235,10 +235,10 @@
             <a href="/">Home</a>
             <a href="/writing">Writing</a>
             <a href="/reading">Reading</a>
-            <a href="/library">Watching</a>
+            <a href="/watching">Watching</a>
             <a href="/creating">Creating</a>
-            <a href="/music">Listening</a>
-            <a href="/antiques" class="active">Collecting</a>
+            <a href="/listening">Listening</a>
+            <a href="/collecting" class="active">Collecting</a>
 
             <div class="navbar-right">
                 {% if current_user.is_authenticated %}
@@ -271,7 +271,7 @@
     <div class="labels-container">
         <div class="labels-header">
     	    <h2>Alcohol Labels</h2>
-    	    <p class="button-container"><a href="/alcohol labels" class="full-text-button">See All </a></p>
+    	    <p class="button-container"><a href="/alcohol-labels" class="full-text-button">See All </a></p>
     	</div>
         <div class="labels">
             {% for label in recently_added_labels %}

@@ -7,6 +7,8 @@
         .navbar {
             background-color: rgba(0, 0, 0, 0.5); /* Transparent black background */
             overflow: hidden;
+            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
+            font-size: 20px;
             color: #fff;
         }
 
@@ -17,6 +19,10 @@
             text-align: center;
             padding: 14px 16px;
             text-decoration: none;
+        }
+
+        .navbar a.active {
+            background-color: #555;
         }
 
         .navbar a:link {
@@ -31,8 +37,25 @@
             text-decoration: underline;
         }
 
-        .navbar a.active {
-            background-color: #555;
+        .navbar-right {
+            float: right;
+        }
+
+        .login-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 7px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .navbar .login-button {
+            padding: 10px 10px;
         }
 
         body {
@@ -133,13 +156,23 @@
 </head>
 <body>
     <header>
-        <nav class="navbar">
-            <div>
+        <nav>
+            <div class="navbar">
                 <a href="/">Home</a>
                 <a href="/writing" class="active">Writing</a>
-                <a href="/development">Development</a>
-                <a href="/library" >Library</a>
-                <a href="/antiques">Antiques</a>
+                <a href="/reading">Reading</a>
+                <a href="/watching">Watching</a>
+                <a href="/creating">Creating</a>
+                <a href="/listening">Listening</a>
+                <a href="/collecting">Collecting</a>
+
+                <div class="navbar-right">
+                    {% if current_user.is_authenticated %}
+                    <a href="/logout" class="login-button">Logout</a> <!-- Link to logout endpoint -->
+                    {% else %}
+                        <a href="/login" class="login-button">Login</a> <!-- Link to login endpoint -->
+                    {% endif %}
+                </div>
             </div>
         </nav>
     </header>

@@ -6,10 +6,11 @@
     <title>Matt Flathers</title>
     <style>
         .navbar {
-            background-color: rgba(0, 0, 0, 0.5); /* Transparent black background */
+            background-color: rgba(0, 0, 0, 0.8); /* Transparent black background */
             overflow: hidden;
             font-family: Garamond, sans-serif; /* Use a common sans-serif font */
             font-size: 20px;
+            color: #fff;
         }
 
         .navbar a {
@@ -25,8 +26,41 @@
             background-color: #555;
         }
 
+        .navbar a:link {
+            color: #fff;
+        }
+
+        .navbar a:visited {
+            color: #fff;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+
         a:hover {
             text-decoration: underline; /* Add underline on hover */
+        }
+
+        .navbar-right {
+            float: right;
+        }
+
+        .login-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 7px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .navbar .login-button {
+            padding: 10px 10px;
         }
 
         body {
@@ -96,14 +130,23 @@
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div>
+    <nav>
+        <div class="navbar">
             <a href="/">Home</a>
             <a href="/writing">Writing</a>
-            <a href="/development">Development</a>
-            <a href="/library" class="active">Library</a>
-            <a href="/music">Music</a>
-            <a href="/antiques">Antiques</a>
+            <a href="/reading">Reading</a>
+            <a href="/watching" class="active">Watching</a>
+            <a href="/creating">Creating</a>
+            <a href="/listening">Listening</a>
+            <a href="/collecting">Collecting</a>
+
+            <div class="navbar-right">
+                {% if current_user.is_authenticated %}
+                    <a href="/logout" class="login-button">Logout</a> <!-- Link to logout endpoint -->
+                {% else %}
+                    <a href="/login" class="login-button">Login</a> <!-- Link to login endpoint -->
+                {% endif %}
+            </div>
         </div>
     </nav>
     <div class="header-container">

@@ -139,11 +139,11 @@ def fyog():
 def ngt():
     return render_template('new-generation-thinking.html')
 
-@app.route('/library')
-def library():
+@app.route('/watching')
+def watching():
     recently_read_books = get_recently_read_books()
     recently_watched_movies = get_recently_watched_movies()
-    return render_template('library.html', recently_read_books=recently_read_books, recently_watched_movies=recently_watched_movies)
+    return render_template('watching.html', recently_read_books=recently_read_books, recently_watched_movies=recently_watched_movies)
 
 @app.route('/books')
 def books():
@@ -155,11 +155,11 @@ def reading():
     books_data = read_books_from_csv()
     return render_template('reading.html', books=books_data)
 
-@app.route('/antiques')
-def antiques():
+@app.route('/collecting')
+def collecting():
     recently_added_pins = get_recently_added_pins()
     recently_added_labels = get_recently_added_labels()
-    return render_template('antiques.html', recently_added_pins=recently_added_pins, recently_added_labels=recently_added_labels)
+    return render_template('collecting.html', recently_added_pins=recently_added_pins, recently_added_labels=recently_added_labels)
 
 @app.route('/pins')
 def pins():
@@ -171,28 +171,9 @@ def alcohol_labels():
     labels_data = read_alc_labels_from_csv()
     return render_template('alcohol_labels.html', labels=labels_data)
 
-# DEPRECATED
-# @app.route('/music2', methods=['GET', 'POST'])
-# def music2():
-#     if request.method == 'POST':
-#         selected_month = request.form['month']
-#         selected_year = request.form['year']
-        
-#         monthly_playlists_df = generate_monthly_playlists_df()
-#         playlist_id, playlist_art, playlist_name = select_playlist(monthly_playlists_df, search_term)
-
-#         track_names, artists, artwork_urls = get_tracks_artists(playlist_id)
-
-#         if playlist_id is not None:
-#             return render_template('playlist.html', playlist_id=playlist_id, playlist_art=playlist_art, playlist_name=playlist_name, track_names=track_names, artists=artists, artwork_urls=artwork_urls)
-#         else:
-#             return "Playlist not found for the selected month and year."
-#     else:
-#         return render_template('music.html')  # Render initial form
-
-@app.route('/music', methods=['GET', 'POST'])
+@app.route('/listening', methods=['GET', 'POST'])
 @login_required
-def music():
+def listening():
     # Currently this is limited to just the date changing functionality. Will need to think of a clever way
     # to allow for multiple sections to cause changes in what is displayed.
     if request.method == 'POST':
@@ -217,7 +198,7 @@ def music():
         else:
             return jsonify({'error': 'Playlist not found for the selected month and year.'}), 404
     else:
-        return render_template('music.html')  # Render initial form
+        return render_template('listening.html')  # Render initial form
 
 @app.route('/playlist')
 def playlist():
@@ -256,6 +237,7 @@ def movies():
     movies_data = watched_movies_from_csv()
     return render_template('movies.html', movies=movies_data)
 
+# DEPRECATED
 # @app.route('/matt-ranking')
 # def matt_ranking():
 
@@ -266,6 +248,25 @@ def movies():
 
 #     # ratings=sorted_ratings
 #     return render_template('matt_ranking.html', table_html=table_html)
+
+# DEPRECATED
+# @app.route('/music2', methods=['GET', 'POST'])
+# def music2():
+#     if request.method == 'POST':
+#         selected_month = request.form['month']
+#         selected_year = request.form['year']
+        
+#         monthly_playlists_df = generate_monthly_playlists_df()
+#         playlist_id, playlist_art, playlist_name = select_playlist(monthly_playlists_df, search_term)
+
+#         track_names, artists, artwork_urls = get_tracks_artists(playlist_id)
+
+#         if playlist_id is not None:
+#             return render_template('playlist.html', playlist_id=playlist_id, playlist_art=playlist_art, playlist_name=playlist_name, track_names=track_names, artists=artists, artwork_urls=artwork_urls)
+#         else:
+#             return "Playlist not found for the selected month and year."
+#     else:
+#         return render_template('music.html')  # Render initial form
 
 if __name__ == '__main__':
     init_db()

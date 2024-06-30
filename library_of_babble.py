@@ -139,6 +139,10 @@ def fyog():
 def ngt():
     return render_template('new-generation-thinking.html')
 
+@app.route('/creating')
+def creating():
+    return render_template('creating.html')
+
 @app.route('/watching')
 def watching():
     recently_read_books = get_recently_read_books()

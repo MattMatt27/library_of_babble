@@ -2,10 +2,18 @@ import spotipy
 import pandas as pd
 import csv
 import numpy
+import os
+from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyClientCredentials
 
-SPOTIPY_CLIENT_ID = 'f8db782230c34a818b3c346496c70b95'
-SPOTIPY_CLIENT_SECRET = '9079fc009b53476997ddd2652070f2d1'
+load_dotenv('ids.env')
+
+SPOTIPY_CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
+SPOTIPY_CLIENT_SECRET = os.getenv('SPOTIPY_CLIENT_SECRET') 
+
+if not SPOTIPY_CLIENT_ID or not SPOTIPY_CLIENT_SECRET:
+    raise ValueError("Spotify IDs are not set.")
+
 spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET))
 
 # Function to generate monthly playlists DataFrame

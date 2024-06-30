@@ -7,3 +7,6 @@ playlist.html
 .cache*
 __pycache__/
 Boredom Killer - Movies.csv
+
+# Local Only
+ids.env

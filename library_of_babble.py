@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, session, redirect, u
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from dotenv import load_dotenv
 
 from books import get_recently_read_books, read_books_from_csv, truncate_title
 from music import music_test, generate_monthly_playlists_df, select_playlist, get_tracks_artists
@@ -15,6 +16,8 @@ from datetime import datetime
 import csv
 import re
 import os
+
+load_dotenv('ids.env')
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')
@@ -73,7 +76,7 @@ def show_users():
 def check_login():
     if current_user.role != 'admin':
         return "You do not have permission to access this page."
-        
+
     if current_user.is_authenticated:
         return f"User {current_user.username} is logged in."
     else:
@@ -145,7 +148,12 @@ def library():
 @app.route('/books')
 def books():
     books_data = read_books_from_csv()
-    return render_template('books.html', books=books_data)
+    return render_template('reading.html', books=books_data)
+
+@app.route('/reading')
+def reading():
+    books_data = read_books_from_csv()
+    return render_template('reading.html', books=books_data)
 
 @app.route('/antiques')
 def antiques():

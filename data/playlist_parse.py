@@ -1,12 +1,15 @@
 import spotipy
 import pandas as pd
 import numpy
+from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyClientCredentials
 
+load_dotenv('ids.env')
+
 # Matt's IDs and Configuration
-cid = '0f0c70ddb3eb479f8f44b56d5362d716'
-secret = '8dbc9b6235c7430fab8382a37675ec78'
-username = '1292707055'
+cid = os.getenv('SPOTIPY_PLAYLIST_PARSE_CID')
+secret = os.getenv('SPOTIPY_PLAYLIST_PARSE_SECRET') 
+username = os.getenv('SPOTIPY_PLAYLIST_PARSE_USERNAME')
 scope = 'playlist-read-private'
 redirect_uri = 'http://localhost:8888/callback'
 

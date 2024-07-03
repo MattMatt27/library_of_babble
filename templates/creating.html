@@ -60,9 +60,9 @@
         }
 
         body {
-            background-color: #121212; /* Dark background color */
-            color: #ffffff; /* White text color */
-            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
+            background-color: #121212;
+            color: #ffffff; 
+            font-family: Garamond, sans-serif; 
             margin: 0px;
             font-size: 20px;
         }
@@ -102,16 +102,48 @@
         }
 
         .combo-container {
-            margin-top: 40px;
-            display: flex;
-            align-items: center; 
-            gap: 20px;
+            display: grid;
+            grid-template-columns: 0.9fr 0.9fr;
+            grid-template-rows: auto auto;
+            gap: 10px 30px;
+            align-items: flex-end;
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 25px;
         }
 
         .artist-left {
+            grid-column: 1;
             display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            width: 50%;
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .artist-right {
+            grid-column: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .generated-image {
+            grid-column: span 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .artist {
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .artist {
@@ -119,16 +151,39 @@
             margin: 0 10px;
             display: flex;
             flex-direction: column;
-            justify-content: center;  
+            justify-content: center;
             width: 100%;
+            background-color: #fff;
+            color: #121212;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+        }
+
+        .section-header {
+            background-color: #fff;
+            color: #121212;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            padding-top: 10px;
+        }
+
+        .section-header p{
+            margin: 0;
+        }
+
+        .section-header h4{
+            margin-bottom: 10px;
         }
 
         .artist img {
-            width: 100%; /* Images expand to fill their containers */
-            max-width: 100%; /* Ensure images don't exceed their original size */
+            width: 100%;
+            max-width: 100%;
             height: auto;
             display: block;
-            margin: 0 auto;
+            border-radius: 10px;
+            object-fit: cover;
         }
 
         .plus-sign {
@@ -137,44 +192,16 @@
             margin: 0 10px;
         }
 
-        .artist-info {
-            /*margin-top: 10px;*/
+        .artist-info, .combined-info {
+            margin-top: 5px;
         }
 
-        .artist-info h3 {
+        .artist-info h3, .combined-info h3 {
             margin: 5px;
         }
 
-        .artist-right h3 {
-            margin: 5px;
-        }
-
-        .artist-right {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            width: 40%; /* Output image takes up 40% of the width */
-        }
-
-        .artist-right img {
-            width: 100%; /* Output image expands to fill its container */
-            max-width: 100%; /* Ensure image doesn't exceed its original size */
-            height: auto;
-            display: block;
-            margin: 0 auto;
-        }
-
-        .combined-info {
-            margin-top: 10px;
-        }
-
-        .prompt-text {
+        .artist-bio, .prompt-text {
             margin: 0;
-        }
-
-        .artist-bio {
-            margin-top: 0;
             font-size: 15px;
         }
 
@@ -189,19 +216,70 @@
         }
 
         #books-on-tape .image-container img {
-            width: 49%;
+            width: 32%;
             height: auto;
             display: block;
         }
 
     </style>
+    <script type="text/javascript">
+        // window.addEventListener('load', adjustArtistCardWidths);
+        // window.addEventListener('resize', adjustArtistCardWidths);
 
-    <script>
-        function toggleDescription(element) {
-            const description = element.querySelector('.piece-description');
-            description.classList.toggle('hidden');
-        }
+        // function adjustArtistCardWidths() {
+        //     const artistLeft = document.querySelector('.artist-left');
+        //     const artistRight = document.querySelector('.artist-right');
+
+        //     const artistLeftBlock = artistLeft.querySelector('.artist');
+        //     const artistRightBlock = artistRight.querySelector('.artist');
+
+        //     const container = artistLeft.parentElement;
+
+        //     artistLeftBlock.style.height = 'auto';
+        //     artistRightBlock.style.height = 'auto';
+        //     artistLeft.style.width = 'auto';
+        //     artistRight.style.width = 'auto';
+
+        //     // Get the natural heights and widths
+        //     const leftHeight = artistLeftBlock.scrollHeight;
+        //     const rightHeight = artistRightBlock.scrollHeight;
+
+        //     const leftWidth = artistLeftBlock.scrollWidth;
+        //     const rightWidth = artistRightBlock.scrollWidth;
+
+        //     // Determine the average height
+        //     const averageHeight = (leftHeight + rightHeight) / 2;
+
+        //     // Adjust the widths to maintain aspect ratio
+        //     const adjustedLeftWidth = (leftWidth / leftHeight) * averageHeight;
+        //     const adjustedRightWidth = (rightWidth / rightHeight) * averageHeight;
+
+        //     const totalWidth = adjustedLeftWidth + adjustedRightWidth + 30;
+
+        //     const availableWidth = container.clientWidth - 30;
+        //     const leftRatio = adjustedLeftWidth / totalWidth;
+        //     const rightRatio = adjustedRightWidth / totalWidth;
+
+        //     const newLeftWidth = availableWidth * leftRatio;
+        //     const newRightWidth = availableWidth * rightRatio;
+
+        //     // Set the new heights and widths
+        //     artistLeftBlock.style.height = `${averageHeight}px`;
+        //     artistRightBlock.style.height = `${averageHeight}px`;
+
+        //     artistLeft.style.width = `${newLeftWidth}px`;
+        //     artistRight.style.width = `${newRightWidth}px`;
+
+        //     // Ensure the artist blocks take up the full width
+        //     artistLeftBlock.style.width = '100%';
+        //     artistRightBlock.style.width = '100%';
+
+        //     // Ensure no overflow
+        //     artistLeftBlock.style.overflow = 'hidden';
+        //     artistRightBlock.style.overflow = 'hidden';
+        //}
     </script>
+
 </head>
 <body>
     <header>
@@ -229,19 +307,24 @@
         <!-- Books on Tape Section -->
         <section id="books-on-tape">
             <h2>Books on Tape</h2>
+            <p>Coming Soon</p>
             <div class="image-container">
                 <img src="{{ url_for('static', filename='images/creating/books-on-tape/Origins.jpg') }}">
+                <img src="{{ url_for('static', filename='images/creating/books-on-tape/Books.jpg') }}">
                 <img src="{{ url_for('static', filename='images/creating/books-on-tape/Sample_stack.jpg') }}">
             </div>
         </section>
 
         <!-- Lunacy Section -->
         <section id="generative-art">
-            <h2>Generative Art</h2>
-            <p>As a visual artist my hand is a pathetic tool. I cannot draw, paint, or sculpt-- the things I create never match what is in my mind's eye. The emergence of generative image models offered a unique artistic outlet for me. Steering visual output with words directly appealed to me, as I had resigned myself to writing being my only marginally competent artistic medium. Being able to create visual output from language input was immediately captivating. And my archivist/librarian instincts turned my knowledge of hundreds of niche artists into a prompt palette. My artistic practice with generative image models involves exploration of the artist profiles that models recognize and combining the aesthetics of distinct creators from history to produce new sensible intermediary points between them in latent space. </p>
-
-            <h4>Lunacy</h4>
-            <p>I have always been drawn to the word Lunacy. It sounds beautiful, and its connection to the Moon and Insanity resonates with me. My first real series of generative pieces took my artist palette approach and applied it to this word. Below are some highlights from this series. On the left are sample images from the artists that I combined in a prompt to produce the image on the right. The specific images I chose by each artist have nothing explicit to do with the output image, they were just selected as an attempt to be representative of the aesthetic profile learned by the model.</p>
+            <div class="gen-header">
+                <h2>Generative Art</h2>
+                <p>As a visual artist my hand is a pathetic tool. I cannot draw, paint, or sculpt-- the things I create never match what is in my mind's eye. The emergence of generative image models offered a unique artistic outlet for me. Steering visual output with words directly appealed to me, as I had resigned myself to writing being my only marginally competent artistic medium. Being able to create visual output from language input was immediately captivating. And my archivist/librarian instincts turned my knowledge of hundreds of niche artists into a prompt palette. My artistic practice with generative image models involves exploration of the artist profiles that models recognize and combining the aesthetics of distinct creators from history to produce new sensible intermediary points between them in latent space. </p>
+            </div>
+            <div class="section-header">
+                <h4>Lunacy</h4>
+                <p>I have always been drawn to the word Lunacy. It sounds beautiful, and its connection to the Moon and Insanity resonates with me. My first real series of generative pieces took my artist palette approach and applied it to this word. Below are some highlights from this series. The specific images I chose for each artist have nothing explicit to do with the output image below them, they were just selected to be representative of the aesthetic profile for each artist learned by the model.</p>
+            </div>
             <div class="combo-container">
                 <div class="artist-left">
                     <div class="artist">
@@ -252,25 +335,28 @@
                             <p class="artist-bio">Wassily Kandinsky was a Russian painter and art theorist, known for his pivotal role in the development of abstract art. Associated with the Blue Rider and Bauhaus movements, Kandinsky's art is characterized by vibrant colors, geometric shapes, and spiritual symbolism. His innovative use of abstract forms aimed to evoke emotions and spiritual experiences, influencing generations of artists and shaping the course of modern art.</p>
                         </div>
                     </div>
-                    <div class="plus-sign">+</div>
+                </div>
+                <div class="artist-right">
                     <div class="artist">
-                        <img src="{{ url_for('static', filename='images/creating/lunacy/Jacob August Riis_How The Other Half Lives.jpg') }}" alt="How The Other Half Lives by Jacob August Riis">
+                        <img src="{{ url_for('static', filename='images/creating/lunacy/Jacob August Riis_Home of an Italian Ragpicker.jpg') }}" alt="Home of an Italian Ragpicker by Jacob August Riis">
                         <div class="artist-info">
-                            <p class="piece-name">Bandits' Roost, 59 1/2 Mulberry Street. (1888)</p>
+                            <p class="piece-name">Home of an Italian Ragpicker (1894)</p>
                             <h3>Jacob August Riis (1849-1914)</h3>
                             <p class="artist-bio">Jacob August Riis was a Danish-American social reformer and photojournalist, renowned for his pioneering work in documentary photography. Based in New York City, Riis documented the living conditions of immigrants and the urban poor in the late 19th century. His photograph series', such as "How the Other Half Lives," exposed the harsh realities of tenement life, prompting social reforms and raising awareness about poverty and inequality. Riis' impactful visual storytelling continues to inspire documentary photographers and advocates for social change.</p>
                         </div>
                     </div>
                 </div>
-                <div class="plus-sign">=</div>
-                <div class="artist-right">
-                    <img src="{{ url_for('static', filename='images/creating/lunacy/Lunacy_Kandinsky+Riis.png') }}" alt="Lunacy by Wassily Kandinsky and Jacob August Riis">
-                    <div class="combined-info">
-                        <h3>Model: Midjourney v6</h3>
-                        <p class="prompt-text">Prompt: Lunacy by Wassily Kandinsky and Jacob August Riis</p>
+                <div class="generated-image">
+                    <div class="artist">
+                        <img src="{{ url_for('static', filename='images/creating/lunacy/Lunacy_Kandinsky+Riis.png') }}" alt="Lunacy by Wassily Kandinsky and Jacob August Riis">
+                        <div class="combined-info">
+                            <h3>Model: Midjourney v6</h3>
+                            <p class="prompt-text">Prompt: Lunacy by Wassily Kandinsky and Jacob August Riis</p>
+                        </div>
                     </div>
                 </div>
             </div>
+            <hr style="border: none; border-top: 2px dotted black" />
             <div class="combo-container">
                 <div class="artist-left">
                     <div class="artist">
@@ -281,7 +367,8 @@
                             <p class="artist-bio">Félix Vallotton was a Swiss-French painter and printmaker associated with the Les Nabis group. Known for his distinctive use of flat colors and bold compositions, Vallotton's art often explored themes of introspection, psychological tension, and everyday life. His sharp contrasts and simplified forms influenced the development of modern graphic art and contributed to the rise of woodcut as a fine art medium. Vallotton's work continues to be celebrated for its innovative approach and lasting impact on early 20th-century art.</p>
                         </div>
                     </div>
-                    <div class="plus-sign">+</div>
+                </div>
+                <div class="artist-right">
                     <div class="artist">
                         <img src="{{ url_for('static', filename='images/creating/lunacy/Somber and Hard_Oscar Bluemner.jpg') }}" alt="Somber and Hard by Oscar Bluemner">
                         <div class="artist-info">
@@ -291,12 +378,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="plus-sign">=</div>
-                <div class="artist-right">
-                    <img src="{{ url_for('static', filename='images/creating/lunacy/Lunacy_Félix Vallotton+Oscar Bluemner.png') }}" alt="Lunacy by Félix Vallotton and Oscar Bluemner">
-                    <div class="combined-info">
-                        <h3>Model: Midjourney v6</h3>
-                        <p class="prompt-text">Prompt: Lunacy by Félix Vallotton and Oscar Bluemner</p>
+                <div class="generated-image">
+                    <div class="artist">
+                        <img src="{{ url_for('static', filename='images/creating/lunacy/Lunacy_Félix Vallotton+Oscar Bluemner.png') }}" alt="Lunacy by Félix Vallotton and Oscar Bluemner">
+                        <div class="combined-info">
+                            <h3>Model: Midjourney v6</h3>
+                            <p class="prompt-text">Prompt: Lunacy by Félix Vallotton and Oscar Bluemner</p>
+                        </div>
                     </div>
                 </div>
             </div>

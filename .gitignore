@@ -1,5 +1,7 @@
 # Broken/Outdated files
 templates/music-dep.html
+templates/books-dep.html
+templates/book-db.html
 templates/matt_ranking-dep.html
 playlist.html
 
@@ -7,6 +9,7 @@ playlist.html
 .cache*
 __pycache__/
 Boredom Killer - Movies.csv
+data/desktop.ini
 
 # Local Only
 ids.env

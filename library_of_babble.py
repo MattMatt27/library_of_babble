@@ -4,16 +4,19 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 
-from books import get_recently_read_books, read_books_from_csv, truncate_title
+from books import get_recently_read_books, read_books_from_csv, truncate_title, read_books_from_db, get_books_from_bookshelf
 from music import music_test, generate_monthly_playlists_df, select_playlist, get_tracks_artists
 from movies import get_recently_watched_movies, watched_movies_from_csv
 from pins import get_recently_added_pins, read_pins_from_csv
 from alcohol_labels import get_recently_added_labels, read_alc_labels_from_csv
 from database import movie_analytics, save_movies_to_database, merge_movie_data, connect_to_database
+from database2 import load_goodreads_data_into_books
 
 import pandas as pd
 from datetime import datetime
 import csv
+from pathlib import Path
+import sqlite3
 import re
 import os
 
@@ -31,6 +34,38 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
     role = db.Column(db.String(50), nullable=False)
+
+class Books(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    author = db.Column(db.String(100), nullable=False)
+    additional_authors = db.Column(db.String(255))
+    isbn = db.Column(db.String(20))
+    isbn13 = db.Column(db.String(20))
+    my_rating = db.Column(db.Integer)
+    average_rating = db.Column(db.Float)
+    publisher = db.Column(db.String(100))
+    number_of_pages = db.Column(db.Integer)
+    original_publication_year = db.Column(db.Integer)
+    date_read = db.Column(db.String(20))
+    date_added = db.Column(db.String(20))
+    bookshelves = db.Column(db.String(255))
+    read = db.Column(db.Boolean)
+    my_review = db.Column(db.Text)
+    private_notes = db.Column(db.Text)
+    read_count = db.Column(db.Integer)
+    owned_copies = db.Column(db.Integer)
+    cover_image_url = db.Column(db.String(255))
+
+def check_and_load_books():
+    with app.app_context():
+        csv_file = 'goodreads_library_export.csv'
+        csv_path = Path('data/staging') / csv_file
+        if csv_path.exists():
+            load_goodreads_data_into_books(db, Books, csv_file)
+            print(f"Books loaded from {csv_file} successfully!")
+        else:
+            print(f"CSV file {csv_file} not found in data/staging.")
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -55,11 +90,14 @@ def create_user(username, password, role):
     db.session.add(user)
     db.session.commit()
 
-def init_db():
-    with app.app_context():
-        db.create_all()
-        create_user('admin', 'admin_password', 'admin')  # Replace with secure password
-        create_user('viewer', 'viewer_password', 'viewer')  # Replace with secure password
+@app.route('/book-db')
+def display_books():
+    conn = sqlite3.connect('instance/users.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM books')
+    rows = cursor.fetchall()
+    conn.close()
+    return render_template('book-db.html', books_test=rows)
 
 @app.route('/users')
 @login_required
@@ -120,7 +158,11 @@ def logout():
     logout_user()
     return redirect(request.referrer or '/')
 
-
+def init_db():
+    with app.app_context():
+        db.create_all()
+        create_user('admin', 'admin_password', 'admin')  # Replace with secure password
+        create_user('viewer', 'viewer_password', 'viewer')  # Replace with secure password
 
 @app.route('/')
 def home():
@@ -151,13 +193,33 @@ def watching():
 
 @app.route('/books')
 def books():
-    books_data = read_books_from_csv()
-    return render_template('reading.html', books=books_data)
+    books_data = read_books_from_db()
+    return render_template('books.html', books=books_data)
 
 @app.route('/reading')
 def reading():
-    books_data = read_books_from_csv()
-    return render_template('reading.html', books=books_data)
+    recently_read_books = get_recently_read_books()
+    recommended_fiction_books = get_books_from_bookshelf('matts-recommended-fiction')
+    recommended_nonfiction_books = get_books_from_bookshelf('matts-recommended-nonfiction')
+    return render_template('reading.html', recently_read_books=recently_read_books, 
+                                           recommended_fiction_books= recommended_fiction_books, 
+                                           recommended_nonfiction_books = recommended_nonfiction_books,
+                                           current_user=current_user)
+
+@app.route('/update_review/<int:book_id>', methods=['POST'])
+@login_required
+def update_review(book_id):
+    if current_user.role != 'admin':
+        return "You do not have permission to update reviews."
+
+    book = Books.query.get_or_404(book_id)
+    new_review = request.form.get('my_review')
+
+    # Update the book's review
+    book.my_review = new_review
+    db.session.commit()
+
+    return redirect(url_for('reading'))
 
 @app.route('/collecting')
 def collecting():
@@ -274,5 +336,5 @@ def movies():
 
 if __name__ == '__main__':
     init_db()
-
+    check_and_load_books()
     app.run(debug=True)

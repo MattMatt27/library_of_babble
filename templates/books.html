@@ -64,16 +64,20 @@
         }
 
         body {
-            background-color: #121212; /* Dark grey background color */
-            color: #fff; /* White text color */
-            font-family: Arial, sans-serif; /* Optional: specify font family */
-            margin: 0; /* Optional: remove default body margin */
-            padding: 0; /* Optional: remove default body padding */
+            background-color: #C1DFF0; 
+            color: #121212; 
+            font-family: Garamond, sans-serif;
+            font-size: 18px;
+            margin: 0;
+            padding: 0; 
         }
+
         table {
-            background-color: #333;
+            background-color: #093249;
+            color: #fff;
             border-collapse: collapse;
-            width: 100%;
+            margin: 10px auto;
+            width: 98%;
         }
         th, td {
             padding: 8px;
@@ -81,7 +85,8 @@
             border-bottom: 1px solid #ddd;
         }
         th {
-            background-color: #444;
+            background-color: #121212;
+            color: #fff;
         }
         .center-header {
             text-align: center;
@@ -90,19 +95,51 @@
             width: 150px; /* Fixed width for image column */
         }
         .details-column {
-            width: 300px;
+            width: 200px;
         }
         .date-column {
-            width: 100px;
+            width: 75px;
         }
         .rating-column {
-            width: 50px;
+            width: 100px;
         }
         img {
-            max-height: 150px; /* Limit image height */
+            max-height: 250px; /* Limit image height */
             max-width: 100%; /* Ensure image fits within its container */
             display: block; /* Ensure proper sizing */
             margin: auto; /* Center the image horizontally */
+        }
+        form {
+            margin-right: 10px;
+        }
+        textarea {
+            width: 100%;
+            min-width: 100%; 
+            max-width: 100%; 
+            resize: vertical;
+            padding: 8px; 
+            box-sizing: border-box; 
+            background-color: #C1DFF0;
+            font-family: Garamond, sans-serif;
+            border-radius: 5px;
+        }
+        .save-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin-top: 5px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .save-button:hover {
+            background-color: #0056b3;
         }
         .header-text {
             padding-left: 20px;
@@ -134,8 +171,8 @@
         <div class="navbar">
             <a href="/">Home</a>
             <a href="/writing">Writing</a>
-            <a href="/reading">Reading</a>
-            <a href="/watching" class="active">Watching</a>
+            <a href="/reading" class="active">Reading</a>
+            <a href="/watching">Watching</a>
             <a href="/creating">Creating</a>
             <a href="/listening">Listening</a>
             <a href="/collecting">Collecting</a>
@@ -150,8 +187,8 @@
         </div>
     </nav>
     <div class="header-container">
-        <p><a href="/library" class="back-button">←Back</a></p>
-        <h1 class="header-text">Recently Read</h1>
+        <!-- <p><a href="/library" class="back-button">←Back</a></p> -->
+        <!-- <h1 class="header-text">Recently Read Books</h1> -->
     </div>
     <table>
         <thead>
@@ -172,13 +209,33 @@
                         </a>
                     </td>
                     <td class="details-column">
-                        <strong>Title:</strong> {{ book['title'] }}<br><br>
-                        <strong>Author:</strong> {{ book['author'] }}<br>
-                        <strong>Publication Year:</strong> {{ book['publication_year'] }}
+                        <div><strong>{{ book['title'] }}</strong></div>
+                        <div>{{ book['author'] }}</div>
+                        <div>
+                            {% if book['publication_year'] is not none %}
+                                {% if book['publication_year'] < 0 %}
+                                    {{ -book['publication_year'] }} BC
+                                {% else %}
+                                    {{ book['publication_year'] }}
+                                {% endif %}
+                            {% else %}
+                                Unknown
+                            {% endif %}
+                        </div>
                     </td>
                     <td class="date-column">{{ book['date_read'] }}</td>
-                    <td class="rating-column">{{ book['my_rating'] }}</td>
-                    <td>{{ book['my_review'] }}</td>
+                    <td class="rating-column">
+                        <img src="{{ url_for('static', filename='images/stars/' + book['my_rating'] + '.png') }}" alt="{{ book['my_rating'] }} Stars">
+                    </td>
+                    <td>
+                        <form action="/update_review/{{ book.id }}" method="POST">
+                            <textarea name="my_review" rows="5" {% if not current_user.is_admin %} readonly {% endif %}>{{ book['my_review'] }}</textarea>
+                            <br>
+                            {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                <input type="submit" value="Save" class="save-button">
+                            {% endif %}
+                        </form>
+                    </td>
                 </tr>
             {% endfor %}
         </tbody>

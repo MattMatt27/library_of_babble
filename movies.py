@@ -34,4 +34,4 @@ def get_recently_watched_movies():
         #movie['title'] = truncate_title(movie['title'])
     # Sort the movies by date watched in descending order
     sorted_movies = sorted(movies, key=lambda x: x.get('date_watched', datetime.min), reverse=True)
-    return sorted_movies[:7]
+    return sorted_movies[:10]

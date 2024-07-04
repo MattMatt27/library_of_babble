@@ -57,6 +57,17 @@ class Books(db.Model):
     owned_copies = db.Column(db.Integer)
     cover_image_url = db.Column(db.String(255))
 
+class Movies(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    director = db.Column(db.String(100), nullable=False)
+    year = db.Column(db.Integer)
+    my_rating = db.Column(db.Integer)
+    date_watched = db.Column(db.String(20))
+    my_review = db.Column(db.Text)
+    language = db.Column(db.String(20))
+    cover_image_url = db.Column(db.String(255))
+
 def check_and_load_books():
     with app.app_context():
         csv_file = 'goodreads_library_export.csv'

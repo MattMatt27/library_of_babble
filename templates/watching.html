@@ -168,7 +168,7 @@
 		}
 
 		.movie img {
-		    max-height: 200px; /* Limit image height */
+		    max-height: 300px; /* Limit image height */
 		    width: auto; /* Auto-adjust width */
 		    display: block; /* Ensure proper alignment */
 		    margin: 0 auto 10px; /* Center image and add bottom margin */
@@ -213,41 +213,23 @@
 
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-	<script>
-	    $(document).ready(function() {
-	        // Function to adjust number of displayed books based on window width
-	        function adjustDisplayedBooks() {
-	            var windowWidth = $(window).width();
-	            var maxBooks = 8; // Default maximum number of books to display
-	            if (windowWidth < 768) {
-	                maxBooks = 4; // Adjust number of books for smaller screens
-	            }
-	            // Hide excess books
-	            $('.book').hide().slice(0, maxBooks).show();
-	        }
-	        
-	        // Call the adjustDisplayedBooks function when the page loads and when the window resizes
-	        adjustDisplayedBooks();
-	        $(window).resize(adjustDisplayedBooks);
-	    });
-	</script>
     <script>
-        $(document).ready(function() {
-            // Function to adjust number of displayed books based on window width
-            function adjustDisplayedMovies() {
-                var windowWidth = $(window).width();
-                var maxMovies = 8; // Default maximum number of books to display
-                if (windowWidth < 768) {
-                    maxMovies = 4; // Adjust number of books for smaller screens
-                }
-                // Hide excess books
-                $('.movie').hide().slice(0, maxMovies).show();
-            }
+        // $(document).ready(function() {
+        //     // Function to adjust number of displayed books based on window width
+        //     function adjustDisplayedMovies() {
+        //         var windowWidth = $(window).width();
+        //         var maxMovies = 8; // Default maximum number of books to display
+        //         if (windowWidth < 768) {
+        //             maxMovies = 4; // Adjust number of books for smaller screens
+        //         }
+        //         // Hide excess books
+        //         $('.movie').hide().slice(0, maxMovies).show();
+        //     }
             
-            // Call the adjustDisplayedBooks function when the page loads and when the window resizes
-            adjustDisplayedMovies();
-            $(window).resize(adjustDisplayedMovies);
-        });
+        //     // Call the adjustDisplayedBooks function when the page loads and when the window resizes
+        //     adjustDisplayedMovies();
+        //     $(window).resize(adjustDisplayedMovies);
+        // });
     </script>
 </head>
 <body>

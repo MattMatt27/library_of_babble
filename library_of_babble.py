@@ -6,11 +6,11 @@ from dotenv import load_dotenv
 
 from books import get_recently_read_books, read_books_from_csv, truncate_title, read_books_from_db, get_books_from_bookshelf
 from music import music_test, generate_monthly_playlists_df, select_playlist, get_tracks_artists
-from movies import get_recently_watched_movies, watched_movies_from_csv
+from movies import get_recently_watched_movies, watched_movies_from_csv, read_movies_from_db, get_movies_from_collection
 from pins import get_recently_added_pins, read_pins_from_csv
 from alcohol_labels import get_recently_added_labels, read_alc_labels_from_csv
 from database import movie_analytics, save_movies_to_database, merge_movie_data, connect_to_database
-from database2 import load_goodreads_data_into_books
+from database2 import load_goodreads_data_into_books, load_letterboxd_data_into_movies
 
 import pandas as pd
 from datetime import datetime
@@ -58,15 +58,16 @@ class Books(db.Model):
     cover_image_url = db.Column(db.String(255))
 
 class Movies(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
-    director = db.Column(db.String(100), nullable=False)
-    year = db.Column(db.Integer)
+    director = db.Column(db.String(100))
+    year = db.Column(db.Integer, nullable=False)
     my_rating = db.Column(db.Integer)
     date_watched = db.Column(db.String(20))
     my_review = db.Column(db.Text)
     language = db.Column(db.String(20))
     cover_image_url = db.Column(db.String(255))
+    collections = db.Column(db.String(255))
 
 def check_and_load_books():
     with app.app_context():
@@ -77,6 +78,15 @@ def check_and_load_books():
             print(f"Books loaded from {csv_file} successfully!")
         else:
             print(f"CSV file {csv_file} not found in data/staging.")
+
+def check_and_load_movies():
+    with app.app_context():
+        letterboxd_path = Path('data/staging/letterboxd') 
+        if letterboxd_path.exists():
+            load_letterboxd_data_into_movies(db, Movies)
+            print(f"Movies loaded from Letterboxd successfully!")
+        else:
+            print(f"Letterboxd data not found in data/staging.")
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -198,9 +208,16 @@ def creating():
 
 @app.route('/watching')
 def watching():
-    recently_read_books = get_recently_read_books()
     recently_watched_movies = get_recently_watched_movies()
-    return render_template('watching.html', recently_read_books=recently_read_books, recently_watched_movies=recently_watched_movies)
+    recommended_movies = get_movies_from_collection('matts-recommended')
+    print(recommended_movies)
+    return render_template('watching.html', recently_watched_movies=recently_watched_movies,
+                                            recommended_movies=recommended_movies)
+
+@app.route('/movies')
+def movies():
+    movies_data = read_movies_from_db()
+    return render_template('movies.html', movies=movies_data)
 
 @app.route('/books')
 def books():
@@ -309,11 +326,6 @@ def book(book_id):
     return render_template('book.html', book=book_details, reviews=reviews, quotes=quotes)
 
 
-@app.route('/movies')
-def movies():
-    movies_data = watched_movies_from_csv()
-    return render_template('movies.html', movies=movies_data)
-
 # DEPRECATED
 # @app.route('/matt-ranking')
 # def matt_ranking():
@@ -348,4 +360,5 @@ def movies():
 if __name__ == '__main__':
     init_db()
     check_and_load_books()
+    check_and_load_movies()
     app.run(debug=True)

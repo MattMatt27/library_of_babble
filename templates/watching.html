@@ -97,48 +97,6 @@
             text-decoration: underline; /* Add underline on hover */
         }
 
-        .recently-read {
-            background-color: #093249;
-            color: #C1DFF0;
-            margin: 20px;
-        }
-
-        .recently-read-header {
-            display: flex; /* Use flexbox for layout */
-            justify-content: space-between; /* Align items to each end */
-            align-items: center; /* Center vertically */
-            font-size: 20px;
-            padding-left: 50px;
-            padding-top: 10px;
-        }
-
-        .recently-read-books {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Adjust minmax values as needed */
-            grid-gap: 20px; /* Adjust the gap size as needed */
-            align-content: center;
-            padding: 20px;
-        }
-        
-        .book {
-            text-align: center; /* Center align text */
-        }
-        .book img {
-            max-height: 300px; /* Limit image height */
-            width: auto; /* Auto-adjust width */
-            display: block; /* Ensure proper alignment */
-            margin: 0 auto 10px; /* Center image and add bottom margin */
-            border-radius: 5px;
-        }
-        .book p {
-            margin: 0; /* Remove default margin for paragraphs */
-            font-size: 16px; /* Set font size */
-            overflow: hidden; /* Hide overflow text */
-            text-overflow: ellipsis; /* Show ellipsis for overflow text */
-            white-space: normal; /* Wrap text */
-        }
-
-
         .recently-watched {
             background-color: #093249;
             color: #C1DFF0;
@@ -252,26 +210,22 @@
             </div>
         </div>
     </nav>
-    <!-- <p class="intro">I have always wanted a central place to track all my content ratings instead of having to navigate between Goodreads, Letterboxd, Boredom Killer (The name of the giant spreadsheet of content my friends and I maintain), etc. so I have created this page to start tracking things on my own. I periodically export my data from all of the various trackers and this page updates whenever I load new data. I own none of the rights to anything on this page or any of the pages it leads to.<br><br>Last data update <strong>4/10/2024</strong>
-    <div class="recently-read">
-        <div class="recently-read-header">
-            <h2>Recently Read</h2>
-            <p class="button-container"><a href="/books" class="full-text-button">See All </a></p>
+    <div class="recently-watched">
+        <div class="recently-watched-header">
+            <h2>Recommended Movies</h2>
         </div>
-        <div class="recently-read-books">
-            {% for book in recently_read_books %}
-                <div class="book">
-                    <a href="/book/{{ book.id }}">
-                        <img src="{{ book['cover_image_url'] }}" alt="{{ book['title'] }}">
-                    </a>
-                    <p><strong>{{ book['title'] }}</strong></p>
-                    <p>{{ book['author'] }}</p>
-                    <p>{{ book['publication_year'] }}</p>
-                    <p>My Rating: {{ book['my_rating'] }}</p>
+        <div class="recently-watched-movies">
+            {% for rec_movie in recommended_movies %}
+                <div class="movie">
+                    <img src="{{ rec_movie['cover_image_url'] }}" alt="{{ rec_movie['title'] }}">
+                    <p style="font-size: 18px;"><strong>{{ rec_movie['title'] }}</strong></p>
+                    <p>{{ rec_movie['director'] }}</p>
+                    <p>{{ rec_movie['year'] }}</p>
+                    <p>
                 </div>
             {% endfor %}
         </div>
-    </div> -->
+    </div>
     <div class="recently-watched">
         <div class="recently-watched-header">
     	    <h2>Recently Watched Movies</h2>

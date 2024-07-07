@@ -229,7 +229,7 @@
                     </td>
                     <td>
                         <form action="/update_review/{{ book.id }}" method="POST">
-                            <textarea name="my_review" rows="5" {% if not current_user.is_admin %} readonly {% endif %}>{{ book['my_review'] }}</textarea>
+                            <textarea name="my_review" rows="5" {% if not current_user.is_authenticated or current_user.role != 'admin' %} readonly {% endif %}>{{ book['my_review'] }}</textarea>
                             <br>
                             {% if current_user.is_authenticated and current_user.role == 'admin' %}
                                 <input type="submit" value="Save" class="save-button">

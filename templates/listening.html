@@ -427,7 +427,7 @@
                     console.log(selectedPlaylist); // Display the selected playlist code (e.g., Mar23 for March 2023)
 
                     // Fetch playlist details based on selectedPlaylist (you need to implement this)
-                    fetch('/music', {
+                    fetch('/listening', {
                         method: 'POST',
                         body: JSON.stringify({ 
                             month: month + 1, // Adding 1 to match Python's month numbering (1-12)

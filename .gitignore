@@ -10,6 +10,7 @@ playlist.html
 __pycache__/
 Boredom Killer - Movies.csv
 data/desktop.ini
+data/loaded
 
 # Local Only
 ids.env

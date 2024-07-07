@@ -20,7 +20,7 @@ def load_goodreads_data_into_books(db, model_class, csv_file):
     with open(csv_path, 'r', newline='', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         for row in reader:
-            existing_book = model_class.query.filter_by(id=int(row['Book Id']), read=True).first()
+            existing_book = model_class.query.filter_by(id=int(row['Book Id'])).first()
             if existing_book:
                 continue
             try:
@@ -60,13 +60,25 @@ def load_goodreads_data_into_books(db, model_class, csv_file):
                 'owned_copies': int(row['Owned Copies']),
                 'cover_image_url': ''
             }
-            record = model_class(**data)
-            db.session.add(record)
+
+            if existing_book:
+                if not existing_book.read:
+                    for key, value in data.items():
+                        setattr(existing_book, key, value)
+                    db.session.add(existing_book)
+            else:
+                data['id'] = int(row['Book Id'])
+                record = model_class(**data)
+                db.session.add(record)
+
         db.session.commit()
 
     if not loaded_folder.exists():
         loaded_folder.mkdir(parents=True)
-    shutil.move(str(csv_path), str(loaded_folder / csv_file))
+
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    new_file_name = f"{current_date}_{csv_file}"
+    shutil.move(str(csv_path), str(loaded_folder / new_file_name))
 
 
 
@@ -100,7 +112,7 @@ def load_letterboxd_data_into_movies(db, model_class):
             if existing_movie:
                 # Update the existing movie record
                 existing_movie.my_review = row['Review']
-                existing_movie.collections = row['Tags']
+                # existing_movie.collections = row['Tags']
                 try:
                     existing_movie.date_watched = parse_date(row['Watched Date'])
                 except ValueError as e:
@@ -113,4 +125,6 @@ def load_letterboxd_data_into_movies(db, model_class):
 
     if not loaded_folder.exists():
         loaded_folder.mkdir(parents=True)
-    shutil.move(str(letterboxd_folder), str(loaded_folder / letterboxd_folder.name))
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    new_folder_name = f"{current_date}_{letterboxd_folder.name}"
+    shutil.move(str(letterboxd_folder), str(loaded_folder / new_folder_name))

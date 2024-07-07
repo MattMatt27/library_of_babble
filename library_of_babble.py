@@ -5,15 +5,16 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 
 from books import get_recently_read_books, read_books_from_csv, truncate_title, read_books_from_db, get_books_from_bookshelf
-from music import music_test, generate_monthly_playlists_df, select_playlist, get_tracks_artists
+from music import music_test, generate_monthly_playlists_df, select_playlist, get_tracks_artists, get_site_approved_playlists
 from movies import get_recently_watched_movies, watched_movies_from_csv, read_movies_from_db, get_movies_from_collection
 from pins import get_recently_added_pins, read_pins_from_csv
 from alcohol_labels import get_recently_added_labels, read_alc_labels_from_csv
 from database import movie_analytics, save_movies_to_database, merge_movie_data, connect_to_database
 from database2 import load_goodreads_data_into_books, load_letterboxd_data_into_movies
+from playlist_parse import parse_and_load_playlists
 
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 import csv
 from pathlib import Path
 import sqlite3
@@ -69,24 +70,78 @@ class Movies(db.Model):
     cover_image_url = db.Column(db.String(255))
     collections = db.Column(db.String(255))
 
+class Playlists(db.Model):
+    user_id = db.Column(db.String, nullable=False)
+    playlist_owner = db.Column(db.String, nullable=False)
+    id = db.Column(db.String, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    description = db.Column(db.String)
+    album_art = db.Column(db.String)
+    track_count = db.Column(db.Integer)
+    is_collab = db.Column(db.Boolean)
+    is_public = db.Column(db.Boolean)
+    site_approved = db.Column(db.Boolean, default=0, nullable=False)
+
+class LastRun(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    function_name = db.Column(db.String, nullable=False, unique=True)
+    last_run = db.Column(db.DateTime, nullable=False)
+
+
+
+
+
+def should_run_function(function_name, interval_days=7):
+    last_run_entry = LastRun.query.filter_by(function_name=function_name).first()
+    now = datetime.utcnow()
+
+    if last_run_entry:
+        if now - last_run_entry.last_run > timedelta(days=interval_days):
+            last_run_entry.last_run = now
+            db.session.commit()
+            return True
+        else:
+            return False
+    else:
+        new_run_entry = LastRun(function_name=function_name, last_run=now)
+        db.session.add(new_run_entry)
+        db.session.commit()
+        return True
+
 def check_and_load_books():
     with app.app_context():
-        csv_file = 'goodreads_library_export.csv'
-        csv_path = Path('data/staging') / csv_file
-        if csv_path.exists():
-            load_goodreads_data_into_books(db, Books, csv_file)
-            print(f"Books loaded from {csv_file} successfully!")
+        if should_run_function('check_and_load_books', 1):
+            csv_file = 'goodreads_library_export.csv'
+            csv_path = Path('data/staging') / csv_file
+            if csv_path.exists():
+                load_goodreads_data_into_books(db, Books, csv_file)
+                print(f"Books loaded from {csv_file} successfully!")
+            else:
+                print(f"CSV file {csv_file} not found in data/staging.")
         else:
-            print(f"CSV file {csv_file} not found in data/staging.")
+            print(f"Books have been updated within the past day.")
 
 def check_and_load_movies():
     with app.app_context():
-        letterboxd_path = Path('data/staging/letterboxd') 
-        if letterboxd_path.exists():
-            load_letterboxd_data_into_movies(db, Movies)
-            print(f"Movies loaded from Letterboxd successfully!")
+        if should_run_function('check_and_load_movies', 1):
+            letterboxd_path = Path('data/staging/letterboxd') 
+            if letterboxd_path.exists():
+                load_letterboxd_data_into_movies(db, Movies)
+                print(f"Movies loaded from Letterboxd successfully!")
+            else:
+                print(f"Letterboxd data not found in data/staging.")
         else:
-            print(f"Letterboxd data not found in data/staging.")
+            print(f"Movies have been updated within the past day.")
+
+def check_and_load_playlists():
+    with app.app_context():
+        if should_run_function('check_and_load_playlists'):
+            parse_and_load_playlists(db, Playlists)
+        else:
+            print("Playlists have been updated within the past week.")
+
+
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -110,6 +165,10 @@ def create_user(username, password, role):
 
     db.session.add(user)
     db.session.commit()
+
+
+
+
 
 @app.route('/book-db')
 def display_books():
@@ -270,6 +329,7 @@ def alcohol_labels():
 def listening():
     # Currently this is limited to just the date changing functionality. Will need to think of a clever way
     # to allow for multiple sections to cause changes in what is displayed.
+    approved_playlists = get_site_approved_playlists()
     if request.method == 'POST':
         selected_month = request.json['month']
         selected_year = request.json['year']
@@ -292,7 +352,7 @@ def listening():
         else:
             return jsonify({'error': 'Playlist not found for the selected month and year.'}), 404
     else:
-        return render_template('listening.html')  # Render initial form
+        return render_template('listening.html', approved_playlists=approved_playlists)  # Render initial form
 
 @app.route('/playlist')
 def playlist():
@@ -361,4 +421,5 @@ if __name__ == '__main__':
     init_db()
     check_and_load_books()
     check_and_load_movies()
+    check_and_load_playlists()
     app.run(debug=True)

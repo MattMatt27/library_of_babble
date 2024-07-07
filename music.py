@@ -3,6 +3,8 @@ import pandas as pd
 import csv
 import numpy
 import os
+import sqlite3
+from datetime import datetime
 from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyClientCredentials
 
@@ -67,3 +69,26 @@ def music_test():
 
 	for album in albums:
 	    print(album['name'])
+
+def get_site_approved_playlists():
+    playlists = []
+    conn = sqlite3.connect('instance/users.db')
+    cursor = conn.cursor()
+
+    # Execute a SELECT query to fetch all books
+    cursor.execute('SELECT id, name, album_art, description FROM playlists WHERE site_approved = 1')
+    rows = cursor.fetchall()
+
+    for row in rows:
+
+        playlist = {
+            'id': row[0], 
+            'name': row[1],
+            'album_art': row[2], 
+            'description': row[3]
+        }
+        playlists.append(playlist)
+
+    conn.close() 
+
+    return playlists

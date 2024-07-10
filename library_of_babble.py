@@ -10,8 +10,9 @@ from movies import get_recently_watched_movies, watched_movies_from_csv, read_mo
 from pins import get_recently_added_pins, read_pins_from_csv
 from alcohol_labels import get_recently_added_labels, read_alc_labels_from_csv
 from database import movie_analytics, save_movies_to_database, merge_movie_data, connect_to_database
-from database2 import load_goodreads_data_into_books, load_letterboxd_data_into_movies
+from database2 import load_goodreads_data_into_books, load_letterboxd_data_into_movies, load_artworks_data
 from playlist_parse import parse_and_load_playlists
+from artworks import get_approved_artworks_from_db
 
 import pandas as pd
 from datetime import datetime, timedelta
@@ -20,6 +21,7 @@ from pathlib import Path
 import sqlite3
 import re
 import os
+import random
 
 load_dotenv('ids.env')
 
@@ -87,8 +89,19 @@ class LastRun(db.Model):
     function_name = db.Column(db.String, nullable=False, unique=True)
     last_run = db.Column(db.DateTime, nullable=False)
 
-
-
+class Artworks(db.Model):
+    id = db.Column(db.String, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    artist = db.Column(db.String(100))
+    year = db.Column(db.Integer, nullable=False)
+    series = db.Column(db.String(255))
+    series_id = db.Column(db.Integer)
+    file_name = db.Column(db.String(255))
+    location = db.Column(db.String(255))
+    description = db.Column(db.String(255))
+    medium = db.Column(db.String(255))
+    collections = db.Column(db.String(255))
+    site_approved = db.Column(db.Boolean, default=0, nullable=False)
 
 
 def should_run_function(function_name, interval_days=7):
@@ -140,7 +153,12 @@ def check_and_load_playlists():
         else:
             print("Playlists have been updated within the past week.")
 
-
+def check_and_load_artworks():
+    with app.app_context():
+        if should_run_function('check_and_load_artworks'):
+            load_artworks_data(db, Artworks)
+        else:
+            print("Artworks have been updated within the past day.")
 
 
 @login_manager.user_loader
@@ -264,6 +282,13 @@ def ngt():
 @app.route('/creating')
 def creating():
     return render_template('creating.html')
+
+@app.route('/pondering')
+@login_required
+def pondering():
+    approved_artworks = get_approved_artworks_from_db()
+    random.shuffle(approved_artworks)
+    return render_template('pondering.html', approved_artworks=approved_artworks)
 
 @app.route('/watching')
 def watching():
@@ -422,4 +447,5 @@ if __name__ == '__main__':
     check_and_load_books()
     check_and_load_movies()
     check_and_load_playlists()
+    check_and_load_artworks()
     app.run(debug=True)

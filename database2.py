@@ -1,6 +1,7 @@
 import csv
 from pathlib import Path
 import shutil
+import uuid
 from datetime import datetime
 
 csv_folder = Path('data/staging/')
@@ -128,3 +129,53 @@ def load_letterboxd_data_into_movies(db, model_class):
     current_date = datetime.now().strftime('%Y-%m-%d')
     new_folder_name = f"{current_date}_{letterboxd_folder.name}"
     shutil.move(str(letterboxd_folder), str(loaded_folder / new_folder_name))
+
+def load_artworks_data(db, model_class):
+    csv_file = 'artworks.csv'
+    csv_path = csv_folder / csv_file
+    with open(csv_path, 'r', newline='', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            # Check if artwork already exists
+            existing_artwork = model_class.query.filter_by(
+                title=row['Title'],
+                artist=row['Artist'],
+                year=int(row['Year']) if row['Year'].strip() else None,
+                series=row['Series'],
+                series_id=int(row['Series ID']) if row['Series ID'].strip() else None
+            ).first()
+            
+            # Prepare data for new artwork
+            data = {
+                'title': row['Title'],
+                'artist': row['Artist'],
+                'year': int(row['Year']) if row['Year'].strip() else None,
+                'series': row['Series'],
+                'series_id': int(row['Series ID']) if row['Series ID'].strip() else None,
+                'file_name': row['file_name'],
+                'site_approved': bool(int(row['site_approved'])) if row['site_approved'].strip() else False,
+                'location': row['Location'],
+                'description': row['Description'],
+                'medium': row['Medium'],
+                'collections': row['Tags']  # Mapping Tags to collections
+            }
+            
+            if existing_artwork:
+                # Update existing artwork
+                for key, value in data.items():
+                    setattr(existing_artwork, key, value)
+            else:
+                # Create new artwork record
+                data['id'] = str(uuid.uuid4())  # Generate a new random ID
+                new_artwork = model_class(**data)
+                db.session.add(new_artwork)
+        
+        # Commit all changes
+        db.session.commit()
+    
+    # Move the processed file
+    if not loaded_folder.exists():
+        loaded_folder.mkdir(parents=True)
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    new_file_name = f"{current_date}_{csv_file}"
+    shutil.move(str(csv_path), str(loaded_folder / new_file_name))

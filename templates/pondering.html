@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pondering</title>
+    <style>
+       body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Garamond, sans-serif;
+            margin: 0;
+            font-size: 20px;
+        }
+
+        header {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            width: 100%;
+        }
+
+        .navbar {
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            font-family: Garamond, sans-serif;
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .navbar a {
+            float: left;
+            display: block;
+            color: #fff;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+        .navbar a.active {
+            background-color: #555;
+        }
+
+        .navbar a:link {
+            color: #fff;
+        }
+
+        .navbar a:visited {
+            color: #fff;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+
+        .navbar-right {
+            float: right;
+        }
+
+        .login-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 7px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .artwork-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            padding: 20px;
+        }
+        .content-item {
+            background-color: #C1DFF0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        .content-item:hover {
+            transform: translateY(-5px);
+        }
+        .image-container {
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .content-item img {
+            max-height: 100%;
+            width: auto;
+            object-fit: contain;
+            border-radius: 0px;
+        }
+        .content-details {
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        .content-item h3 {
+            font-size: 16px;
+            margin: 0 0 5px 0;
+            color: #121212;
+            word-wrap: break-word;
+            hyphens: auto;
+        }
+        .content-item p {
+            font-size: 14px;
+            margin: 0 0 5px 0;
+            color: #333;
+            word-wrap: break-word;
+            hyphens: auto;
+        }
+
+        .lightbox {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+        }
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 90%;
+        }
+        .lightbox-content img {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+        }
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            background-color: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .lightbox-prev {
+            left: 20px;
+        }
+        .lightbox-next {
+            right: 20px;
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            function adjustContainerWidths() {
+                const items = document.querySelectorAll('.content-item');
+                items.forEach(item => {
+                    const img = item.querySelector('img');
+                    if (img.complete) {
+                        item.style.width = `${img.width}px`;
+                    } else {
+                        img.onload = () => {
+                            item.style.width = `${img.width}px`;
+                        };
+                    }
+                });
+            }
+
+            // Run once when the page loads
+            adjustContainerWidths();
+
+            // Run again after a short delay to catch any late-loading images
+            setTimeout(adjustContainerWidths, 1000);
+
+
+            // Lightbox functionality
+            const lightbox = document.querySelector('.lightbox');
+            const lightboxImg = lightbox.querySelector('img');
+            const lightboxClose = lightbox.querySelector('.lightbox-close');
+            const lightboxPrev = lightbox.querySelector('.lightbox-prev');
+            const lightboxNext = lightbox.querySelector('.lightbox-next');
+            let currentIndex = 0;
+            const images = document.querySelectorAll('.content-item img');
+
+            function openLightbox(index) {
+                currentIndex = index;
+                const fullImgSrc = images[index].getAttribute('data-full-img');
+                lightboxImg.src = fullImgSrc;
+                lightbox.style.display = 'flex';
+            }
+
+            function closeLightbox() {
+                lightbox.style.display = 'none';
+            }
+
+            function showPrevImage() {
+                currentIndex = (currentIndex - 1 + images.length) % images.length;
+                openLightbox(currentIndex);
+            }
+
+            function showNextImage() {
+                currentIndex = (currentIndex + 1) % images.length;
+                openLightbox(currentIndex);
+            }
+
+            images.forEach((img, index) => {
+                img.addEventListener('click', () => openLightbox(index));
+            });
+
+            lightboxClose.addEventListener('click', closeLightbox);
+            lightboxPrev.addEventListener('click', showPrevImage);
+            lightboxNext.addEventListener('click', showNextImage);
+
+            lightbox.addEventListener('click', (e) => {
+                if (e.target === lightbox) closeLightbox();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (!lightbox.style.display || lightbox.style.display === 'none') return;
+                if (e.key === 'ArrowLeft') showPrevImage();
+                if (e.key === 'ArrowRight') showNextImage();
+                if (e.key === 'Escape') closeLightbox();
+            });
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="navbar">
+                <a href="/">Home</a>
+                <a href="/writing">Writing</a>
+                <a href="/reading">Reading</a>
+                <a href="/watching">Watching</a>
+                <a href="/creating">Creating</a>
+                <a href="/listening">Listening</a>
+                <a href="/pondering" class="active">Pondering</a>
+                <a href="/collecting">Collecting</a>
+
+                <div class="navbar-right">
+                    {% if current_user.is_authenticated %}
+                    <a href="/logout" class="login-button">Logout</a> <!-- Link to logout endpoint -->
+                    {% else %}
+                        <a href="/login" class="login-button">Login</a> <!-- Link to login endpoint -->
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="artwork-grid">
+        {% for artwork in approved_artworks %}
+        <div class="content-item">
+            <div class="image-container">
+                <img src="{{ url_for('static', filename='images/' + artwork.artist + '/' + artwork.file_name) }}" 
+                     alt="{{ artwork.title }}" 
+                     data-full-img="{{ url_for('static', filename='images/' + artwork.artist + '/' + artwork.file_name) }}"
+                     data-title="{{ artwork.title }}"
+                     data-artist="{{ artwork.artist }}"
+                     data-year="{{ artwork.year }}"
+                     data-location="{{ artwork.location }}"
+                     data-medium="{{ artwork.medium }}"
+                     data-description="{{ artwork.description }}">
+            </div>
+            <div class="content-details">
+                <h3>{{ artwork.title }}</h3>
+                <p><strong>{{ artwork.artist }}</strong></p>
+                <p>{{ artwork.location }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Lightbox -->
+    <div class="lightbox">
+        <div class="lightbox-content">
+            <img src="" alt="">
+        </div>
+        <div class="lightbox-nav lightbox-prev">&lt;</div>
+        <div class="lightbox-nav lightbox-next">&gt;</div>
+        <div class="lightbox-close">&times;</div>
+    </div>
+
+</body>
+</html>

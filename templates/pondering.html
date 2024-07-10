@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pondering</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <style>
        body {
             background-color: #121212;
@@ -88,7 +90,7 @@
             transform: translateY(-5px);
         }
         .image-container {
-            height: 300px;
+            height: 350px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -118,6 +120,68 @@
             word-wrap: break-word;
             hyphens: auto;
         }
+
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 5px;
+            background-color: #C1DFF0;
+            color: #121212;
+            border-radius: 8px;
+        }
+
+        .date-pickers {
+            display: flex;
+            gap: 10px;
+        }
+
+        #start-date, #end-date {
+            width: 50px;
+        }
+
+        .artist-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .artist-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            max-height: 300px;
+            overflow-y: auto;
+            color: #121212;
+            font-size: 15px;
+        }
+
+        .control-item label {
+            display: block;
+            padding: 5px;
+        }
+
+        .artist-content label:hover {
+            background-color: #f1f1f1;
+        }
+
+        .show {
+            display: block;
+        }
+
+
 
         .lightbox {
             display: none;
@@ -237,6 +301,98 @@
                 if (e.key === 'ArrowRight') showNextImage();
                 if (e.key === 'Escape') closeLightbox();
             });
+
+
+             // New filtering and sorting code
+            const sortYearSelect = document.getElementById('sort-year');
+            const artistDropdownBtn = document.getElementById('artist-dropdown-btn');
+            const artistContent = document.getElementById('artist-content');
+            const startDateInput = document.getElementById('start-date');
+            const endDateInput = document.getElementById('end-date');
+
+            // Populate artist dropdown
+            const artists = [...new Set(Array.from(images).map(img => img.getAttribute('data-artist')))];
+            artists.forEach(artist => {
+                const label = document.createElement('label');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = artist;
+                checkbox.checked = true;
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(artist));
+                artistContent.appendChild(label);
+            });
+
+            // Toggle artist dropdown
+            artistDropdownBtn.addEventListener('click', function() {
+                artistContent.classList.toggle('show');
+            });
+
+            // Close the dropdown if clicked outside
+            window.addEventListener('click', function(event) {
+                if (!event.target.matches('#artist-dropdown-btn')) {
+                    if (artistContent.classList.contains('show')) {
+                        artistContent.classList.remove('show');
+                    }
+                }
+            });
+
+            // Initialize date pickers
+            flatpickr(startDateInput, {
+                dateFormat: "Y",
+                minDate: "1000",
+                maxDate: "2024"
+            });
+
+            flatpickr(endDateInput, {
+                dateFormat: "Y",
+                minDate: "1000",
+                maxDate: "2024"
+            });
+
+            function filterAndSortArtworks() {
+                const sortOrder = sortYearSelect.value;
+                const selectedArtists = Array.from(artistContent.querySelectorAll('input:checked')).map(cb => cb.value);
+                const startYear = Number(startDateInput.value);
+                const endYear = Number(endDateInput.value);
+
+                Array.from(images).forEach(img => {
+                    const contentItem = img.closest('.content-item');
+                    const artist = img.getAttribute('data-artist');
+                    const year = Number(img.getAttribute('data-year'));
+
+                    const artistMatch = selectedArtists.includes(artist);
+                    const yearMatch = (!startYear || year >= startYear) && (!endYear || year <= endYear);
+
+                    contentItem.style.display = artistMatch && yearMatch ? '' : 'none';
+                });
+
+                if (sortOrder) {
+                    const sortedItems = Array.from(images)
+                        .filter(img => img.closest('.content-item').style.display !== 'none')
+                        .sort((a, b) => {
+                            const yearA = Number(a.getAttribute('data-year'));
+                            const yearB = Number(b.getAttribute('data-year'));
+                            return sortOrder === 'asc' ? yearA - yearB : yearB - yearA;
+                        });
+
+                    sortedItems.forEach(img => {
+                        const contentItem = img.closest('.content-item');
+                        contentItem.parentNode.appendChild(contentItem);
+                    });
+                }
+
+                adjustContainerWidths();
+            }
+
+            sortYearSelect.addEventListener('change', filterAndSortArtworks);
+            artistContent.addEventListener('change', filterAndSortArtworks);
+            startDateInput.addEventListener('change', filterAndSortArtworks);
+            endDateInput.addEventListener('change', filterAndSortArtworks);
+
+            // Initial filter and sort
+            filterAndSortArtworks();
+
         });
     </script>
 </head>
@@ -263,6 +419,32 @@
             </div>
         </nav>
     </header>
+    <div class="controls">
+        <div class="control-item">
+            <label>Filter Artists:</label>
+            <div class="artist-dropdown">
+                <button id="artist-dropdown-btn">Select</button>
+                <div id="artist-content" class="artist-content">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+        <div class="control-item">
+            <label for="sort-year">Sort by Year:</label>
+            <select id="sort-year">
+                <option value="">No Sort</option>
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+            </select>
+        </div>
+        <div class="control-item">
+            <label>Date Range:</label>
+            <div class="date-pickers">
+                <input type="text" id="start-date" placeholder="1000">
+                <input type="text" id="end-date" placeholder="2024">
+            </div>
+        </div>
+    </div>
     <div class="artwork-grid">
         {% for artwork in approved_artworks %}
         <div class="content-item">

@@ -449,9 +449,9 @@
         {% for artwork in approved_artworks %}
         <div class="content-item">
             <div class="image-container">
-                <img src="{{ url_for('static', filename='images/' + artwork.artist + '/' + artwork.file_name) }}" 
+                <img src="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}" 
                      alt="{{ artwork.title }}" 
-                     data-full-img="{{ url_for('static', filename='images/' + artwork.artist + '/' + artwork.file_name) }}"
+                     data-full-img="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
                      data-title="{{ artwork.title }}"
                      data-artist="{{ artwork.artist }}"
                      data-year="{{ artwork.year }}"
@@ -462,7 +462,8 @@
             <div class="content-details">
                 <h3>{{ artwork.title }}</h3>
                 <p><strong>{{ artwork.artist }}</strong></p>
-                <p>{{ artwork.location }}</p>
+                <p>🎨 {{ artwork.medium if artwork.medium else "Unknown" }}</p>
+                <p>📍 {{ artwork.location }}</p>
             </div>
         </div>
         {% endfor %}

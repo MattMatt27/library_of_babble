@@ -10,7 +10,7 @@ def get_approved_artworks_from_db():
     cursor = conn.cursor()
 
     # Execute a SELECT query to fetch all books
-    cursor.execute('SELECT id, title, artist, year, file_name, series, series_id, location FROM artworks WHERE site_approved = 1')
+    cursor.execute('SELECT id, title, artist, year, file_name, series, series_id, medium, location FROM artworks WHERE site_approved = 1')
     rows = cursor.fetchall()
 
     for row in rows:
@@ -23,7 +23,8 @@ def get_approved_artworks_from_db():
             'file_name': unquote(row[4]) if row[4] else 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg',
             'series': row[5], 
             'series_id': row[6], 
-            'location': row[7] 
+            'medium': row[7],
+            'location': row[8] 
         }
         artworks.append(artwork)
 

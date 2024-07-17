@@ -136,9 +136,6 @@
 		.movie p {
 		    margin: 0; /* Remove default margin for paragraphs */
 		    font-size: 16px; /* Set font size */
-		    /*overflow: hidden;*/ /* Hide overflow text */
-		    /*text-overflow: ellipsis;*/
-		    /*white-space: nowrap;*/ /* Prevent wrapping */
 		}
 
         .button-container {
@@ -239,7 +236,7 @@
                     <p>{{ movie['director'] }}</p>
                     <p>{{ movie['year'] }}</p>
                     <p>
-                        <img src="{{ url_for('static', filename='images/stars/' + movie['my_rating'] + '.png') }}" alt="{{ movie['my_rating'] }} Stars" style="width: 50%;">
+                        <img src="{{ url_for('static', filename='images/assets/stars/' + movie['my_rating'] + '.png') }}" alt="{{ movie['my_rating'] }} Stars" style="width: 50%;">
                     </p>
                 </div>
             {% endfor %}

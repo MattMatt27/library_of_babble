@@ -186,7 +186,7 @@
                     </td>
                     <td class="date-column">{{ movie['date_watched'] }}</td>
                     <td class="rating-column">
-                        <img src="{{ url_for('static', filename='images/stars/' + movie['my_rating'] + '.png') }}" alt="{{ movie['my_rating'] }} Stars">
+                        <img src="{{ url_for('static', filename='images/assets/stars/' + movie['my_rating'] + '.png') }}" alt="{{ movie['my_rating'] }} Stars">
                     </td>
                     <td>
                         {% set review_parts = movie['my_review'].split('<blockquote>') %}

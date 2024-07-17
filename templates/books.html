@@ -225,7 +225,7 @@
                     </td>
                     <td class="date-column">{{ book['date_read'] }}</td>
                     <td class="rating-column">
-                        <img src="{{ url_for('static', filename='images/stars/' + book['my_rating'] + '.png') }}" alt="{{ book['my_rating'] }} Stars">
+                        <img src="{{ url_for('static', filename='images/assets/stars/' + book['my_rating'] + '.png') }}" alt="{{ book['my_rating'] }} Stars">
                     </td>
                     <td>
                         <form action="/update_review/{{ book.id }}" method="POST">

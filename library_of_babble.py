@@ -103,23 +103,25 @@ class Artworks(db.Model):
     collections = db.Column(db.String(255))
     site_approved = db.Column(db.Boolean, default=0, nullable=False)
 
-
 def should_run_function(function_name, interval_days=7):
     last_run_entry = LastRun.query.filter_by(function_name=function_name).first()
     now = datetime.utcnow()
-
     if last_run_entry:
         if now - last_run_entry.last_run > timedelta(days=interval_days):
-            last_run_entry.last_run = now
-            db.session.commit()
             return True
         else:
             return False
+    return True
+
+def update_last_run(function_name):
+    last_run_entry = LastRun.query.filter_by(function_name=function_name).first()
+    now = datetime.utcnow()
+    if last_run_entry:
+        last_run_entry.last_run = now
     else:
         new_run_entry = LastRun(function_name=function_name, last_run=now)
         db.session.add(new_run_entry)
-        db.session.commit()
-        return True
+    db.session.commit()
 
 def check_and_load_books():
     with app.app_context():
@@ -127,8 +129,12 @@ def check_and_load_books():
             csv_file = 'goodreads_library_export.csv'
             csv_path = Path('data/staging') / csv_file
             if csv_path.exists():
-                load_goodreads_data_into_books(db, Books, csv_file)
-                print(f"Books loaded from {csv_file} successfully!")
+                try:
+                    load_goodreads_data_into_books(db, Books, csv_file)
+                    print(f"Books loaded from {csv_file} successfully!")
+                    update_last_run('check_and_load_books')
+                except Exception as e:
+                    print(f"Error loading books: {e}")
             else:
                 print(f"CSV file {csv_file} not found in data/staging.")
         else:
@@ -139,8 +145,12 @@ def check_and_load_movies():
         if should_run_function('check_and_load_movies', 1):
             letterboxd_path = Path('data/staging/letterboxd') 
             if letterboxd_path.exists():
-                load_letterboxd_data_into_movies(db, Movies)
-                print(f"Movies loaded from Letterboxd successfully!")
+                try:
+                    load_letterboxd_data_into_movies(db, Movies)
+                    print(f"Movies loaded from Letterboxd successfully!")
+                    update_last_run('check_and_load_movies')
+                except Exception as e:
+                    print(f"Error loading movies: {e}")
             else:
                 print(f"Letterboxd data not found in data/staging.")
         else:
@@ -149,16 +159,30 @@ def check_and_load_movies():
 def check_and_load_playlists():
     with app.app_context():
         if should_run_function('check_and_load_playlists'):
-            parse_and_load_playlists(db, Playlists)
+            response = input("It has been over a week since you updated playlist data. Would you like to update it now? (y/n): ").strip().lower()
+            if response == 'y':
+                try:
+                    parse_and_load_playlists(db, Playlists)
+                    print("Playlists updated successfully!")
+                    update_last_run('check_and_load_playlists')
+                except Exception as e:
+                    print(f"Error updating playlists: {e}")
+            else:
+                print("Playlist update skipped.")
         else:
             print("Playlists have been updated within the past week.")
 
 def check_and_load_artworks():
     with app.app_context():
         if should_run_function('check_and_load_artworks'):
-            load_artworks_data(db, Artworks)
+            try:
+                load_artworks_data(db, Artworks)
+                print("Artworks updated successfully!")
+                update_last_run('check_and_load_artworks')
+            except Exception as e:
+                print(f"Error updating artworks: {e}")
         else:
-            print("Artworks have been updated within the past day.")
+            print("Artworks have been updated within the past week.")
 
 
 @login_manager.user_loader

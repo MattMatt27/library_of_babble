@@ -1,143 +1,66 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matt Flathers</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-        }
+{% extends "base.html" %}
 
-        .navbar {
-            background-color: rgba(0, 0, 0, 0.8); /* Transparent black background */
-            overflow: hidden;
-            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
-            font-size: 20px;
-            color: #fff;
-        }
+{% block title %}Matt Flathers{% endblock %}
 
-        .navbar a {
-            float: left;
-            display: block;
-            color: #fff;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-        }
+{% set active_page = 'home' %}
 
-        .navbar a.active {
-            background-color: #555;
-        }
-
-        .navbar a:link {
-            color: #fff;
-        }
-
-        .navbar a:visited {
-            color: #fff;
-        }
-
-        .navbar a:hover {
-            text-decoration: underline;
-        }
-
-        a:hover {
-            text-decoration: underline; /* Add underline on hover */
-        }
-
-        .navbar-right {
-            float: right;
-        }
-
-        .login-button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 7px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        .navbar .login-button {
-            padding: 10px 10px;
-        }
-
-        .main-content {
-            background-image: url('../static/images/home/IMG_4712.JPG');
-            background-size: cover;
-            background-position: center;
-            min-height: 100vh;
-            position: relative;
-        }
-
-        .hero-section {
-            position: absolute;
-            top: 50%;
-            left: 50px; /* Adjust left positioning as needed */
-            transform: translateY(-50%);
-        }
-
-        .hero-section h1 {
-            font-size: 46px;
-            color: #ffffff;
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
-            margin: 0;
-        }
-
-    </style>
-    <script type="text/javascript">
-        document.addEventListener('DOMContentLoaded', function() {
-            const images = [
-                '20190817_065826308_iOS.jpg',
-                '20190322_012125224_iOS.jpg',
-                'DSC_0825.jpg',
-                'IMG_6649.JPG',
-                'IMG_4712.JPG',
-            ];
-
-            let currentIndex = 0;
-
-            function changeBackground() {
-                document.querySelector('.main-content').style.backgroundImage = `url('../static/images/home/${images[currentIndex]}')`;
-                currentIndex = (currentIndex + 1) % images.length;
-            }
-
-            setInterval(changeBackground, 15000); // Change background every 15 seconds (15000 milliseconds)
-        });
-    </script>
-</head>
-<body>
-    <div class="main-content">
-        <header>
-            <nav>
-                <div class="navbar">
-                    <a href="/" class="active">Home</a>
-                    <a href="/writing">Writing</a>
-                    <a href="/reading">Reading</a>
-                    <a href="/watching">Watching</a>
-                    <a href="/creating">Creating</a>
-                    <a href="/listening">Listening</a>
-                    <a href="/collecting">Collecting</a>
-
-                    <div class="navbar-right">
-                        {% if current_user.is_authenticated %}
-                        <a href="/logout" class="login-button">Logout</a> <!-- Link to logout endpoint -->
-                        {% else %}
-                            <a href="/login" class="login-button">Login</a> <!-- Link to login endpoint -->
-                        {% endif %}
-                    </div>
-                </div>
-            </nav>
-        </header>
-        <div class="hero-section">
-            <h1>Matt Flathers</h1>
-        </div>
+{% block content %}
+<div class="main-content">
+    <div class="hero-section">
+        <h1>Matt Flathers</h1>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+    body, html {
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .main-content {
+        background-image: url('../static/images/home/IMG_4712.JPG');
+        background-size: cover;
+        background-position: center;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+    }
+
+    .hero-section {
+        padding-left: 50px;
+    }
+
+    .hero-section h1 {
+        font-size: 46px;
+        color: #ffffff;
+        text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+        margin: 0;
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        const images = [
+            '20190817_065826308_iOS.jpg',
+            '20190322_012125224_iOS.jpg',
+            'DSC_0825.jpg',
+            'IMG_6649.JPG',
+            'IMG_4712.JPG',
+        ];
+
+        let currentIndex = 0;
+
+        function changeBackground() {
+            document.querySelector('.main-content').style.backgroundImage = `url('../static/images/home/${images[currentIndex]}')`;
+            currentIndex = (currentIndex + 1) % images.length;
+        }
+
+        setInterval(changeBackground, 15000); // Change background every 15 seconds (15000 milliseconds)
+    });
+</script>
+{% endblock %}

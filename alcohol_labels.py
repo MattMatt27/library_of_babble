@@ -31,4 +31,4 @@ def read_alc_labels_from_csv():
 def get_recently_added_labels():
     labels = read_alc_labels_from_csv()
     sorted_labels = sorted(labels, key=lambda x: int(x.get('id', 0)), reverse=True)
-    return sorted_labels[:6]
+    return sorted_labels[:10]

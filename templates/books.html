@@ -1,244 +1,172 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matt Flathers</title>
-    <style>
-        .navbar {
-            background-color: rgba(0, 0, 0, 0.8); /* Transparent black background */
-            overflow: hidden;
-            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
-            font-size: 20px;
-            color: #fff;
-        }
+{% extends "base.html" %}
 
-        .navbar a {
-            float: left;
-            display: block;
-            color: #fff;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-        }
+{% block title %}📙 Recently Read{% endblock %}
 
-        .navbar a.active {
-            background-color: #555;
-        }
+{% set active_page = 'reading' %}
 
-        .navbar a:link {
-            color: #fff;
-        }
+{% block extra_styles %}
+<style type="text/css">
+    body {
+        background-color: #C1DFF0; 
+        color: #121212; 
+        font-family: Garamond, sans-serif;
+        font-size: 18px;
+        margin: 0;
+        padding: 0; 
+    }
 
-        .navbar a:visited {
-            color: #fff;
-        }
+    header {
+        background-color: #121212;
+    }
 
-        .navbar a:hover {
-            text-decoration: underline;
-        }
+    table {
+        background-color: #093249;
+        color: #fff;
+        border-collapse: collapse;
+        margin: 10px auto;
+        width: 98%;
+    }
+    th, td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    th {
+        background-color: #121212;
+        color: #fff;
+    }
+    .center-header {
+        text-align: center;
+    }
+    .image-column {
+        width: 150px; /* Fixed width for image column */
+    }
+    .details-column {
+        width: 200px;
+    }
+    .date-column {
+        width: 75px;
+    }
+    .rating-column {
+        width: 100px;
+    }
+    img {
+        max-height: 250px; /* Limit image height */
+        max-width: 100%; /* Ensure image fits within its container */
+        display: block; /* Ensure proper sizing */
+        margin: auto; /* Center the image horizontally */
+    }
+    form {
+        margin-right: 10px;
+    }
+    textarea {
+        width: 100%;
+        min-width: 100%; 
+        max-width: 100%; 
+        resize: vertical;
+        padding: 8px; 
+        box-sizing: border-box; 
+        background-color: #C1DFF0;
+        font-family: Garamond, sans-serif;
+        border-radius: 5px;
+    }
+    .save-button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin-top: 5px;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
 
-        a:hover {
-            text-decoration: underline; /* Add underline on hover */
-        }
+    .save-button:hover {
+        background-color: #0056b3;
+    }
+    .header-text {
+        padding-left: 20px;
+        text-align: center;
+    }
+    .header-container {
+        display: flex; /* Use flexbox for layout */
+        align-items: center; /* Center vertically */
+        
+    }
+    .back-button {
+        background-color: #007bff; /* Blue background color for button */
+        color: #ffffff; /* White text color */
+        padding: 10px 20px; /* Add padding */
+        margin-left: 20px;
+        border-radius: 5px; /* Rounded corners */
+        text-decoration: none; /* Remove underline from button */
+        transition: background-color 0.3s; /* Smooth transition for background color */
+        display: flex; /* Use flexbox for layout */
+        align-items: center; /* Center vertically */
+    }
+    .back-button:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+    }
+</style>
+{% endblock %}
 
-        .navbar-right {
-            float: right;
-        }
-
-        .login-button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 7px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        .navbar .login-button {
-            padding: 10px 10px;
-        }
-
-        body {
-            background-color: #C1DFF0; 
-            color: #121212; 
-            font-family: Garamond, sans-serif;
-            font-size: 18px;
-            margin: 0;
-            padding: 0; 
-        }
-
-        table {
-            background-color: #093249;
-            color: #fff;
-            border-collapse: collapse;
-            margin: 10px auto;
-            width: 98%;
-        }
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #121212;
-            color: #fff;
-        }
-        .center-header {
-            text-align: center;
-        }
-        .image-column {
-            width: 150px; /* Fixed width for image column */
-        }
-        .details-column {
-            width: 200px;
-        }
-        .date-column {
-            width: 75px;
-        }
-        .rating-column {
-            width: 100px;
-        }
-        img {
-            max-height: 250px; /* Limit image height */
-            max-width: 100%; /* Ensure image fits within its container */
-            display: block; /* Ensure proper sizing */
-            margin: auto; /* Center the image horizontally */
-        }
-        form {
-            margin-right: 10px;
-        }
-        textarea {
-            width: 100%;
-            min-width: 100%; 
-            max-width: 100%; 
-            resize: vertical;
-            padding: 8px; 
-            box-sizing: border-box; 
-            background-color: #C1DFF0;
-            font-family: Garamond, sans-serif;
-            border-radius: 5px;
-        }
-        .save-button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin-top: 5px;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .save-button:hover {
-            background-color: #0056b3;
-        }
-        .header-text {
-            padding-left: 20px;
-            text-align: center;
-        }
-        .header-container {
-            display: flex; /* Use flexbox for layout */
-            align-items: center; /* Center vertically */
-            
-        }
-        .back-button {
-            background-color: #007bff; /* Blue background color for button */
-            color: #ffffff; /* White text color */
-            padding: 10px 20px; /* Add padding */
-            margin-left: 20px;
-            border-radius: 5px; /* Rounded corners */
-            text-decoration: none; /* Remove underline from button */
-            transition: background-color 0.3s; /* Smooth transition for background color */
-            display: flex; /* Use flexbox for layout */
-            align-items: center; /* Center vertically */
-        }
-        .back-button:hover {
-            background-color: #0056b3; /* Darker blue on hover */
-        }
-    </style>
-</head>
-<body>
-    <nav>
-        <div class="navbar">
-            <a href="/">Home</a>
-            <a href="/writing">Writing</a>
-            <a href="/reading" class="active">Reading</a>
-            <a href="/watching">Watching</a>
-            <a href="/creating">Creating</a>
-            <a href="/listening">Listening</a>
-            <a href="/collecting">Collecting</a>
-
-            <div class="navbar-right">
-                {% if current_user.is_authenticated %}
-                    <a href="/logout" class="login-button">Logout</a> <!-- Link to logout endpoint -->
-                {% else %}
-                    <a href="/login" class="login-button">Login</a> <!-- Link to login endpoint -->
-                {% endif %}
-            </div>
-        </div>
-    </nav>
-    <div class="header-container">
-        <!-- <p><a href="/library" class="back-button">←Back</a></p> -->
-        <!-- <h1 class="header-text">Recently Read Books</h1> -->
-    </div>
-    <table>
-        <thead>
+{% block content %}
+ <div class="header-container">
+    <!-- <p><a href="/library" class="back-button">←Back</a></p> -->
+    <!-- <h1 class="header-text">Recently Read Books</h1> -->
+</div>
+<table>
+    <thead>
+        <tr>
+            <th class="center-header">Cover</th>
+            <th>Details</th>
+            <th>Date Finished</th>
+            <th>My Rating</th>
+            <th>My Review</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for book in books %}
             <tr>
-                <th class="center-header">Cover</th>
-                <th>Details</th>
-                <th>Date Finished</th>
-                <th>My Rating</th>
-                <th>My Review</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for book in books %}
-                <tr>
-                    <td class="image-column">
-                        <a href="/book/{{ book.id }}">
-                            <img src="{{ book['cover_image_url'] }}" alt="{{ book['title'] }}">
-                        </a>
-                    </td>
-                    <td class="details-column">
-                        <div><strong>{{ book['title'] }}</strong></div>
-                        <div>{{ book['author'] }}</div>
-                        <div>
-                            {% if book['publication_year'] is not none %}
-                                {% if book['publication_year'] < 0 %}
-                                    {{ -book['publication_year'] }} BC
-                                {% else %}
-                                    {{ book['publication_year'] }}
-                                {% endif %}
+                <td class="image-column">
+                    <a href="/book/{{ book.id }}">
+                        <img src="{{ book['cover_image_url'] }}" alt="{{ book['title'] }}">
+                    </a>
+                </td>
+                <td class="details-column">
+                    <div><strong>{{ book['title'] }}</strong></div>
+                    <div>{{ book['author'] }}</div>
+                    <div>
+                        {% if book['publication_year'] is not none %}
+                            {% if book['publication_year'] < 0 %}
+                                {{ -book['publication_year'] }} BC
                             {% else %}
-                                Unknown
+                                {{ book['publication_year'] }}
                             {% endif %}
-                        </div>
-                    </td>
-                    <td class="date-column">{{ book['date_read'] }}</td>
-                    <td class="rating-column">
-                        <img src="{{ url_for('static', filename='images/assets/stars/' + book['my_rating'] + '.png') }}" alt="{{ book['my_rating'] }} Stars">
-                    </td>
-                    <td>
-                        <form action="/update_review/{{ book.id }}" method="POST">
-                            <textarea name="my_review" rows="5" {% if not current_user.is_authenticated or current_user.role != 'admin' %} readonly {% endif %}>{{ book['my_review'] }}</textarea>
-                            <br>
-                            {% if current_user.is_authenticated and current_user.role == 'admin' %}
-                                <input type="submit" value="Save" class="save-button">
-                            {% endif %}
-                        </form>
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</body>
-</html>
+                        {% else %}
+                            Unknown
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="date-column">{{ book['date_read'] }}</td>
+                <td class="rating-column">
+                    <img src="{{ url_for('static', filename='images/assets/stars/' + book['my_rating'] + '.png') }}" alt="{{ book['my_rating'] }} Stars">
+                </td>
+                <td>
+                    <form action="/update_review/{{ book.id }}" method="POST">
+                        <textarea name="my_review" rows="5" {% if not current_user.is_authenticated or current_user.role != 'admin' %} readonly {% endif %}>{{ book['my_review'] }}</textarea>
+                        <br>
+                        {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                            <input type="submit" value="Save" class="save-button">
+                        {% endif %}
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

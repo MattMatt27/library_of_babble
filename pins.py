@@ -29,4 +29,4 @@ def read_pins_from_csv():
 def get_recently_added_pins():
     pins = read_pins_from_csv()
     sorted_pins = sorted(pins, key=lambda x: int(x.get('id', 0)), reverse=True)
-    return sorted_pins[:6]
+    return sorted_pins[:10]

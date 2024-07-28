@@ -1,316 +1,247 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matt Flathers</title>
-    <style>
-        .navbar {
-            background-color: rgba(0, 0, 0, 0.8); /* Transparent black background */
-            overflow: hidden;
-            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
-            font-size: 20px;
-            color: #fff;
-        }
+{% extends "base.html" %}
 
-        .navbar a {
-            float: left;
-            display: block;
-            color: #fff;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-        }
+{% block title %}📚 Reading{% endblock %}
 
-        .navbar a.active {
-            background-color: #555;
-        }
+{% set active_page = 'reading' %}
 
-        .navbar a:link {
-            color: #fff;
-        }
+{% block extra_styles %}
+<style>
+    body {
+        background-color: #C1DFF0;
+        color: #093249; 
+        font-family: Garamond, sans-serif;
+        font-size: 20px;
+        margin: 0px;
+    }
+    h1 {
+        font-size: 30px; 
+        margin-bottom: 10px; 
+        margin-left: 20px;
+    }
 
-        .navbar a:visited {
-            color: #fff;
-        }
+    header {
+        background-color: #121212;
+    }
 
-        .navbar a:hover {
-            text-decoration: underline;
-        }
+    p {
+        font-size: 20px; 
+        line-height: 1.5; 
+        margin-bottom: 10px; 
+        margin-left: 20px;
+        margin-top: 10px;
+    }
 
-        a:hover {
-            text-decoration: underline; /* Add underline on hover */
-        }
+    .intro {
+        padding: 30px;
+        padding-bottom: 10px;
+    }
 
-        .navbar-right {
-            float: right;
-        }
+    a {
+        color: #ffffff; 
+        text-decoration: none; 
+    }
+    a:hover {
+        text-decoration: underline; 
+    }
 
-        .login-button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 7px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
+    .recently-read {
+        background-color: #093249;
+        color: #C1DFF0;
+        margin: 10px;
+    }
 
-        .navbar .login-button {
-            padding: 10px 10px;
-        }
+    .recently-read-header {
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        font-size: 20px;
+        padding-left: 50px;
+        padding-top: 10px;
+    }
 
-        body {
-            background-color: #C1DFF0; /* Dark background color */
-            color: #093249; /* White text color */
-            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
-            font-size: 20px;
-            margin: 0px;
-        }
-        h1 {
-            font-size: 30px; /* Increase heading font size */
-            margin-bottom: 10px; /* Add margin below heading */
-            margin-left: 20px;
-        }
+    .recently-read-books {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-gap: 20px;
+        align-content: center;
+        padding: 20px;
+    }
 
-        p {
-            font-size: 20px; /* Set paragraph font size */
-            line-height: 1.5; /* Increase line height for better readability */
-            margin-bottom: 10px; /* Add margin below paragraphs */
-            margin-left: 20px;
-            margin-top: 10px;
-        }
+    .recommended-fiction {
+        background-color: #093249;
+        color: #C1DFF0;
+        margin: 10px;
+    }
 
-        .intro {
-            padding: 30px;
-            padding-bottom: 10px;
-        }
+    .recommended-fiction-books {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-gap: 20px;
+        align-content: center;
+        padding: 20px;
+    }
+    
+    .book {
+        text-align: center; 
+    }
+    .book img {
+        max-height: 300px; 
+        width: auto;
+        display: block; 
+        margin: 0 auto 10px;
+        border-radius: 5px;
+    }
+    .book p {
+        margin: 0; 
+        font-size: 16px; 
+        overflow: hidden;
+        text-overflow: ellipsis; 
+        white-space: normal; 
+    }
 
-        a {
-            color: #ffffff; /* White color for links */
-            text-decoration: none; /* Remove underline from links */
-        }
-        a:hover {
-            text-decoration: underline; /* Add underline on hover */
-        }
+    .button-container {
+        margin-top: 5px;
+    }
 
-        .recently-read {
-            background-color: #093249;
-            color: #C1DFF0;
-            margin: 20px;
-        }
+    .full-text-button {
+        background-color: #C1DFF0; 
+        color: #093249; 
+        font-size: 17px;
+        padding: 10px 20px; 
+        border-radius: 5px; 
+        border: none;
+        text-decoration: none; 
+        transition: background-color 0.3s; 
+        align-items: center;
+        cursor: pointer;
+        margin-right: 35px;
+    }
+    .full-text-button::after {
+        content: ' →';
+    }
 
-        .recently-read-header {
-            display: flex; /* Use flexbox for layout */
-            justify-content: space-between; /* Align items to each end */
-            align-items: center; /* Center vertically */
-            font-size: 20px;
-            padding-left: 50px;
-            padding-top: 10px;
-        }
+    .full-text-button:hover {
+        background-color: #093249; 
+        color: #C1DFF0;
+        border: solid white 1px;
+        text-decoration: none;
+    }
 
-        .recently-read-books {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Adjust minmax values as needed */
-            grid-gap: 20px; /* Adjust the gap size as needed */
-            align-content: center;
-            padding: 20px;
-        }
+</style>
+{% endblock %}
 
-        .recommended-fiction {
-            background-color: #093249;
-            color: #C1DFF0;
-            margin: 20px;
-        }
-
-        .recommended-fiction-books {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            grid-gap: 20px;
-            align-content: center;
-            padding: 20px;
-        }
-        
-        .book {
-            text-align: center; /* Center align text */
-        }
-        .book img {
-            max-height: 300px; /* Limit image height */
-            width: auto; /* Auto-adjust width */
-            display: block; /* Ensure proper alignment */
-            margin: 0 auto 10px; /* Center image and add bottom margin */
-            border-radius: 5px;
-        }
-        .book p {
-            margin: 0; /* Remove default margin for paragraphs */
-            font-size: 16px; /* Set font size */
-            overflow: hidden; /* Hide overflow text */
-            text-overflow: ellipsis; /* Show ellipsis for overflow text */
-            white-space: normal; /* Wrap text */
-        }
-
-        .button-container {
-            margin-top: 5px;
-        }
-
-        .full-text-button {
-            background-color: #C1DFF0; /* Blue background color for button */
-            color: #093249; /* White text color */
-            font-size: 17px;
-            padding: 10px 20px; /* Add padding */
-            border-radius: 5px; /* Rounded corners */
-            border: none;
-            text-decoration: none; /* Remove underline from button */
-            transition: background-color 0.3s; /* Smooth transition for background color */
-            align-items: center;
-            cursor: pointer;
-            margin-right: 35px;
-        }
-        .full-text-button::after {
-            content: ' →';
-        }
-
-        .full-text-button:hover {
-            background-color: #093249; /* Blue background color for button */
-            color: #C1DFF0;
-            border: solid white 1px;
-            text-decoration: none;
-        }
-
-    </style>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-	<script>
-	    // $(document).ready(function() {
-	    //     // Function to adjust number of displayed books based on window width
-	    //     function adjustDisplayedBooks() {
-	    //         var windowWidth = $(window).width();
-	    //         var maxBooks = 8; // Default maximum number of books to display
-	    //         if (windowWidth < 768) {
-	    //             maxBooks = 4; // Adjust number of books for smaller screens
-	    //         }
-	    //         // Hide excess books
-	    //         $('.book').hide().slice(0, maxBooks).show();
-	    //     }
-	        
-	    //     // Call the adjustDisplayedBooks function when the page loads and when the window resizes
-	    //     adjustDisplayedBooks();
-	    //     $(window).resize(adjustDisplayedBooks);
-	    // });
-	</script>
-</head>
-<body>
-    <nav>
-        <div class="navbar">
-            <a href="/">Home</a>
-            <a href="/writing">Writing</a>
-            <a href="/reading"class="active">Reading</a>
-            <a href="/watching">Watching</a>
-            <a href="/creating">Creating</a>
-            <a href="/listening">Listening</a>
-            <a href="/collecting">Collecting</a>
-
-            <div class="navbar-right">
-                {% if current_user.is_authenticated %}
-                <a href="/logout" class="login-button">Logout</a> <!-- Link to logout endpoint -->
-                {% else %}
-                    <a href="/login" class="login-button">Login</a> <!-- Link to login endpoint -->
-                {% endif %}
+{% block content %}
+<div class="recommended-fiction">
+    <div class="recently-read-header">
+        <h2>Recommended Fiction</h2>
+    </div>
+    <div class="recommended-fiction-books">
+        {% for fiction_book in recommended_fiction_books %}
+            <div class="book">
+                <a href="/book/{{ fiction_book.id }}">
+                    <img src="{{ fiction_book['cover_image_url'] }}" alt="{{ fiction_book['title'] }}">
+                </a>
+                <p><strong>{{ fiction_book['title'] }}</strong></p>
+                <p>{{ fiction_book['author'] }}</p>
+                <p>
+                    {% if fiction_book['publication_year'] is not none %}
+                        {% if fiction_book['publication_year'] < 0 %}
+                            {{ -fiction_book['publication_year'] }} BC
+                        {% else %}
+                            {{ fiction_book['publication_year'] }}
+                        {% endif %}
+                    {% else %}
+                        Unknown
+                    {% endif %}
+                </p>
+                <!-- <p>
+                    <img src="{{ url_for('static', filename='images/assets/stars/' + fiction_book['my_rating'] + '.png') }}" alt="{{ fiction_book['my_rating'] }} Stars" style="width: 50%;">
+                </p> -->
             </div>
-        </div>
-    </nav>
-    <div class="recommended-fiction">
-        <div class="recently-read-header">
-            <h2>Recommended Fiction</h2>
-        </div>
-        <div class="recommended-fiction-books">
-            {% for fiction_book in recommended_fiction_books %}
-                <div class="book">
-                    <a href="/book/{{ fiction_book.id }}">
-                        <img src="{{ fiction_book['cover_image_url'] }}" alt="{{ fiction_book['title'] }}">
-                    </a>
-                    <p><strong>{{ fiction_book['title'] }}</strong></p>
-                    <p>{{ fiction_book['author'] }}</p>
-                    <p>
-                        {% if fiction_book['publication_year'] is not none %}
-                            {% if fiction_book['publication_year'] < 0 %}
-                                {{ -fiction_book['publication_year'] }} BC
-                            {% else %}
-                                {{ fiction_book['publication_year'] }}
-                            {% endif %}
-                        {% else %}
-                            Unknown
-                        {% endif %}
-                    </p>
-                    <!-- <p>
-                        <img src="{{ url_for('static', filename='images/assets/stars/' + fiction_book['my_rating'] + '.png') }}" alt="{{ fiction_book['my_rating'] }} Stars" style="width: 50%;">
-                    </p> -->
-                </div>
-            {% endfor %}
-        </div>
+        {% endfor %}
     </div>
-    <div class="recommended-fiction">
-        <div class="recently-read-header">
-            <h2>Recommended Non-Fiction</h2>
-        </div>
-        <div class="recommended-fiction-books">
-            {% for nonfiction_book in recommended_nonfiction_books %}
-                <div class="book">
-                    <a href="/book/{{ nonfiction_book.id }}">
-                        <img src="{{ nonfiction_book['cover_image_url'] }}" alt="{{ nonfiction_book['title'] }}">
-                    </a>
-                    <p><strong>{{ nonfiction_book['title'] }}</strong></p>
-                    <p>{{ nonfiction_book['author'] }}</p>
-                    <p>
-                        {% if nonfiction_book['publication_year'] is not none %}
-                            {% if nonfiction_book['publication_year'] < 0 %}
-                                {{ -nonfiction_book['publication_year'] }} BC
-                            {% else %}
-                                {{ nonfiction_book['publication_year'] }}
-                            {% endif %}
-                        {% else %}
-                            Unknown
-                        {% endif %}
-                    </p>
-                    <!-- <p>
-                        <img src="{{ url_for('static', filename='images/assets/stars/' + nonfiction_book['my_rating'] + '.png') }}" alt="{{ nonfiction_book['my_rating'] }} Stars" style="width: 50%;">
-                    </p> -->
-                </div>
-            {% endfor %}
-        </div>
+</div>
+<div class="recommended-fiction">
+    <div class="recently-read-header">
+        <h2>Recommended Non-Fiction</h2>
     </div>
-    <div class="recently-read">
-        <div class="recently-read-header">
-            <h2>Recently Read</h2>
-            <p class="button-container"><a href="/books" class="full-text-button">See All </a></p>
-        </div>
-        <div class="recently-read-books">
-            {% for book in recently_read_books %}
-                <div class="book">
-                    <a href="/book/{{ book.id }}">
-                        <img src="{{ book['cover_image_url'] }}" alt="{{ book['title'] }}">
-                    </a>
-                    <p><strong>{{ book['title'] }}</strong></p>
-                    <p>{{ book['author'] }}</p>
-                    <p>
-                        {% if book['publication_year'] is not none %}
-                            {% if book['publication_year'] < 0 %}
-                                {{ -book['publication_year'] }} BC
-                            {% else %}
-                                {{ book['publication_year'] }}
-                            {% endif %}
+    <div class="recommended-fiction-books">
+        {% for nonfiction_book in recommended_nonfiction_books %}
+            <div class="book">
+                <a href="/book/{{ nonfiction_book.id }}">
+                    <img src="{{ nonfiction_book['cover_image_url'] }}" alt="{{ nonfiction_book['title'] }}">
+                </a>
+                <p><strong>{{ nonfiction_book['title'] }}</strong></p>
+                <p>{{ nonfiction_book['author'] }}</p>
+                <p>
+                    {% if nonfiction_book['publication_year'] is not none %}
+                        {% if nonfiction_book['publication_year'] < 0 %}
+                            {{ -nonfiction_book['publication_year'] }} BC
                         {% else %}
-                            Unknown
+                            {{ nonfiction_book['publication_year'] }}
                         {% endif %}
-                    </p>
-                    <p>
-                        <img src="{{ url_for('static', filename='images/assets/stars/' + book['my_rating'] + '.png') }}" alt="{{ book['my_rating'] }} Stars" style="width: 50%;">
-                    </p>
-                </div>
-            {% endfor %}
-        </div>
+                    {% else %}
+                        Unknown
+                    {% endif %}
+                </p>
+                <!-- <p>
+                    <img src="{{ url_for('static', filename='images/assets/stars/' + nonfiction_book['my_rating'] + '.png') }}" alt="{{ nonfiction_book['my_rating'] }} Stars" style="width: 50%;">
+                </p> -->
+            </div>
+        {% endfor %}
     </div>
-</body>
-</html>
+</div>
+<div class="recently-read">
+    <div class="recently-read-header">
+        <h2>Recently Read</h2>
+        <p class="button-container"><a href="/books" class="full-text-button">See All </a></p>
+    </div>
+    <div class="recently-read-books">
+        {% for book in recently_read_books %}
+            <div class="book">
+                <a href="/book/{{ book.id }}">
+                    <img src="{{ book['cover_image_url'] }}" alt="{{ book['title'] }}">
+                </a>
+                <p><strong>{{ book['title'] }}</strong></p>
+                <p>{{ book['author'] }}</p>
+                <p>
+                    {% if book['publication_year'] is not none %}
+                        {% if book['publication_year'] < 0 %}
+                            {{ -book['publication_year'] }} BC
+                        {% else %}
+                            {{ book['publication_year'] }}
+                        {% endif %}
+                    {% else %}
+                        Unknown
+                    {% endif %}
+                </p>
+                <p>
+                    <img src="{{ url_for('static', filename='images/assets/stars/' + book['my_rating'] + '.png') }}" alt="{{ book['my_rating'] }} Stars" style="width: 50%;">
+                </p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // $(document).ready(function() {
+    //     // Function to adjust number of displayed books based on window width
+    //     function adjustDisplayedBooks() {
+    //         var windowWidth = $(window).width();
+    //         var maxBooks = 10; // Default maximum number of books to display
+    //         if (windowWidth < 900) {
+    //             maxBooks = 5; // Adjust number of books for smaller screens
+    //         }
+    //         // Hide excess books
+    //         $('.book').hide().slice(0, maxBooks).show();
+    //     }
+        
+    //     // Call the adjustDisplayedBooks function when the page loads and when the window resizes
+    //     adjustDisplayedBooks();
+    //     $(window).resize(adjustDisplayedBooks);
+    // });
+</script>
+{% endblock %}

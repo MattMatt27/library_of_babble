@@ -1,210 +1,137 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matt Flathers</title>
-    <style>
-        .navbar {
-            background-color: rgba(0, 0, 0, 0.8); /* Transparent black background */
-            overflow: hidden;
-            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
-            font-size: 20px;
-            color: #fff;
-        }
+{% extends "base.html" %}
 
-        .navbar a {
-            float: left;
-            display: block;
-            color: #fff;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-        }
+{% block title %}🎬 Recently Watched{% endblock %}
 
-        .navbar a.active {
-            background-color: #555;
-        }
+{% set active_page = 'watching' %}
 
-        .navbar a:link {
-            color: #fff;
-        }
+{% block extra_styles %}
+<style type="text/css">
+    body {
+        background-color: #C1DFF0; 
+        color: #121212; 
+        font-family: Garamond, sans-serif;
+        font-size: 18px;
+        margin: 0;
+        padding: 0; 
+    }
+    header {
+        background-color: #121212;
+    }
+    table {
+        background-color: #093249;
+        color: #fff;
+        border-collapse: collapse;
+        margin: 10px auto;
+        width: 98%;
+    }
+    th, td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    th {
+        background-color: #121212;
+        color: #fff;
+    }
+    .center-header {
+        text-align: center;
+    }
+    .image-column {
+        width: 150px; /* Fixed width for image column */
+    }
+    .details-column {
+        width: 200px;
+    }
+    .date-column {
+        width: 75px;
+    }
+    .rating-column {
+        width: 100px;
+    }
+    img {
+        max-height: 300px; /* Limit image height */
+        max-width: 100%; /* Ensure image fits within its container */
+        display: block; /* Ensure proper sizing */
+        margin: auto; /* Center the image horizontally */
+    }
+    .header-text {
+        padding-left: 20px;
+        text-align: center;
+    }
+    .header-container {
+        display: flex; /* Use flexbox for layout */
+        align-items: center; /* Center vertically */
+        
+    }
+    .back-button {
+        background-color: #007bff; /* Blue background color for button */
+        color: #ffffff; /* White text color */
+        padding: 10px 20px; /* Add padding */
+        margin-left: 20px;
+        border-radius: 5px; /* Rounded corners */
+        text-decoration: none; /* Remove underline from button */
+        transition: background-color 0.3s; /* Smooth transition for background color */
+        display: flex; /* Use flexbox for layout */
+        align-items: center; /* Center vertically */
+    }
+    .back-button:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+    }
+    blockquote {
+        background-color: #444; /* Dark grey background color for quotes */
+        color: #fff; /* White text color */
+        padding: 20px; /* Add padding around the quote */
+        margin-bottom: 20px; /* Add space between quotes */
+        border-left: 5px solid #007bff; /* Blue border on the left */
+        margin-left: 5px;
+    }
+</style>
+{% endblock %}
 
-        .navbar a:visited {
-            color: #fff;
-        }
-
-        .navbar a:hover {
-            text-decoration: underline;
-        }
-
-        a:hover {
-            text-decoration: underline; /* Add underline on hover */
-        }
-
-        .navbar-right {
-            float: right;
-        }
-
-        .login-button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 7px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        .navbar .login-button {
-            padding: 10px 10px;
-        }
-
-        body {
-            background-color: #C1DFF0; 
-            color: #121212; 
-            font-family: Garamond, sans-serif;
-            font-size: 18px;
-            margin: 0;
-            padding: 0; 
-        }
-        table {
-            background-color: #093249;
-            color: #fff;
-            border-collapse: collapse;
-            margin: 10px auto;
-            width: 98%;
-        }
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #121212;
-            color: #fff;
-        }
-        .center-header {
-            text-align: center;
-        }
-        .image-column {
-            width: 150px; /* Fixed width for image column */
-        }
-        .details-column {
-            width: 200px;
-        }
-        .date-column {
-            width: 75px;
-        }
-        .rating-column {
-            width: 100px;
-        }
-        img {
-            max-height: 300px; /* Limit image height */
-            max-width: 100%; /* Ensure image fits within its container */
-            display: block; /* Ensure proper sizing */
-            margin: auto; /* Center the image horizontally */
-        }
-        .header-text {
-            padding-left: 20px;
-            text-align: center;
-        }
-        .header-container {
-            display: flex; /* Use flexbox for layout */
-            align-items: center; /* Center vertically */
-            
-        }
-        .back-button {
-            background-color: #007bff; /* Blue background color for button */
-            color: #ffffff; /* White text color */
-            padding: 10px 20px; /* Add padding */
-            margin-left: 20px;
-            border-radius: 5px; /* Rounded corners */
-            text-decoration: none; /* Remove underline from button */
-            transition: background-color 0.3s; /* Smooth transition for background color */
-            display: flex; /* Use flexbox for layout */
-            align-items: center; /* Center vertically */
-        }
-        .back-button:hover {
-            background-color: #0056b3; /* Darker blue on hover */
-        }
-        blockquote {
-            background-color: #444; /* Dark grey background color for quotes */
-            color: #fff; /* White text color */
-            padding: 20px; /* Add padding around the quote */
-            margin-bottom: 20px; /* Add space between quotes */
-            border-left: 5px solid #007bff; /* Blue border on the left */
-            margin-left: 5px;
-        }
-    </style>
-</head>
-<body>
-    <nav>
-        <div class="navbar">
-            <a href="/">Home</a>
-            <a href="/writing">Writing</a>
-            <a href="/reading">Reading</a>
-            <a href="/watching" class="active">Watching</a>
-            <a href="/creating">Creating</a>
-            <a href="/listening">Listening</a>
-            <a href="/collecting">Collecting</a>
-
-            <div class="navbar-right">
-                {% if current_user.is_authenticated %}
-                    <a href="/logout" class="login-button">Logout</a> <!-- Link to logout endpoint -->
-                {% else %}
-                    <a href="/login" class="login-button">Login</a> <!-- Link to login endpoint -->
-                {% endif %}
-            </div>
-        </div>
-    </nav>
-    <div class="header-container">
-        <!-- <p><a href="/watching" class="back-button">←Back</a></p>
-        <h1 class="header-text">Recently Watched</h1> -->
-    </div>
-    <table>
-        <thead>
+{% block content %}
+<div class="header-container">
+    <!-- <p><a href="/watching" class="back-button">←Back</a></p>
+    <h1 class="header-text">Recently Watched</h1> -->
+</div>
+<table>
+    <thead>
+        <tr>
+            <th class="center-header">Cover</th>
+            <th>Details</th>
+            <th>Date Watched</th>
+            <th>My Rating</th>
+            <th>My Review</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for movie in movies %}
             <tr>
-                <th class="center-header">Cover</th>
-                <th>Details</th>
-                <th>Date Watched</th>
-                <th>My Rating</th>
-                <th>My Review</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for movie in movies %}
-                <tr>
-                    <td class="image-column"><img src="{{ movie['cover_image_url'] }}" alt="{{ movie['title'] }}"></td>
-                    <td class="details-column">
-                        <strong>Title:</strong> {{ movie['title'] }}<br><br>
-                        <strong>Director:</strong> {{ movie['director'] }}<br>
-                        <strong>Year:</strong> {{ movie['year'] }}
-                    </td>
-                    <td class="date-column">{{ movie['date_watched'] }}</td>
-                    <td class="rating-column">
-                        <img src="{{ url_for('static', filename='images/assets/stars/' + movie['my_rating'] + '.png') }}" alt="{{ movie['my_rating'] }} Stars">
-                    </td>
-                    <td>
-                        {% set review_parts = movie['my_review'].split('<blockquote>') %}
-                        {% if review_parts|length > 1 %}
-                            {% set blockquote_text = review_parts[1].split('</blockquote>') %}
-                            {% if blockquote_text|length > 1 %}
-                                <blockquote>{{ blockquote_text[0] }}</blockquote>
-                                {{ review_parts[0] }} {{ blockquote_text[1] }}
-                            {% else %}
-                                {{ review_parts[0] }} {{ blockquote_text[0] }}
-                            {% endif %}
+                <td class="image-column"><img src="{{ movie['cover_image_url'] }}" alt="{{ movie['title'] }}"></td>
+                <td class="details-column">
+                    <strong>Title:</strong> {{ movie['title'] }}<br><br>
+                    <strong>Director:</strong> {{ movie['director'] }}<br>
+                    <strong>Year:</strong> {{ movie['year'] }}
+                </td>
+                <td class="date-column">{{ movie['date_watched'] }}</td>
+                <td class="rating-column">
+                    <img src="{{ url_for('static', filename='images/assets/stars/' + movie['my_rating'] + '.png') }}" alt="{{ movie['my_rating'] }} Stars">
+                </td>
+                <td>
+                    {% set review_parts = movie['my_review'].split('<blockquote>') %}
+                    {% if review_parts|length > 1 %}
+                        {% set blockquote_text = review_parts[1].split('</blockquote>') %}
+                        {% if blockquote_text|length > 1 %}
+                            <blockquote>{{ blockquote_text[0] }}</blockquote>
+                            {{ review_parts[0] }} {{ blockquote_text[1] }}
                         {% else %}
-                            {{ movie['my_review'] }}
+                            {{ review_parts[0] }} {{ blockquote_text[0] }}
                         {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</body>
-</html>
+                    {% else %}
+                        {{ movie['my_review'] }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

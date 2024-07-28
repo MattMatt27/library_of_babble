@@ -179,3 +179,46 @@ def load_artworks_data(db, model_class):
     current_date = datetime.now().strftime('%Y-%m-%d')
     new_file_name = f"{current_date}_{csv_file}"
     shutil.move(str(csv_path), str(loaded_folder / new_file_name))
+
+def load_generated_images_data(db, model_class):
+    csv_file = 'generated_images.csv'
+    csv_folder = Path('data/staging')
+    loaded_folder = Path('data/loaded')
+    csv_path = csv_folder / csv_file
+
+    with open(csv_path, 'r', newline='', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            # Check if generated image already exists
+            existing_image = model_class.query.filter_by(
+                file_name=row['File Name']
+            ).first()
+            
+            # Prepare data for new or existing generated image
+            data = {
+                'model': row['Model'],
+                'model_version': int(row['Model Version']) if row['Model Version'].strip() else None,
+                'prompt': row['Prompt'],
+                'artist_palette': row['Artist Palette'],
+                'file_name': row['File Name']
+            }
+            
+            if existing_image:
+                # Update existing generated image
+                for key, value in data.items():
+                    setattr(existing_image, key, value)
+            else:
+                # Create new generated image record
+                data['id'] = str(uuid.uuid4())  # Generate a UUID for the id
+                new_image = model_class(**data)
+                db.session.add(new_image)
+        
+        # Commit all changes
+        db.session.commit()
+    
+    # Move the processed file
+    if not loaded_folder.exists():
+        loaded_folder.mkdir(parents=True)
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    new_file_name = f"{current_date}_{csv_file}"
+    shutil.move(str(csv_path), str(loaded_folder / new_file_name))

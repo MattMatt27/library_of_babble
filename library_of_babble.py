@@ -10,7 +10,7 @@ from movies import get_recently_watched_movies, watched_movies_from_csv, read_mo
 from pins import get_recently_added_pins, read_pins_from_csv
 from alcohol_labels import get_recently_added_labels, read_alc_labels_from_csv
 from database import movie_analytics, save_movies_to_database, merge_movie_data, connect_to_database
-from database2 import load_goodreads_data_into_books, load_letterboxd_data_into_movies, load_artworks_data
+from database2 import load_goodreads_data_into_books, load_letterboxd_data_into_movies, load_artworks_data, load_generated_images_data
 from playlist_parse import parse_and_load_playlists
 from artworks import get_approved_artworks_from_db
 
@@ -103,6 +103,14 @@ class Artworks(db.Model):
     collections = db.Column(db.String(255))
     site_approved = db.Column(db.Boolean, default=0, nullable=False)
 
+class GeneratedImages(db.Model):
+    id = db.Column(db.String, primary_key=True)
+    file_name = db.Column(db.String(255), nullable=False)
+    artist_palette = db.Column(db.String(1000), nullable=False)
+    model = db.Column(db.String(255))
+    model_version = db.Column(db.Integer)
+    prompt = db.Column(db.String(1000))
+
 def should_run_function(function_name, interval_days=7):
     last_run_entry = LastRun.query.filter_by(function_name=function_name).first()
     now = datetime.utcnow()
@@ -174,7 +182,7 @@ def check_and_load_playlists():
 
 def check_and_load_artworks():
     with app.app_context():
-        if should_run_function('check_and_load_artworks'):
+        if should_run_function('check_and_load_artworks', 1):
             try:
                 load_artworks_data(db, Artworks)
                 print("Artworks updated successfully!")
@@ -182,7 +190,20 @@ def check_and_load_artworks():
             except Exception as e:
                 print(f"Error updating artworks: {e}")
         else:
-            print("Artworks have been updated within the past week.")
+            print("Artworks have been updated within the past day.")
+
+def check_and_load_generative_art():
+    with app.app_context():
+        if should_run_function('check_and_load_generative_art', 1):
+            try:
+                load_generated_images_data(db, GeneratedImages)
+                print("Generative Art updated successfully!")
+                update_last_run('check_and_load_generative_art')
+            except Exception as e:
+                print(f"Error updating generative art: {e}")
+        else:
+            print("Generative Art has been updated within the past day.")
+
 
 
 @login_manager.user_loader
@@ -305,8 +326,36 @@ def ngt():
 
 @app.route('/creating')
 def creating():
-    return render_template('creating.html')
+    artists = Artworks.query.with_entities(Artworks.artist, Artworks.file_name).distinct().all()
+    artist_data = []
+    for artist in artists:
+        if artist.artist and artist.file_name:
+            # Use the artist name as the subfolder name
+            relative_path = f'images/artists/{artist.artist}/{artist.file_name}'
+            
+            # Use os.path.join for the full system path
+            full_path = os.path.join(app.static_folder, 'images', 'artists', artist.artist, artist.file_name)
+            
+            if os.path.exists(full_path):
+                artist_data.append({
+                    'name': artist.artist,
+                    'image': url_for('static', filename=relative_path)
+                })
+            else:
+                print(f"Warning: File not found for artist {artist.artist}: {full_path}")
 
+    generated_images = db.session.query(GeneratedImages).all()
+    generated_image_data = [{
+        'file_name': image.file_name,
+        'artist_palette': image.artist_palette.split('|'),
+        'model': image.model,
+        'model_version': image.model_version,
+        'prompt': image.prompt
+    } for image in generated_images]
+
+    return render_template('creating.html', 
+                           artists=artist_data, 
+                           generated_images=generated_image_data)
 @app.route('/pondering')
 @login_required
 def pondering():
@@ -318,7 +367,6 @@ def pondering():
 def watching():
     recently_watched_movies = get_recently_watched_movies()
     recommended_movies = get_movies_from_collection('matts-recommended')
-    print(recommended_movies)
     return render_template('watching.html', recently_watched_movies=recently_watched_movies,
                                             recommended_movies=recommended_movies)
 
@@ -472,4 +520,5 @@ if __name__ == '__main__':
     check_and_load_movies()
     check_and_load_playlists()
     check_and_load_artworks()
+    check_and_load_generative_art()
     app.run(debug=True)

@@ -365,6 +365,7 @@ def pondering():
     return render_template('pondering.html', approved_artworks=approved_artworks)
 
 @app.route('/watching')
+@login_required
 def watching():
     recently_watched_movies = get_recently_watched_movies()
     recommended_movies = get_movies_from_collection('matts-recommended')
@@ -372,6 +373,7 @@ def watching():
                                             recommended_movies=recommended_movies)
 
 @app.route('/movies')
+@login_required
 def movies():
     movies_data = read_movies_from_db()
     return render_template('movies.html', movies=movies_data)
@@ -453,6 +455,7 @@ def listening():
         return render_template('listening.html', approved_playlists=approved_playlists)  # Render initial form
 
 @app.route('/playlist')
+@login_required
 def playlist():
     # Logic to fetch playlist data or perform any necessary actions before rendering the template
     # Example data for demonstration purposes

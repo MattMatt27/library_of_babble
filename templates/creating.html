@@ -478,9 +478,18 @@
             return;
         }
 
+        // function updateImage() {
+        //     imgElement.src = validImages[currentIndex];
+        //     console.log(validImages[currentIndex].split('/').pop())
+        //     pieceNameElement.textContent = validImages[currentIndex].split('/').pop().replace(/%20/g, ' ').replace(/\.[^/.]+$/, '');
+        //     currentIndex = (currentIndex + 1) % validImages.length;
+        // }
+
         function updateImage() {
             imgElement.src = validImages[currentIndex];
-            pieceNameElement.textContent = validImages[currentIndex].split('/').pop().replace(/%20/g, ' ').replace(/\.[^/.]+$/, '');
+            const fileName = validImages[currentIndex].split('/').pop();
+            const decodedFileName = decodeURIComponent(fileName.replace(/\+/g, ' '));
+            pieceNameElement.textContent = decodedFileName.replace(/\.[^/.]+$/, '');
             currentIndex = (currentIndex + 1) % validImages.length;
         }
 

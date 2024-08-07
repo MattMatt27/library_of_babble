@@ -1,289 +1,221 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Collecting</title>
-    <style>
-        .navbar {
-            background-color: rgba(0, 0, 0, 0.5); /* Transparent black background */
-            overflow: hidden;
-            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
-            font-size: 20px;
-            color: #fff;
-        }
+{% extends "base.html" %}
 
-        .navbar a {
-            float: left;
-            display: block;
-            color: #fff;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-        }
+{% block title %}🏺 Collecting{% endblock %}
 
-        .navbar a.active {
-            background-color: #555;
-        }
+{% set active_page = 'collecting' %}
 
-        .navbar a:link {
-            color: #fff;
-        }
+{% block extra_styles %}
+<style type="text/css">
+    body {
+        background-color: #C1DFF0; /* Dark background color */
+        color: #093249; /* White text color */
+        font-family: Garamond, sans-serif; /* Use a common sans-serif font */
+        font-size: 20px;
+        margin: 0px;
+    }
 
-        .navbar a:visited {
-            color: #fff;
-        }
+    header {
+        background-color: #121212;
+    }
 
-        .navbar a:hover {
-            text-decoration: underline;
-        }
+    h1 {
+        font-size: 30px; /* Increase heading font size */
+        margin-bottom: 10px; /* Add margin below heading */
+        margin-left: 20px;
+    }
 
-        .navbar-right {
-            float: right;
-        }
+    p {
+        font-size: 20px; /* Set paragraph font size */
+        line-height: 1.5; /* Increase line height for better readability */
+        margin-bottom: 10px; /* Add margin below paragraphs */
+        margin-left: 20px;
+        margin-top: 10px;
+    }
 
-        .login-button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 7px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
+    .intro {
+        padding: 10px;
+        font-size: 25px;
+    }
 
-        .navbar .login-button {
-            padding: 10px 10px;
-        }
+    a {
+        color: #ffffff; /* White color for links */
+        text-decoration: none; /* Remove underline from links */
+    }
+    a:hover {
+        text-decoration: underline; /* Add underline on hover */
+    }
 
-        body {
-            background-color: #C1DFF0; /* Dark background color */
-            color: #093249; /* White text color */
-            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
-            font-size: 20px;
-            margin: 0px;
-        }
-        h1 {
-            font-size: 30px; /* Increase heading font size */
-            margin-bottom: 10px; /* Add margin below heading */
-            margin-left: 20px;
-        }
+    .pins-container {
+        background-color: #093249;
+        color: #C1DFF0;
+        margin: 20px;
+    }
 
-        p {
-            font-size: 20px; /* Set paragraph font size */
-            line-height: 1.5; /* Increase line height for better readability */
-            margin-bottom: 10px; /* Add margin below paragraphs */
-            margin-left: 20px;
-            margin-top: 10px;
-        }
+    .pins-header {
+        display: flex; /* Use flexbox for layout */
+        justify-content: space-between; /* Align items to each end */
+        align-items: center; /* Center vertically */
+        font-size: 20px;
+        padding-left: 50px;
+        padding-top: 10px;
+    }
 
-        .intro {
-            padding: 30px;
-            padding-bottom: 10px;
-            font-size: 25px;
-        }
+    .pins {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Adjust minmax values as needed */
+        grid-gap: 20px; /* Adjust the gap size as needed */
+        align-content: center;
+        padding: 20px;
+    }
+    
+    .pin {
+        text-align: center; /* Center align text */
+    }
+    .pin img {
+        max-height: 210px; /* Limit image height */
+        width: auto; /* Auto-adjust width */
+        display: block; /* Ensure proper alignment */
+        margin: 0 auto 10px; /* Center image and add bottom margin */
+        border-radius: 5px;
+    }
+    .pin p {
+        margin: 0; /* Remove default margin for paragraphs */
+        font-size: 16px; /* Set font size */
+        overflow: hidden; /* Hide overflow text */
+        text-overflow: ellipsis; /* Show ellipsis for overflow text */
+        white-space: normal; /* Wrap text */
+    }
 
-        a {
-            color: #ffffff; /* White color for links */
-            text-decoration: none; /* Remove underline from links */
-        }
-        a:hover {
-            text-decoration: underline; /* Add underline on hover */
-        }
 
-        .pins-container {
-            background-color: #093249;
-            color: #C1DFF0;
-            margin: 20px;
-        }
+    .labels-container {
+        background-color: #093249;
+        color: #C1DFF0;
+        margin: 20px;
+    }
 
-        .pins-header {
-            display: flex; /* Use flexbox for layout */
-            justify-content: space-between; /* Align items to each end */
-            align-items: center; /* Center vertically */
-            font-size: 20px;
-            padding-left: 50px;
-            padding-top: 10px;
-        }
+    .labels-header {
+        display: flex; /* Use flexbox for layout */
+        justify-content: space-between; /* Align items to each end */
+        align-items: center; /* Center vertically */
+        font-size: 20px;
+        padding-left: 50px;
+        padding-top: 10px;
+        margin-top: 20px;
+    }
 
-        .pins {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Adjust minmax values as needed */
-            grid-gap: 20px; /* Adjust the gap size as needed */
-            align-content: center;
-            padding: 20px;
+    .labels {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Adjust minmax values as needed */
+        grid-gap: 20px; /* Adjust the gap size as needed */
+        align-content: center;
+        padding: 20px;
+    }
+
+    .label {
+        text-align: center; /* Center align text */
+    }
+
+    .label img {
+        max-height: 300px; /* Limit image height */
+        width: auto; /* Auto-adjust width */
+        display: block; /* Ensure proper alignment */
+        margin: 0 auto 10px; /* Center image and add bottom margin */
+        border-radius: 5px;
+    }
+
+    .label p {
+        margin: 0; /* Remove default margin for paragraphs */
+        font-size: 16px; /* Set font size */
+        overflow: hidden; /* Hide overflow text */
+        text-overflow: ellipsis; /* Show ellipsis for overflow text */
+        white-space: nowrap; /* Prevent wrapping */
+    }
+
+    .button-container {
+        margin-top: 5px;
+    }
+
+    .full-text-button {
+        background-color: #C1DFF0; /* Blue background color for button */
+        color: #093249; /* White text color */
+        font-size: 17px;
+        padding: 10px 20px; /* Add padding */
+        border-radius: 5px; /* Rounded corners */
+        border: none;
+        text-decoration: none; /* Remove underline from button */
+        transition: background-color 0.3s; /* Smooth transition for background color */
+        align-items: center;
+        cursor: pointer;
+        margin-right: 35px;
+    }
+    .full-text-button::after {
+        content: ' →';
+    }
+
+    .full-text-button:hover {
+        background-color: #093249; /* Blue background color for button */
+        color: #C1DFF0;
+        border: solid white 1px;
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<p class="intro"> Over the years I have tried various different methods to organize my various collections, without ever finding a solution that I particularly like. This page is my latest attempt to share my collecting hobby with people. Most of my notes and details are preliminary and based on simple inventory passes and have very little detailed research yet.</p>
+<div class="pins-container">
+    <div class="pins-header">
+        <h2>Recently Added Pins</h2>
+        <p class="button-container"><a href="/pins" class="full-text-button">See All </a></p>
+    </div>
+    <div class="pins">
+        {% for pin in recently_added_pins %}
+            <div class="pin">
+                <img src="{{ pin['image_url'] }}" alt="{{ pin['text'] }}">
+                <!-- <p><strong>ID: </strong>{{ pin['id'] }}</p>
+                <p><strong>{{ pin['year'] }}</strong></p> -->
+                <!-- <p>{{ pin['notes'] }}</p> -->
+            </div>
+        {% endfor %}
+    </div>
+</div>
+<div class="labels-container">
+    <div class="labels-header">
+        <h2>Alcohol Labels</h2>
+        <p class="button-container"><a href="/alcohol-labels" class="full-text-button">See All </a></p>
+    </div>
+    <div class="labels">
+        {% for label in recently_added_labels %}
+            <div class="label">
+                <!-- <p><strong>ID: </strong>{{ label['id'] }}</p> -->
+                <img src="{{ label['image_url'] }}" alt="{{ label['text'] }}">
+                <!-- <p>{{ label['year'] }}</p>
+                <p>{{ label['type'] }}</p>
+                <p>{{ label['bottling_location'] }}</p> -->
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Function to adjust number of displayed books based on window width
+        function adjustDisplayedBooks() {
+            var windowWidth = $(window).width();
+            var maxBooks = 7; // Default maximum number of books to display
+            if (windowWidth < 768) {
+                maxBooks = 4; // Adjust number of books for smaller screens
+            }
+            // Hide excess books
+            $('.book').hide().slice(0, maxBooks).show();
         }
         
-        .pin {
-            text-align: center; /* Center align text */
-        }
-        .pin img {
-            max-height: 210px; /* Limit image height */
-            width: auto; /* Auto-adjust width */
-            display: block; /* Ensure proper alignment */
-            margin: 0 auto 10px; /* Center image and add bottom margin */
-            border-radius: 5px;
-        }
-        .pin p {
-            margin: 0; /* Remove default margin for paragraphs */
-            font-size: 16px; /* Set font size */
-            overflow: hidden; /* Hide overflow text */
-            text-overflow: ellipsis; /* Show ellipsis for overflow text */
-            white-space: normal; /* Wrap text */
-        }
-
-
-        .labels-container {
-            background-color: #093249;
-            color: #C1DFF0;
-            margin: 20px;
-        }
-
-        .labels-header {
-		    display: flex; /* Use flexbox for layout */
-            justify-content: space-between; /* Align items to each end */
-            align-items: center; /* Center vertically */
-            font-size: 20px;
-            padding-left: 50px;
-            padding-top: 10px;
-            margin-top: 20px;
-		}
-
-		.labels {
-		    display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Adjust minmax values as needed */
-            grid-gap: 20px; /* Adjust the gap size as needed */
-            align-content: center;
-            padding: 20px;
-		}
-
-		.label {
-		    text-align: center; /* Center align text */
-		}
-
-		.label img {
-		    max-height: 300px; /* Limit image height */
-		    width: auto; /* Auto-adjust width */
-		    display: block; /* Ensure proper alignment */
-		    margin: 0 auto 10px; /* Center image and add bottom margin */
-            border-radius: 5px;
-		}
-
-		.label p {
-		    margin: 0; /* Remove default margin for paragraphs */
-		    font-size: 16px; /* Set font size */
-		    overflow: hidden; /* Hide overflow text */
-		    text-overflow: ellipsis; /* Show ellipsis for overflow text */
-		    white-space: nowrap; /* Prevent wrapping */
-		}
-
-        .button-container {
-            margin-top: 5px;
-        }
-
-        .full-text-button {
-            background-color: #C1DFF0; /* Blue background color for button */
-            color: #093249; /* White text color */
-            font-size: 17px;
-            padding: 10px 20px; /* Add padding */
-            border-radius: 5px; /* Rounded corners */
-            border: none;
-            text-decoration: none; /* Remove underline from button */
-            transition: background-color 0.3s; /* Smooth transition for background color */
-            align-items: center;
-            cursor: pointer;
-            margin-right: 35px;
-        }
-        .full-text-button::after {
-            content: ' →';
-        }
-
-        .full-text-button:hover {
-            background-color: #093249; /* Blue background color for button */
-            color: #C1DFF0;
-            border: solid white 1px;
-            text-decoration: none;
-        }
-
-    </style>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-	<script>
-	    $(document).ready(function() {
-	        // Function to adjust number of displayed books based on window width
-	        function adjustDisplayedBooks() {
-	            var windowWidth = $(window).width();
-	            var maxBooks = 7; // Default maximum number of books to display
-	            if (windowWidth < 768) {
-	                maxBooks = 4; // Adjust number of books for smaller screens
-	            }
-	            // Hide excess books
-	            $('.book').hide().slice(0, maxBooks).show();
-	        }
-	        
-	        // Call the adjustDisplayedBooks function when the page loads and when the window resizes
-	        adjustDisplayedBooks();
-	        $(window).resize(adjustDisplayedBooks);
-	    });
-	</script>
-</head>
-<body>
-    <nav>
-        <div class="navbar">
-            <a href="/">Home</a>
-            <a href="/writing">Writing</a>
-            <a href="/reading">Reading</a>
-            <a href="/watching">Watching</a>
-            <a href="/creating">Creating</a>
-            <a href="/listening">Listening</a>
-            <a href="/collecting" class="active">Collecting</a>
-
-            <div class="navbar-right">
-                {% if current_user.is_authenticated %}
-                <a href="/logout" class="login-button">Logout</a> <!-- Link to logout endpoint -->
-                {% else %}
-                    <a href="/login" class="login-button">Login</a> <!-- Link to login endpoint -->
-                {% endif %}
-            </div>
-        </div>
-    </nav>
-    <p class="intro">As someone with an Archaeology degree, you might assume that I am interested in old objects. You would be correct. Over the years I have tried various different methods to organize my collection, without ever finding a solution that I particularly like. This page is my latest attempt to share my collecting hobby with people. Most of my notes and details are preliminary and based on a simple inventory pass and not detailed research yet.</p>
-    <div class="pins-container">
-        <div class="pins-header">
-            <h2>Recently Added Pins</h2>
-            <p class="button-container"><a href="/pins" class="full-text-button">See All </a></p>
-        </div>
-        <div class="pins">
-            {% for pin in recently_added_pins %}
-                <div class="pin">
-                    <a href="/pin/{{ pin.id }}">
-                        <img src="{{ pin['image_url'] }}" alt="{{ pin['text'] }}">
-                    </a>
-                    <p><strong>ID: </strong>{{ pin['id'] }}</p>
-                    <p><strong>{{ pin['year'] }}</strong></p>
-                    <!-- <p>{{ pin['notes'] }}</p> -->
-                </div>
-            {% endfor %}
-        </div>
-    </div>
-    <div class="labels-container">
-        <div class="labels-header">
-    	    <h2>Alcohol Labels</h2>
-    	    <p class="button-container"><a href="/alcohol-labels" class="full-text-button">See All </a></p>
-    	</div>
-        <div class="labels">
-            {% for label in recently_added_labels %}
-                <div class="label">
-                    <p><strong>ID: </strong>{{ label['id'] }}</p>
-                    <img src="{{ label['image_url'] }}" alt="{{ label['text'] }}">
-                    <p>{{ label['year'] }}</p>
-                    <p>{{ label['type'] }}</p>
-                    <p>{{ label['bottling_location'] }}</p>
-                </div>
-            {% endfor %}
-        </div>
-    </div>
-</body>
-</html>
+        // Call the adjustDisplayedBooks function when the page loads and when the window resizes
+        adjustDisplayedBooks();
+        $(window).resize(adjustDisplayedBooks);
+    });
+</script>
+{% endblock %}

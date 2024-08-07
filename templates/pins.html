@@ -1,203 +1,137 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matt Flathers</title>
-    <style>
-        .navbar {
-            background-color: rgba(0, 0, 0, 0.5); /* Transparent black background */
-            overflow: hidden;
-            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
-            font-size: 20px;
-            color: #fff;
-        }
+{% extends "base.html" %}
 
-        .navbar a {
-            float: left;
-            display: block;
-            color: #fff;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-        }
+{% block title %}📌 Pins{% endblock %}
 
-        .navbar a.active {
-            background-color: #555;
-        }
+{% set active_page = 'collecting' %}
 
-        .navbar a:link {
-            color: #fff;
-        }
+{% block extra_styles %}
+<style type="text/css">
+    body {
+        background-color: #C1DFF0; 
+        color: #121212; 
+        font-family: Garamond, sans-serif;
+        font-size: 18px;
+        margin: 0;
+        padding: 0; 
+    }
 
-        .navbar a:visited {
-            color: #fff;
-        }
+    header {
+        background-color: #121212;
+    }
 
-        .navbar a:hover {
-            text-decoration: underline;
-        }
+    table {
+        background-color: #093249;
+        color: #fff;
+        border-collapse: collapse;
+        margin: 10px auto;
+        width: 98%;
+    }
+    th, td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    th {
+        background-color: #121212;
+        color: #fff;
+    }
+    .center-header {
+        text-align: center;
+    }
+    .image-column {
+        width: 650px; /* Fixed width for image column */
+    }
+    .details-column {
+        width: 200px;
+    }
+    .offer-column {
+        width: 200px;
+    }
+    .offer-column {
+        padding: 20px;
+    }
+    img {
+        max-height: 650px; /* Limit image height */
+        max-width: 100%; /* Ensure image fits within its container */
+        display: block; /* Ensure proper sizing */
+        margin: auto; /* Center the image horizontally */
+    }
+    .header-text {
+        padding-left: 20px;
+        text-align: center;
+    }
+    .header-container {
+        display: flex; /* Use flexbox for layout */
+        align-items: center; /* Center vertically */
+        
+    }
+    .back-button {
+        background-color: #007bff; /* Blue background color for button */
+        color: #ffffff; /* White text color */
+        padding: 10px 20px; /* Add padding */
+        margin-left: 20px;
+        border-radius: 5px; /* Rounded corners */
+        text-decoration: none; /* Remove underline from button */
+        transition: background-color 0.3s; /* Smooth transition for background color */
+        display: flex; /* Use flexbox for layout */
+        align-items: center; /* Center vertically */
+    }
+    .back-button:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+    }
 
-        .navbar-right {
-            float: right;
-        }
+    .offer-button {
+        background-color: #007bff; /* Blue background color for button */
+        color: #ffffff; /* White text color */
+        padding: 10px 20px; /* Add padding */
+        margin-top: 5px;
+        border-radius: 5px; /* Rounded corners */
+        text-decoration: none; /* Remove underline from button */
+        transition: background-color 0.3s; /* Smooth transition for background color */
+        display: flex; /* Use flexbox for layout */
+        align-items: center; /* Center vertically */
+        text-align: center;
+        width: 40%;
+    }
+    .offer-button:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+    }
+</style>
+{% endblock %}
 
-        .login-button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 7px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        .navbar .login-button {
-            padding: 10px 10px;
-        }
-
-        body {
-            background-color: #121212; /* Dark grey background color */
-            color: #fff; /* White text color */
-            font-family: Arial, sans-serif; /* Optional: specify font family */
-            margin: 0; /* Optional: remove default body margin */
-            padding: 0; /* Optional: remove default body padding */
-        }
-        table {
-            background-color: #333;
-            border-collapse: collapse;
-            width: 100%;
-        }
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #444;
-        }
-        .center-header {
-            text-align: center;
-        }
-        .image-column {
-            width: 650px; /* Fixed width for image column */
-        }
-        .details-column {
-            width: 200px;
-        }
-        .offer-column {
-            width: 200px;
-        }
-        .offer-column {
-            padding: 20px;
-        }
-        img {
-            max-height: 650px; /* Limit image height */
-            max-width: 100%; /* Ensure image fits within its container */
-            display: block; /* Ensure proper sizing */
-            margin: auto; /* Center the image horizontally */
-        }
-        .header-text {
-            padding-left: 20px;
-            text-align: center;
-        }
-        .header-container {
-            display: flex; /* Use flexbox for layout */
-            align-items: center; /* Center vertically */
-            
-        }
-        .back-button {
-            background-color: #007bff; /* Blue background color for button */
-            color: #ffffff; /* White text color */
-            padding: 10px 20px; /* Add padding */
-            margin-left: 20px;
-            border-radius: 5px; /* Rounded corners */
-            text-decoration: none; /* Remove underline from button */
-            transition: background-color 0.3s; /* Smooth transition for background color */
-            display: flex; /* Use flexbox for layout */
-            align-items: center; /* Center vertically */
-        }
-        .back-button:hover {
-            background-color: #0056b3; /* Darker blue on hover */
-        }
-
-        .offer-button {
-            background-color: #007bff; /* Blue background color for button */
-            color: #ffffff; /* White text color */
-            padding: 10px 20px; /* Add padding */
-            margin-top: 5px;
-            border-radius: 5px; /* Rounded corners */
-            text-decoration: none; /* Remove underline from button */
-            transition: background-color 0.3s; /* Smooth transition for background color */
-            display: flex; /* Use flexbox for layout */
-            align-items: center; /* Center vertically */
-            text-align: center;
-            width: 40%;
-        }
-        .offer-button:hover {
-            background-color: #0056b3; /* Darker blue on hover */
-        }
-    </style>
-</head>
-<body>
-    <nav>
-        <div class="navbar">
-            <a href="/">Home</a>
-            <a href="/writing">Writing</a>
-            <a href="/reading">Reading</a>
-            <a href="/watching">Watching</a>
-            <a href="/creating">Creating</a>
-            <a href="/listening">Listening</a>
-            <a href="/collecting" class="active">Collecting</a>
-
-            <div class="navbar-right">
-                {% if current_user.is_authenticated %}
-                <a href="/logout" class="login-button">Logout</a> <!-- Link to logout endpoint -->
-                {% else %}
-                    <a href="/login" class="login-button">Login</a> <!-- Link to login endpoint -->
-                {% endif %}
-            </div>
-        </div>
-    </nav>
-    <div class="header-container">
-        <p><a href="/collecting" class="back-button">←Back</a></p>
-        <h1 class="header-text">Recently Added</h1>
-    </div>
-    <table>
-        <thead>
+{% block content %}
+<table>
+    <thead>
+        <tr>
+            <th class="center-header">Image</th>
+            <th>Details</th>
+            <th>Notes</th>
+            <th>Make Offer</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pin in pins %}
             <tr>
-                <th class="center-header">Image</th>
-                <th>Details</th>
-                <th>Notes</th>
-                <th>Make Offer</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for pin in pins %}
-                <tr>
-                    <td class="image-column">
-                        <a href="/pin/{{ pin.id }}">
-                            <img src="{{ pin['image_url'] }}" alt="{{ pin['text'] }}">
-                        </a>
-                    </td>
-                    <td class="details-column">
-                        <strong>ID: </strong>{{ pin['id'] }}<br><br>
-                        <strong>Year:</strong> {{ pin['year'] }}<br>
-                        <strong>Type:</strong> {{ pin['type'] }}<br>
-                        <strong>Text:</strong> {{ pin['text'] }}<br>
-                    </td>
-                    <td class="notes-column">{{ pin['notes'] }}</td>
-                    <td class="offer-column">
-                        <strong>Number Owned: </strong>{{ pin['owned'] }}<br>
-                        <a href="mailto:MattFlathers27@gmail.com?subject=Offer For Pin Number {{ pin['id'] }}&body=Hi Matt, I am looking to make an offer for pin number {{ pin['id'] }}. I would pay X for it. Let me know if you are interested in selling. Thank you!" class="offer-button">Make Offer</a>
-                    </td>
+                <td class="image-column">
+                    <img src="{{ pin['image_url'] }}" alt="{{ pin['text'] }}">
+                </td>
+                <td class="details-column">
+                    <strong>ID: </strong>{{ pin['id'] }}<br><br>
+                    <strong>Year:</strong> {{ pin['year'] }}<br><br>
+                    <strong>Type:</strong> {{ pin['type'] }}<br>
+                </td>
+                <td class="notes-column">
+                    <strong>Text:</strong> {{ pin['text'] }}<br><br>
+                    {{ pin['notes'] }}<br><br>
+                    <strong>Number Owned: </strong>{{ pin['owned'] }}<br>
+                </td>
+                <td class="offer-column">
                     
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</body>
-</html>
+                    <a href="mailto:MattFlathers27@gmail.com?subject=Offer For Pin Number {{ pin['id'] }}&body=Hi Matt, I am looking to make an offer for pin number {{ pin['id'] }}. I would pay X for it. Let me know if you are interested in selling. Thank you!" class="offer-button">Make Offer</a>
+                </td>
+                
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

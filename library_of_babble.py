@@ -92,8 +92,9 @@ class LastRun(db.Model):
 class Artworks(db.Model):
     id = db.Column(db.String, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
-    artist = db.Column(db.String(100))
-    year = db.Column(db.Integer, nullable=False)
+    artist = db.Column(db.String(255))
+    after = db.Column(db.String(100))
+    year = db.Column(db.String(100), nullable=False)
     series = db.Column(db.String(255))
     series_id = db.Column(db.Integer)
     file_name = db.Column(db.String(255))

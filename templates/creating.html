@@ -322,7 +322,7 @@
 <!-- Lunacy Section -->
 <section id="generative-art">
     <h2>Generative Art</h2>
-    <p>In my generative art practice I use a palette of existing artists that I have found generative image models have some understanding of aesthetically. I then combine artists to generate novel images that exist in the latent spaces between existing well-defined styles.</p>
+    <p>In my generative art practice I use a palette of existing artists that I have found generative image models have some baseline understanding for aesthetically. I then combine those artists to create novel images that exist in the latent spaces between existing well-defined styles.</p>
     <div class="section-header">
         <h2>Lunacy</h2>
         <p> This is my first full series, generated using the word Lunacy with a wide selection of my favorite artists. Select artists below to explore the collection.</p>
@@ -525,137 +525,6 @@
     }
 
     initializeApp();
-    // let allGeneratedImages = {{ generated_images | tojson | safe }};
-    // let selectedArtists = [];
-
-    // // Extract unique artist names from generated_images and add image path
-    // let allArtists = [...new Set(allGeneratedImages.flatMap(img => img.artist_palette))].map(name => ({
-    //     name,
-    //     image: `/static/images/artists/${name.replace(/ /g, '_')}/artwork.jpg` // Assumes a standard filename, adjust if needed
-    // }));
-
-    // function initializeApp() {
-    //     displayArtistOptions();
-    //     updateDisplay();
-    // }
-
-    // function displayArtistOptions() {
-    //     const artistOptions = document.getElementById('artist-options');
-    //     artistOptions.innerHTML = '';
-
-    //     const availableArtists = getAvailableArtists();
-
-    //     availableArtists.forEach(artist => {
-    //         const artistElement = document.createElement('div');
-    //         artistElement.classList.add('artist-option');
-    //         artistElement.textContent = artist.name;
-    //         artistElement.onclick = () => selectArtist(artist);
-    //         artistOptions.appendChild(artistElement);
-    //     });
-    // }
-
-    // function getAvailableArtists() {
-    //     if (selectedArtists.length === 0) {
-    //         return allArtists;
-    //     }
-
-    //     const validCombinations = new Set();
-    //     allGeneratedImages.forEach(image => {
-    //         if (selectedArtists.every(selected => image.artist_palette.includes(selected.name))) {
-    //             image.artist_palette.forEach(artist => validCombinations.add(artist));
-    //         }
-    //     });
-
-    //     return allArtists.filter(artist => 
-    //         validCombinations.has(artist.name) && !selectedArtists.some(selected => selected.name === artist.name)
-    //     );
-    // }
-
-    // function selectArtist(artist) {
-    //     if (selectedArtists.length < 5 && !selectedArtists.some(selected => selected.name === artist.name)) {
-    //         selectedArtists.push(artist);
-    //         updateSelectedArtistsDisplay();
-    //         displayArtistOptions();
-    //         updateDisplay();
-    //     }
-    // }
-
-    // function updateSelectedArtistsDisplay() {
-    //     const selectedArtistsElement = document.getElementById('selected-artists');
-    //     selectedArtistsElement.innerHTML = '';
-
-    //     selectedArtists.forEach((artist, index) => {
-    //         const artistElement = document.createElement('span');
-    //         artistElement.classList.add('selected-artist');
-    //         artistElement.innerHTML = `${artist.name} <span class="remove" onclick="removeArtist(${index})">×</span>`;
-    //         selectedArtistsElement.appendChild(artistElement);
-    //     });
-    // }
-
-    // function removeArtist(index) {
-    //     selectedArtists.splice(index, 1);
-    //     updateSelectedArtistsDisplay();
-    //     displayArtistOptions();
-    //     updateDisplay();
-    // }
-
-    // function updateDisplay() {
-    //     const selectedArtistsDisplay = document.getElementById('selected-artists-display');
-    //     selectedArtistsDisplay.innerHTML = '';
-
-    //     selectedArtists.forEach((artist) => {
-    //         const artistElement = document.createElement('div');
-    //         artistElement.classList.add('artist');
-    //         artistElement.innerHTML = `
-    //             <img src="${artist.image}" alt="${artist.name}" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg';">
-    //             <div class="artist-info">
-    //                 <h3 class="artist-name">${artist.name}</h3>
-    //                 <p class="piece-name">Original Artwork</p>
-    //             </div>
-    //         `;
-    //         selectedArtistsDisplay.appendChild(artistElement);
-    //     });
-
-    //     updateGeneratedImageDisplay();
-    // }
-
-    // function updateGeneratedImageDisplay() {
-    //     const generatedImageContainer = document.querySelector('.generated-image');
-    //     const generatedImageElement = document.querySelector('.generated-image img');
-    //     const promptText = document.querySelector('.prompt-text');
-    //     const modelText = document.querySelector('.model-name');
-
-    //     if (selectedArtists.length > 0) {
-    //         const relevantImages = allGeneratedImages.filter(image => 
-    //             image.artist_palette.length === selectedArtists.length &&
-    //             selectedArtists.every(artist => image.artist_palette.includes(artist.name))
-    //         );
-
-    //         if (relevantImages.length > 0) {
-    //             const image = relevantImages[0]; // You can implement cycling through images if needed
-    //             generatedImageElement.src = `/static/images/creating/lunacy/${image.file_name}`;
-    //             promptText.textContent = `Prompt: ${image.prompt}`;
-    //             modelText.textContent = `${image.model} v${image.model_version}`;
-    //             generatedImageContainer.style.display = 'block';
-    //         } else {
-    //             clearGeneratedImageDisplay();
-    //         }
-    //     } else {
-    //         clearGeneratedImageDisplay();
-    //     }
-    // }
-
-    // function clearGeneratedImageDisplay() {
-    //     const generatedImageContainer = document.querySelector('.generated-image');
-    //     const generatedImageElement = document.querySelector('.generated-image img');
-    //     const promptText = document.querySelector('.prompt-text');
-
-    //     generatedImageElement.src = "";
-    //     promptText.textContent = "";
-    //     generatedImageContainer.style.display = 'none';
-    // }
-
-    // initializeApp();
 </script>
 {% endblock %}
 

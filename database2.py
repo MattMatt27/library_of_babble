@@ -140,7 +140,7 @@ def load_artworks_data(db, model_class):
             existing_artwork = model_class.query.filter_by(
                 title=row['Title'],
                 artist=row['Artist'],
-                year=int(row['Year']) if row['Year'].strip() else None,
+                year=row['Year'] if row['Year'].strip() else None,
                 series=row['Series'],
                 series_id=int(row['Series ID']) if row['Series ID'].strip() else None
             ).first()
@@ -149,7 +149,8 @@ def load_artworks_data(db, model_class):
             data = {
                 'title': row['Title'],
                 'artist': row['Artist'],
-                'year': int(row['Year']) if row['Year'].strip() else None,
+                'after': row['After'],
+                'year': row['Year'] if row['Year'].strip() else None,
                 'series': row['Series'],
                 'series_id': int(row['Series ID']) if row['Series ID'].strip() else None,
                 'file_name': row['file_name'],

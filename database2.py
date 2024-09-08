@@ -133,6 +133,13 @@ def load_letterboxd_data_into_movies(db, model_class):
 def load_artworks_data(db, model_class):
     csv_file = 'artworks.csv'
     csv_path = csv_folder / csv_file
+    
+    # Get all existing artwork IDs
+    existing_artwork_ids = set(artwork.id for artwork in model_class.query.all())
+    
+    # Set to store IDs of artworks in the CSV
+    csv_artwork_ids = set()
+    
     with open(csv_path, 'r', newline='', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         for row in reader:
@@ -165,14 +172,23 @@ def load_artworks_data(db, model_class):
                 # Update existing artwork
                 for key, value in data.items():
                     setattr(existing_artwork, key, value)
+                csv_artwork_ids.add(existing_artwork.id)
             else:
                 # Create new artwork record
                 data['id'] = str(uuid.uuid4())  # Generate a new random ID
                 new_artwork = model_class(**data)
                 db.session.add(new_artwork)
-        
-        # Commit all changes
-        db.session.commit()
+                csv_artwork_ids.add(data['id'])
+    
+    # Remove artworks not in the CSV
+    artworks_to_remove = existing_artwork_ids - csv_artwork_ids
+    for artwork_id in artworks_to_remove:
+        artwork_to_remove = model_class.query.get(artwork_id)
+        if artwork_to_remove:
+            db.session.delete(artwork_to_remove)
+    
+    # Commit all changes
+    db.session.commit()
     
     # Move the processed file
     if not loaded_folder.exists():
@@ -186,6 +202,12 @@ def load_generated_images_data(db, model_class):
     csv_folder = Path('data/staging')
     loaded_folder = Path('data/loaded')
     csv_path = csv_folder / csv_file
+
+    # Get all existing generated image IDs
+    existing_image_ids = set(image.id for image in model_class.query.all())
+
+    # Set to store IDs of generated images in the CSV
+    csv_image_ids = set()
 
     with open(csv_path, 'r', newline='', encoding='utf-8') as file:
         reader = csv.DictReader(file)
@@ -208,14 +230,23 @@ def load_generated_images_data(db, model_class):
                 # Update existing generated image
                 for key, value in data.items():
                     setattr(existing_image, key, value)
+                csv_image_ids.add(existing_image.id)
             else:
                 # Create new generated image record
                 data['id'] = str(uuid.uuid4())  # Generate a UUID for the id
                 new_image = model_class(**data)
                 db.session.add(new_image)
-        
-        # Commit all changes
-        db.session.commit()
+                csv_image_ids.add(data['id'])
+
+    # Remove generated images not in the CSV
+    images_to_remove = existing_image_ids - csv_image_ids
+    for image_id in images_to_remove:
+        image_to_remove = model_class.query.get(image_id)
+        if image_to_remove:
+            db.session.delete(image_to_remove)
+
+    # Commit all changes
+    db.session.commit()
     
     # Move the processed file
     if not loaded_folder.exists():

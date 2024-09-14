@@ -266,6 +266,7 @@ def check_login():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    nav_items = get_user_nav_items()
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -293,7 +294,7 @@ def login():
                 session['next_url'] = referrer
                 output = referrer
 
-    return render_template('login.html')
+    return render_template('login.html', nav_items=nav_items)
 
 @app.route('/logout')
 @login_required

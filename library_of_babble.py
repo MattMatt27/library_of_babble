@@ -308,25 +308,51 @@ def init_db():
         create_user('admin', 'admin_password', 'admin')  # Replace with secure password
         create_user('viewer', 'viewer_password', 'viewer')  # Replace with secure password
 
+
+
+def get_user_nav_items():
+    nav_items = [
+        {'name': 'Home', 'url': url_for('home'), 'active_page': 'home'},
+        {'name': 'Writing', 'url': url_for('writing'), 'active_page': 'writing'},
+        {'name': 'Reading', 'url': url_for('reading'), 'active_page': 'reading'},
+        {'name': 'Watching', 'url': url_for('watching'), 'active_page': 'watching'},
+        {'name': 'Creating', 'url': url_for('creating'), 'active_page': 'creating'},
+        {'name': 'Listening', 'url': url_for('listening'), 'active_page': 'listening'},
+        {'name': 'Collecting', 'url': url_for('collecting'), 'active_page': 'collecting'},
+        {'name': 'Pondering', 'url': url_for('pondering'), 'active_page': 'pondering'},
+    ]
+    
+    if current_user.is_authenticated:
+        if current_user.role == 'admin':
+            return nav_items
+        elif current_user.role == 'viewer':
+            return [item for item in nav_items if item['name'] not in ['Pondering']]
+    else:
+        return [item for item in nav_items if item['name'] in ['Home', 'Reading', 'Writing', 'Creating']]
+
 @app.route('/')
 def home():
-    return render_template('home.html')
-
+    nav_items = get_user_nav_items()
+    return render_template('home.html', nav_items=nav_items)
 
 @app.route('/writing')
 def writing():
-    return render_template('writing.html')
+    nav_items = get_user_nav_items()
+    return render_template('writing.html', nav_items=nav_items)
 
 @app.route('/fyog')
 def fyog():
-    return render_template('fyog.html')
+    nav_items = get_user_nav_items()
+    return render_template('fyog.html', nav_items=nav_items)
 
 @app.route('/new-generation-thinking')
 def ngt():
-    return render_template('new-generation-thinking.html')
+    nav_items = get_user_nav_items()
+    return render_template('new-generation-thinking.html', nav_items=nav_items)
 
 @app.route('/creating')
 def creating():
+    nav_items = get_user_nav_items()
     artists = Artworks.query.with_entities(Artworks.artist, Artworks.file_name).distinct().all()
     artist_data = []
     for artist in artists:
@@ -356,46 +382,52 @@ def creating():
 
     return render_template('creating.html', 
                            artists=artist_data, 
-                           generated_images=generated_image_data)
+                           generated_images=generated_image_data, nav_items=nav_items)
 @app.route('/pondering')
 @login_required
 def pondering():
+    nav_items = get_user_nav_items()
     approved_artworks = get_approved_artworks_from_db()
     random.shuffle(approved_artworks)
-    return render_template('pondering.html', approved_artworks=approved_artworks)
+    return render_template('pondering.html', approved_artworks=approved_artworks, nav_items=nav_items)
 
 @app.route('/watching')
 @login_required
 def watching():
+    nav_items = get_user_nav_items()
     recently_watched_movies = get_recently_watched_movies()
     recommended_movies = get_movies_from_collection('matts-recommended')
     return render_template('watching.html', recently_watched_movies=recently_watched_movies,
-                                            recommended_movies=recommended_movies)
+                                            recommended_movies=recommended_movies, nav_items=nav_items)
 
 @app.route('/movies')
 @login_required
 def movies():
+    nav_items = get_user_nav_items()
     movies_data = read_movies_from_db()
-    return render_template('movies.html', movies=movies_data)
+    return render_template('movies.html', movies=movies_data, nav_items=nav_items)
 
 @app.route('/books')
 def books():
+    nav_items = get_user_nav_items()
     books_data = read_books_from_db()
-    return render_template('books.html', books=books_data)
+    return render_template('books.html', books=books_data, nav_items=nav_items)
 
 @app.route('/reading')
 def reading():
+    nav_items = get_user_nav_items()
     recently_read_books = get_recently_read_books()
     recommended_fiction_books = get_books_from_bookshelf('matts-recommended-fiction')
     recommended_nonfiction_books = get_books_from_bookshelf('matts-recommended-nonfiction')
     return render_template('reading.html', recently_read_books=recently_read_books, 
                                            recommended_fiction_books= recommended_fiction_books, 
                                            recommended_nonfiction_books = recommended_nonfiction_books,
-                                           current_user=current_user)
+                                           current_user=current_user, nav_items=nav_items)
 
 @app.route('/update_review/<int:book_id>', methods=['POST'])
 @login_required
 def update_review(book_id):
+    nav_items = get_user_nav_items()
     if current_user.role != 'admin':
         return "You do not have permission to update reviews."
 
@@ -410,25 +442,32 @@ def update_review(book_id):
 
 @app.route('/collecting')
 def collecting():
+    nav_items = get_user_nav_items()
     recently_added_pins = get_recently_added_pins()
     recently_added_labels = get_recently_added_labels()
-    return render_template('collecting.html', recently_added_pins=recently_added_pins, recently_added_labels=recently_added_labels)
+    return render_template('collecting.html', nav_items=nav_items, 
+                            recently_added_pins=recently_added_pins, recently_added_labels=recently_added_labels)
 
 @app.route('/pins')
 def pins():
+    nav_items = get_user_nav_items()
     pins_data = read_pins_from_csv()
-    return render_template('pins.html', pins=pins_data)
+    return render_template('pins.html', nav_items=nav_items,
+                            pins=pins_data)
 
 @app.route('/alcohol-labels')
 def alcohol_labels():
+    nav_items = get_user_nav_items()
     labels_data = read_alc_labels_from_csv()
-    return render_template('alcohol_labels.html', labels=labels_data)
+    return render_template('alcohol_labels.html', nav_items=nav_items,
+                            labels=labels_data)
 
 @app.route('/listening', methods=['GET', 'POST'])
 @login_required
 def listening():
     # Currently this is limited to just the date changing functionality. Will need to think of a clever way
     # to allow for multiple sections to cause changes in what is displayed.
+    nav_items = get_user_nav_items()
     approved_playlists = get_site_approved_playlists()
     if request.method == 'POST':
         selected_month = request.json['month']
@@ -452,21 +491,25 @@ def listening():
         else:
             return jsonify({'error': 'Playlist not found for the selected month and year.'}), 404
     else:
-        return render_template('listening.html', approved_playlists=approved_playlists)  # Render initial form
+        return render_template('listening.html', nav_items=nav_items,
+                                approved_playlists=approved_playlists)
 
 @app.route('/playlist')
 @login_required
 def playlist():
     # Logic to fetch playlist data or perform any necessary actions before rendering the template
     # Example data for demonstration purposes
+    nav_items = get_user_nav_items()
     playlist_name = "My Playlist"
     songs = ["Song 1", "Song 2", "Song 3"]
 
-    return render_template('playlist.html', playlist_name=playlist_name, songs=songs)
+    return render_template('playlist.html', nav_items=nav_items, 
+                            playlist_name=playlist_name, songs=songs)
 
 
 @app.route('/book/<int:book_id>')
 def book(book_id):
+    nav_items = get_user_nav_items()
     books = read_books_from_csv()
     book_details = None
     reviews = []
@@ -484,7 +527,8 @@ def book(book_id):
             if row['Goodreads ID'] == str(book_id):
                 quotes.append({'text': row['Quote'], 'page_number': row['Page Number']})
 
-    return render_template('book.html', book=book_details, reviews=reviews, quotes=quotes)
+    return render_template('book.html', nav_items=nav_items,
+                            book=book_details, reviews=reviews, quotes=quotes)
 
 
 # DEPRECATED

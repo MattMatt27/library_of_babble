@@ -4,7 +4,7 @@ import csv
 import numpy
 import os
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyClientCredentials
 
@@ -21,18 +21,31 @@ spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(SP
 # Function to generate monthly playlists DataFrame
 def generate_monthly_playlists_df():
     monthly_playlists_df = pd.DataFrame(columns=['playlist_name', 'playlist_id', 'playlist_art'])
-    month_list = ['(Feb 19)', '(Mar 19)', '(Apr 19)', '(May 19)', '(June 19)', '(July 19)', '(Aug 19)', '(Sep 19)', '(Oct 19)', '(Nov 19)', '(Dec 19)',
-                  '(Jan 20)', '(Feb 20)', '(Mar 20)', '(Apr 20)', '(May 20)', '(June 20)', '(July 20)', '(Aug 20)', '(Sep 20)', '(Oct 20)', '(Nov 20)', '(Dec 20)',
-                  '(Jan 21)', '(Feb 21)', '(Mar 21)', '(Apr 21)', '(May 21)', '(June 21)', '(July 21)', '(Aug 21)', '(Sep 21)', '(Oct 21)', '(Nov 21)', '(Dec 21)',
-                  '(Jan 22)', '(Feb 22)', '(Mar 22)', '(Apr 22)', '(May 22)', '(June 22)', '(July 22)', '(Aug 22)', '(Sep 22)', '(Oct 22)', '(Nov 22)', '(Dec 22)',
-                  '(Jan 23)', '(Feb 23)', '(Mar 23)', '(Apr 23)', '(May 23)', '(June 23)', '(July 23)', '(Aug 23)', '(Sep 23)', '(Oct 23)', '(Nov 23)', '(Dec 23)',
-                  '(Jan 24)', '(Feb 24)', '(Mar 24)', '(Apr 24)', '(May 24)', '(June 24)']
-
+    
+    # Define the month format used in playlist names
+    month_format = {
+        1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'June',
+        7: 'July', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'
+    }
+    
+    # Get the current date and calculate the last completed month
+    current_date = datetime.now()
+    last_month = current_date.replace(day=1) - timedelta(days=1)
+    
+    # Generate the month_list dynamically
+    start_date = datetime(2019, 2, 1)
+    month_list = []
+    while start_date <= last_month:
+        month_str = f"({month_format[start_date.month]} {str(start_date.year)[2:]})"
+        month_list.append(month_str)
+        start_date = (start_date.replace(day=1) + timedelta(days=32)).replace(day=1)
+    
     with open('data/matts_playlists.csv', 'r', encoding='iso-8859-1') as file:
         reader = csv.DictReader(file)
         for row in reader:
             if any(month in row['playlist_name'] for month in month_list):
                 monthly_playlists_df = monthly_playlists_df.append(row, ignore_index=True)
+    
     return monthly_playlists_df
 
 # Function to select playlist based on month and year

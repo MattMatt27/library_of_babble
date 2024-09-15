@@ -348,6 +348,7 @@
 <script type="text/javascript">
     let allGeneratedImages = {{ generated_images | tojson | safe }};
     let selectedArtists = [];
+    let currentGeneratedImageIndex = 0;
 
     // Extract unique artist names from generated_images
     let allArtists = [...new Set(allGeneratedImages.flatMap(img => img.artist_palette))].map(name => {
@@ -362,6 +363,8 @@
     function initializeApp() {
         displayArtistOptions();
         updateDisplay();
+
+        setInterval(updateGeneratedImageDisplay, 20000); 
     }
 
     function displayArtistOptions() {
@@ -428,7 +431,7 @@
         return new Promise((resolve) => {
             img.onload = function() {
                 const aspectRatio = this.width / this.height;
-                resolve(aspectRatio >= 0.95 && aspectRatio <= 2.0);
+                resolve(aspectRatio >= 0.95 && aspectRatio <= 1.8);
             };
             img.onerror = () => resolve(false);
         });
@@ -510,11 +513,14 @@
             );
 
             if (relevantImages.length > 0) {
-                const image = relevantImages[0]; // You can implement cycling through images if needed
+                const image = relevantImages[currentGeneratedImageIndex];
                 generatedImageElement.src = `/static/images/creating/lunacy/${image.file_name}`;
                 promptText.textContent = `Prompt: ${image.prompt}`;
                 modelText.textContent = `${image.model} v${image.model_version}`;
                 generatedImageContainer.style.display = 'block';
+
+                // Update the index for the next cycle
+                currentGeneratedImageIndex = (currentGeneratedImageIndex + 1) % relevantImages.length;
             } else {
                 clearGeneratedImageDisplay();
             }
@@ -527,9 +533,11 @@
         const generatedImageContainer = document.querySelector('.generated-image');
         const generatedImageElement = document.querySelector('.generated-image img');
         const promptText = document.querySelector('.prompt-text');
+        const modelText = document.querySelector('.model-name');
 
         generatedImageElement.src = "";
         promptText.textContent = "";
+        modelText.textContent = "";
         generatedImageContainer.style.display = 'none';
     }
 

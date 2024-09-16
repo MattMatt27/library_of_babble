@@ -103,7 +103,8 @@ def get_movies_from_collection(collection):
         }
         collection_movies.append(movie)
 
+    sorted_movies = sorted(collection_movies, key=lambda x: x.get('year', datetime.min), reverse=False)
     # Close connection
     conn.close()
 
-    return collection_movies
+    return sorted_movies

@@ -74,14 +74,28 @@ def load_goodreads_data_into_books(db, model_class, csv_file):
                 'private_notes': row['Private Notes'],
                 'read_count': int(row['Read Count']),
                 'owned_copies': int(row['Owned Copies']),
-                'cover_image_url': ''
+                'cover_image_url': row['Cover Image URL']
             }
 
             if existing_book:
-                if not existing_book.read:
-                    for key, value in data.items():
-                        setattr(existing_book, key, value)
-                    db.session.add(existing_book)
+                # Preserve my_rating, my_review, and private_notes
+                preserved_fields = {
+                    'my_rating': existing_book.my_rating,
+                    'my_review': existing_book.my_review,
+                    'private_notes': existing_book.private_notes,
+                    'bookshelves': existing_book.bookshelves,
+                    'cover_image_url': existing_book.cover_image_url
+                }
+                
+                # Update all other fields
+                for key, value in data.items():
+                    setattr(existing_book, key, value)
+                
+                # Restore preserved fields
+                for key, value in preserved_fields.items():
+                    setattr(existing_book, key, value)
+                
+                db.session.add(existing_book)
             else:
                 data['id'] = int(row['Book Id'])
                 record = model_class(**data)

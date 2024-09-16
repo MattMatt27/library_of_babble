@@ -98,7 +98,9 @@ def get_books_from_bookshelf(bookshelf):
         }
         bookshelf_books.append(book)
 
+    sorted_books = sorted(bookshelf_books, key=lambda x: x.get('publication_year', datetime.min), reverse=False)
+
     # Close connection
     conn.close()
 
-    return bookshelf_books
+    return sorted_books

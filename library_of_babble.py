@@ -83,6 +83,7 @@ class TVShows(db.Model):
     year = db.Column(db.Integer, nullable=False)
     my_rating = db.Column(db.Integer)
     date_finished = db.Column(db.String(20))
+    last_watched = db.Column(db.String(20))
     my_review = db.Column(db.Text)
     language = db.Column(db.String(20))
     cover_image_url = db.Column(db.String(255))
@@ -486,7 +487,7 @@ def update_review(book_id):
     book.my_review = new_review
     db.session.commit()
 
-    return redirect(url_for('reading'))
+    return redirect(url_for('books'))
 
 @app.route('/collecting')
 def collecting():

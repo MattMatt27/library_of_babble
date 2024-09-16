@@ -33,7 +33,7 @@ def read_books_from_csv():
 
 def read_books_from_db():
     books = []
-    conn = sqlite3.connect('instance/users.db')
+    conn = sqlite3.connect('instance/portfolio_prd.db')
     cursor = conn.cursor()
 
     # Execute a SELECT query to fetch all books
@@ -69,7 +69,7 @@ def get_recently_read_books():
 
 def get_books_from_bookshelf(bookshelf):
     bookshelf_books = []
-    conn = sqlite3.connect('instance/users.db')
+    conn = sqlite3.connect('instance/portfolio_prd.db')
     cursor = conn.cursor()
 
     # Fetch books where 'matts-recommended-fiction' is in bookshelves

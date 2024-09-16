@@ -27,11 +27,11 @@ def watched_movies_from_csv():
 
 def read_movies_from_db():
     movies = []
-    conn = sqlite3.connect('instance/users.db')
+    conn = sqlite3.connect('instance/portfolio_prd.db')
     cursor = conn.cursor()
 
     # Execute a SELECT query to fetch all books
-    cursor.execute('SELECT id, title, director, year, cover_image_url, date_watched, my_rating, my_review FROM movies WHERE date_watched IS NOT NULL')
+    cursor.execute('SELECT tmdb_id, title, director, year, cover_image_url, date_watched, my_rating, my_review FROM movies WHERE date_watched IS NOT NULL')
     rows = cursor.fetchall()
 
     for row in rows:
@@ -74,12 +74,12 @@ def get_recently_watched_movies():
 
 def get_movies_from_collection(collection):
     collection_movies = []
-    conn = sqlite3.connect('instance/users.db')
+    conn = sqlite3.connect('instance/portfolio_prd.db')
     cursor = conn.cursor()
 
     # Fetch books where 'matts-recommended-fiction' is in bookshelves
     query = """
-        SELECT id, title, director, year, cover_image_url, date_watched, my_rating, my_review 
+        SELECT tmdb_id, title, director, year, cover_image_url, date_watched, my_rating, my_review 
         FROM movies
         WHERE collections LIKE ?
     """

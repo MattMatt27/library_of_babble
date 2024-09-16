@@ -431,7 +431,7 @@
         return new Promise((resolve) => {
             img.onload = function() {
                 const aspectRatio = this.width / this.height;
-                resolve(aspectRatio >= 0.95 && aspectRatio <= 1.8);
+                resolve(aspectRatio >= 0.95 && aspectRatio <= 1.75);
             };
             img.onerror = () => resolve(false);
         });

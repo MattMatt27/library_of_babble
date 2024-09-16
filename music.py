@@ -85,7 +85,7 @@ def music_test():
 
 def get_site_approved_playlists():
     playlists = []
-    conn = sqlite3.connect('instance/users.db')
+    conn = sqlite3.connect('instance/portfolio_prd.db')
     cursor = conn.cursor()
 
     # Execute a SELECT query to fetch all books

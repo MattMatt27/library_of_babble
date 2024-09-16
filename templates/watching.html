@@ -152,6 +152,39 @@
         {% endfor %}
     </div>
 </div>
+<div class="recently-watched">
+    <div class="recently-watched-header">
+        <h2>Recommended TV</h2>
+    </div>
+    <div class="recently-watched-movies">
+        {% for rec_show in recommended_shows %}
+            <div class="movie">
+                <img src="{{ rec_show['cover_image_url'] }}" alt="{{ rec_show['title'] }}">
+                <p style="font-size: 18px;"><strong>{{ rec_show['title'] }}</strong></p>
+                <p>{{ rec_show['year'] }}</p>
+                <p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+<div class="recently-watched">
+    <div class="recently-watched-header">
+        <h2>Recently Watched Shows</h2>
+        <p class="button-container"><a href="/movies" class="full-text-button">See All </a></p>
+    </div>
+    <div class="recently-watched-movies">
+        {% for show in recently_watched_shows %}
+            <div class="movie">
+                <img src="{{ show['cover_image_url'] }}" alt="{{ show['title'] }}">
+                <p style="font-size: 18px;"><strong>{{ show['title'] }}</strong></p>
+                <p>{{ show['year'] }}</p>
+                <p>
+                    <img src="{{ url_for('static', filename='images/assets/stars/' + show['my_rating'] + '.png') }}" alt="{{ show['my_rating'] }} Stars" style="width: 50%;">
+                </p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}

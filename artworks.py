@@ -6,7 +6,7 @@ from urllib.parse import unquote
 
 def get_approved_artworks_from_db():
     artworks = []
-    conn = sqlite3.connect('instance/users.db')
+    conn = sqlite3.connect('instance/portfolio_prd.db')
     cursor = conn.cursor()
 
     # Execute a SELECT query to fetch all books

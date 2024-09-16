@@ -6,11 +6,12 @@ from dotenv import load_dotenv
 
 from books import get_recently_read_books, read_books_from_csv, truncate_title, read_books_from_db, get_books_from_bookshelf
 from music import music_test, generate_monthly_playlists_df, select_playlist, get_tracks_artists, get_site_approved_playlists
-from movies import get_recently_watched_movies, watched_movies_from_csv, read_movies_from_db, get_movies_from_collection
+from movies import get_recently_watched_movies, read_movies_from_db, get_movies_from_collection
+from shows import get_recently_watched_shows, read_shows_from_db, get_shows_from_collection
 from pins import get_recently_added_pins, read_pins_from_csv
 from alcohol_labels import get_recently_added_labels, read_alc_labels_from_csv
 from database import movie_analytics, save_movies_to_database, merge_movie_data, connect_to_database
-from database2 import load_goodreads_data_into_books, load_letterboxd_data_into_movies, load_artworks_data, load_generated_images_data
+from database2 import load_goodreads_data_into_books, load_boredom_killer_into_movies, load_boredom_killer_into_tvshows, load_letterboxd_data_into_movies, load_artworks_data, load_generated_images_data
 from playlist_parse import parse_and_load_playlists
 from artworks import get_approved_artworks_from_db
 
@@ -27,7 +28,7 @@ load_dotenv('ids.env')
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///portfolio_prd.db'
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -61,7 +62,9 @@ class Books(db.Model):
     cover_image_url = db.Column(db.String(255))
 
 class Movies(db.Model):
-    id = db.Column(db.String, primary_key=True)
+    tmdb_id = db.Column(db.String, primary_key=True)
+    imdb_id = db.Column(db.String)
+    letterboxd_id = db.Column(db.String)
     title = db.Column(db.String(255), nullable=False)
     director = db.Column(db.String(100))
     year = db.Column(db.Integer, nullable=False)
@@ -71,6 +74,20 @@ class Movies(db.Model):
     language = db.Column(db.String(20))
     cover_image_url = db.Column(db.String(255))
     collections = db.Column(db.String(255))
+    status = db.Column(db.String(20))
+
+class TVShows(db.Model):
+    tvdb_id = db.Column(db.String, primary_key=True)
+    imdb_id = db.Column(db.String)
+    title = db.Column(db.String(255), nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    my_rating = db.Column(db.Integer)
+    date_finished = db.Column(db.String(20))
+    my_review = db.Column(db.Text)
+    language = db.Column(db.String(20))
+    cover_image_url = db.Column(db.String(255))
+    collections = db.Column(db.String(255))
+    status = db.Column(db.String(20))
 
 class Playlists(db.Model):
     user_id = db.Column(db.String, nullable=False)
@@ -149,9 +166,36 @@ def check_and_load_books():
         else:
             print(f"Books have been updated within the past day.")
 
+def check_and_load_shows():
+    with app.app_context():
+        if should_run_function('check_and_load_shows', 1):
+            csv_file = 'Boredom Killer - TV.csv'
+            csv_path = Path('data/staging') / csv_file
+            if csv_path.exists():
+                try:
+                    load_boredom_killer_into_tvshows(db, TVShows)
+                    print(f"TV Shows loaded from Boredom Killer successfully!")
+                except Exception as e:
+                    print(f"Error loading TV shows: {e}")
+            else:
+                print(f"Boredom Killer data not found in data/staging.")
+        else:
+            print(f"TV Shows have been updated within the past day.")
+
 def check_and_load_movies():
     with app.app_context():
         if should_run_function('check_and_load_movies', 1):
+            csv_file = 'Boredom Killer - Movies.csv'
+            csv_path = Path('data/staging') / csv_file
+            if csv_path.exists():
+                try:
+                    load_boredom_killer_into_movies(db, Movies)
+                    print(f"Movies loaded from Boredom Killer successfully!")
+                except Exception as e:
+                    print(f"Error loading movies: {e}")
+            else:
+                print(f"Boredom Killer data not found in data/staging.")
+
             letterboxd_path = Path('data/staging/letterboxd') 
             if letterboxd_path.exists():
                 try:
@@ -236,7 +280,7 @@ def create_user(username, password, role):
 
 @app.route('/book-db')
 def display_books():
-    conn = sqlite3.connect('instance/users.db')
+    conn = sqlite3.connect('instance/portfolio_prd.db')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM books')
     rows = cursor.fetchall()
@@ -327,7 +371,7 @@ def get_user_nav_items():
         if current_user.role == 'admin':
             return nav_items
         elif current_user.role == 'viewer':
-            return [item for item in nav_items if item['name'] not in ['Pondering']]
+            return [item for item in nav_items if item['name'] not in ['Pondering', 'Collecting']]
     else:
         return [item for item in nav_items if item['name'] in ['Home', 'Reading', 'Writing', 'Creating']]
 
@@ -398,8 +442,11 @@ def watching():
     nav_items = get_user_nav_items()
     recently_watched_movies = get_recently_watched_movies()
     recommended_movies = get_movies_from_collection('matts-recommended')
-    return render_template('watching.html', recently_watched_movies=recently_watched_movies,
-                                            recommended_movies=recommended_movies, nav_items=nav_items)
+    recently_watched_shows = get_recently_watched_shows()
+    recommended_shows = get_shows_from_collection('matts-recommended')
+    return render_template('watching.html', nav_items=nav_items,
+                            recently_watched_movies=recently_watched_movies, recommended_movies=recommended_movies,
+                            recently_watched_shows=recently_watched_shows, recommended_shows=recommended_shows)
 
 @app.route('/movies')
 @login_required
@@ -567,6 +614,7 @@ if __name__ == '__main__':
     init_db()
     check_and_load_books()
     check_and_load_movies()
+    check_and_load_shows()
     check_and_load_playlists()
     check_and_load_artworks()
     check_and_load_generative_art()

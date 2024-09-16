@@ -11,6 +11,7 @@ __pycache__/
 Boredom Killer - Movies.csv
 data/desktop.ini
 data/loaded
+data/staging/wait/
 
 # Local Only
 ids.env

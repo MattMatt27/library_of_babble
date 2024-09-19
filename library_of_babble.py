@@ -179,7 +179,7 @@ def check_and_load_shows():
                 except Exception as e:
                     print(f"Error loading TV shows: {e}")
             else:
-                print(f"Boredom Killer data not found in data/staging.")
+                print(f"Boredom Killer TV show data not found in data/staging.")
         else:
             print(f"TV Shows have been updated within the past day.")
 
@@ -195,7 +195,7 @@ def check_and_load_movies():
                 except Exception as e:
                     print(f"Error loading movies: {e}")
             else:
-                print(f"Boredom Killer data not found in data/staging.")
+                print(f"Boredom Killer movie data not found in data/staging.")
 
             letterboxd_path = Path('data/staging/letterboxd') 
             if letterboxd_path.exists():
@@ -229,24 +229,34 @@ def check_and_load_playlists():
 def check_and_load_artworks():
     with app.app_context():
         if should_run_function('check_and_load_artworks', 1):
-            try:
-                load_artworks_data(db, Artworks)
-                print("Artworks updated successfully!")
-                update_last_run('check_and_load_artworks')
-            except Exception as e:
-                print(f"Error updating artworks: {e}")
+            csv_file = 'artworks.csv'
+            csv_path = Path('data/staging') / csv_file
+            if csv_path.exists():
+                try:
+                    load_artworks_data(db, Artworks)
+                    print("Artworks updated successfully!")
+                    update_last_run('check_and_load_artworks')
+                except Exception as e:
+                    print(f"Error updating artworks: {e}")
+            else:
+                print("Artworks data not found in data/staging.")
         else:
             print("Artworks have been updated within the past day.")
 
 def check_and_load_generative_art():
     with app.app_context():
         if should_run_function('check_and_load_generative_art', 1):
-            try:
-                load_generated_images_data(db, GeneratedImages)
-                print("Generative Art updated successfully!")
-                update_last_run('check_and_load_generative_art')
-            except Exception as e:
-                print(f"Error updating generative art: {e}")
+            csv_file = 'generated_images.csv'
+            csv_path = Path('data/staging') / csv_file
+            if csv_path.exists():
+                try:
+                    load_generated_images_data(db, GeneratedImages)
+                    print("Generative Art updated successfully!")
+                    update_last_run('check_and_load_generative_art')
+                except Exception as e:
+                    print(f"Error updating generative art: {e}")
+            else:
+                print("Generative Art data not found in data/staging.")
         else:
             print("Generative Art has been updated within the past day.")
 

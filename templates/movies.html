@@ -26,6 +26,7 @@
     }
     th, td {
         padding: 8px;
+        padding-bottom: 16px;
         text-align: left;
         border-bottom: 1px solid #ddd;
     }
@@ -85,6 +86,9 @@
         border-left: 5px solid #007bff; /* Blue border on the left */
         margin-left: 5px;
     }
+    .preserve-newlines {
+        white-space: pre-line;
+    }
 </style>
 {% endblock %}
 
@@ -117,18 +121,35 @@
                     <img src="{{ url_for('static', filename='images/assets/stars/' + movie['my_rating'] + '.png') }}" alt="{{ movie['my_rating'] }} Stars">
                 </td>
                 <td>
-                    {% set review_parts = movie['my_review'].split('<blockquote>') %}
+                    {% set parts = movie['my_review'].split('<blockquote>') %}
+                    <span class="preserve-newlines">{{ parts[0]|trim|safe }}</span>
+                    {% if parts|length > 1 %}
+                        <blockquote>
+                            {% for part in parts[1:] %}
+                                {% set blockquote_content = part.split('</blockquote>', 1) %}
+                                {{ blockquote_content[0]|safe }}
+                                {% if not loop.last %}
+                                    <br><br>
+                                {% endif %}
+                            {% endfor %}
+                        </blockquote>
+                        {% set last_part = parts[-1].split('</blockquote>', 1) %}
+                        {% if last_part|length > 1 %}
+                            <span class="preserve-newlines">{{ last_part[1]|trim|safe }}</span>
+                        {% endif %}
+                    {% endif %}
+                    <!-- {% set review_parts = movie['my_review'].split('<blockquote>') %}
                     {% if review_parts|length > 1 %}
                         {% set blockquote_text = review_parts[1].split('</blockquote>') %}
                         {% if blockquote_text|length > 1 %}
                             <blockquote>{{ blockquote_text[0] }}</blockquote>
-                            {{ review_parts[0] }} {{ blockquote_text[1] }}
+                            <span class="preserve-newlines">{{ review_parts[0]|safe }} {{ blockquote_text[1]|safe }}</span>
                         {% else %}
-                            {{ review_parts[0] }} {{ blockquote_text[0] }}
+                            <span class="preserve-newlines">{{ review_parts[0]|safe }} {{ blockquote_text[0]|safe }}</span>
                         {% endif %}
                     {% else %}
-                        {{ movie['my_review'] }}
-                    {% endif %}
+                        <span class="preserve-newlines">{{ movie['my_review']|safe }}</span>
+                    {% endif %} -->
                 </td>
             </tr>
         {% endfor %}

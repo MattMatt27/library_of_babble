@@ -147,19 +147,19 @@ def load_boredom_killer_into_tvshows(db, model_class):
                 'status': row['Plex Status'].strip() if row['Plex Status'] else None
             }
             
-            # Store the latest data for this TMDB ID
+            # Store the latest data for this TVDB ID
             csv_shows[tvdb_id] = data
     
     # Process the deduplicated data
     for tvdb_id, data in csv_shows.items():
         if tvdb_id in existing_shows:
-            # Update existing movie
+            # Update existing show
             existing_show = existing_shows[tvdb_id]
             for key, value in data.items():
                 if value is not None:
                     setattr(existing_show, key, value)
         else:
-            # Create new movie record
+            # Create new TV show record
             new_show = model_class(**data)
             db.session.add(new_show)
     
@@ -284,9 +284,10 @@ def load_letterboxd_data_into_movies(db, model_class):
         
         # Format reviews
         if len(reviews) > 1:
+            sorted_reviews = sorted(reviews, key=lambda x: x['date_watched'], reverse=True)
             my_review = "\n\n".join([
                 f"{review['date_watched'].strftime('%m/%d/%Y')}\n{review['review']}"
-                for review in reviews
+                for review in sorted_reviews
             ])
         elif reviews:
             my_review = reviews[0]['review']

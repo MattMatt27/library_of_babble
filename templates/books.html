@@ -48,7 +48,12 @@
         width: 75px;
     }
     .rating-column {
-        width: 100px;
+        width: 120px;
+        text-align: center;
+        padding-right: 15px;
+    }
+    .image-column a {
+        display: inline-block;  /* Make the anchor wrap around the image tightly */
     }
     img {
         max-height: 250px; /* Limit image height */
@@ -111,6 +116,117 @@
     .back-button:hover {
         background-color: #0056b3; /* Darker blue on hover */
     }
+
+    @media screen and (max-width: 900px) {
+        body {
+            background-color: #093249;
+        }
+        table, tbody, tr {
+            display: block;
+            width: 100%;
+            margin-top: 0px;
+            padding-top: 10px;
+        }
+
+        thead {
+            display: none; /* Hide the table header on mobile */
+        }
+
+        tr {
+            margin-bottom: 30px;
+            background-color: #093249;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        td {
+            display: block;
+            border: none;
+            position: relative;
+            padding: 10px 15px;
+            text-align: center;
+        }
+
+        /* Remove the pseudo-elements that were adding column names */
+        td:before {
+            content: none;
+        }
+
+        .image-column {
+            width: 95%;
+            text-align: center;
+        }
+
+        .image-column img {
+            max-height: 350px; /* Limit image height */
+            width: auto; /* Maintain aspect ratio */
+            max-width: 100%; /* Ensure image fits within its container */
+        }
+
+        .details-column, .rating-column {
+            width: auto;
+        }
+
+        .movie-title {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .rating-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #C1DFF0; 
+            color: #121212; 
+            border-radius: 5px 5px 0 0;
+            margin: 10px;
+            margin-bottom: 0px;
+        }
+
+        .rating-column > * {
+            margin: 0;
+        }
+
+        .stars-image {
+            padding-top: 5px;
+            height: 20px; /* Adjust star image size */
+        }
+
+        .rating-handling {
+            padding-top: 0;
+            background-color: #C1DFF0; 
+            color: #121212; 
+            border-radius: 0 0 5px 5px;
+            margin: 10px;
+            margin-top: 0;
+        }
+
+        blockquote {
+            margin: 0;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .preserve-newlines {
+            font-size: 16px;
+        }
+    }
+
+    /* Additional optimization for very small screens */
+    @media screen and (max-width: 480px) {
+        body {
+            font-size: 16px;
+        }
+
+        .movie-title {
+            font-size: 18px;
+        }
+
+        .image-column img {
+            max-height: 250px;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -124,8 +240,7 @@
         <tr>
             <th class="center-header">Cover</th>
             <th>Details</th>
-            <th>Date Finished</th>
-            <th>My Rating</th>
+            <th>Date Finished + My Rating</th>
             <th>My Review</th>
         </tr>
     </thead>
@@ -133,9 +248,10 @@
         {% for book in books %}
             <tr>
                 <td class="image-column">
-                    <a href="/book/{{ book.id }}">
+                    <!-- Reimplement book specific pages once multi-reviews and quotes are handled -->
+                    <!-- <a href="/book/{{ book.id }}"> -->
                         <img src="{{ book['cover_image_url'] }}" alt="{{ book['title'] }}">
-                    </a>
+                    <!-- </a> -->
                 </td>
                 <td class="details-column">
                     <div><strong>{{ book['title'] }}</strong></div>
@@ -152,11 +268,11 @@
                         {% endif %}
                     </div>
                 </td>
-                <td class="date-column">{{ book['date_read'] }}</td>
                 <td class="rating-column">
-                    <img src="{{ url_for('static', filename='images/assets/stars/' + book['my_rating'] + '.png') }}" alt="{{ book['my_rating'] }} Stars">
+                    {{ book['date_read']}}<br>
+                    <img class="stars-image" src="{{ url_for('static', filename='images/assets/stars/' + book['my_rating'] + '.png') }}" alt="{{ book['my_rating'] }} Stars">
                 </td>
-                <td>
+                <td class="rating-handling">
                     <form action="/update_review/{{ book.id }}" method="POST">
                         <textarea name="my_review" rows="5" {% if not current_user.is_authenticated or current_user.role != 'admin' %} readonly {% endif %}>{{ book['my_review'] }}</textarea>
                         <br>
@@ -169,4 +285,17 @@
         {% endfor %}
     </tbody>
 </table>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function autoResizeTextarea(textarea) {
+        textarea.style.height = 'auto';  // Reset height to calculate scrollHeight
+        textarea.style.height = (textarea.scrollHeight + 5) + 'px';  // Set to new height
+    }
+
+    window.onload = function() {
+        document.querySelectorAll('textarea').forEach(autoResizeTextarea);  // For pre-filled content
+    };
+</script>
 {% endblock %}

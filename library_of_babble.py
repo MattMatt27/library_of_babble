@@ -287,26 +287,24 @@ def create_user(username, password, role):
 
 
 
-
-
-@app.route('/book-db')
-def display_books():
-    conn = sqlite3.connect('instance/portfolio_prd.db')
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM books')
-    rows = cursor.fetchall()
-    conn.close()
-    return render_template('book-db.html', books_test=rows)
-
-@app.route('/users')
-@login_required
-def show_users():
-    if current_user.role != 'admin':
-        return "You do not have permission to access this page."
+# Only uncomment for debugging
+# @app.route('/users')
+# @login_required
+# def show_users():
+#     if current_user.role != 'admin':
+#         return "You do not have permission to access this page."
     
-    users = User.query.all()
-    user_list = [{'username': user.username, 'password': user.password, 'role': user.role} for user in users]
-    return jsonify(user_list)
+#     users = User.query.all()
+#     user_list = [{'username': user.username, 'password': user.password, 'role': user.role} for user in users]
+#     return jsonify(user_list)
+
+@app.errorhandler(404)
+def page_not_found(e):
+    nav_items = get_user_nav_items()
+    image_folder = os.path.join(app.static_folder, 'images', 'creating', 'lunacy')
+    images = [f for f in os.listdir(image_folder) if f.endswith(('.png', '.jpg', '.jpeg', '.gif'))]
+    random.shuffle(images)
+    return render_template('404.html', nav_items=nav_items, images=images), 404
 
 @app.route('/check_login')
 @login_required
@@ -553,42 +551,54 @@ def listening():
         return render_template('listening.html', nav_items=nav_items,
                                 approved_playlists=approved_playlists)
 
-@app.route('/playlist')
-@login_required
-def playlist():
-    # Logic to fetch playlist data or perform any necessary actions before rendering the template
-    # Example data for demonstration purposes
-    nav_items = get_user_nav_items()
-    playlist_name = "My Playlist"
-    songs = ["Song 1", "Song 2", "Song 3"]
-
-    return render_template('playlist.html', nav_items=nav_items, 
-                            playlist_name=playlist_name, songs=songs)
 
 
-@app.route('/book/<int:book_id>')
-def book(book_id):
-    nav_items = get_user_nav_items()
-    books = read_books_from_csv()
-    book_details = None
-    reviews = []
+# Reimplement book specific pages once multi-reviews and quotes are handled
+# @app.route('/book/<int:book_id>')
+# def book(book_id):
+#     nav_items = get_user_nav_items()
+#     books = read_books_from_csv()
+#     book_details = None
+#     reviews = []
 
-    for book in books:
-        if book['id'] == str(book_id):
-            book_details = book
-            book['title'] = truncate_title(book['title'])
-            reviews.append({'date_read': book['date_read'], 'my_rating': book['my_rating'], 'my_review': book['my_review']})
+#     for book in books:
+#         if book['id'] == str(book_id):
+#             book_details = book
+#             book['title'] = truncate_title(book['title'])
+#             reviews.append({'date_read': book['date_read'], 'my_rating': book['my_rating'], 'my_review': book['my_review']})
     
-    quotes = []
-    with open('data/book_quotes.csv', 'r', encoding='iso-8859-1') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            if row['Goodreads ID'] == str(book_id):
-                quotes.append({'text': row['Quote'], 'page_number': row['Page Number']})
+#     quotes = []
+#     with open('data/book_quotes.csv', 'r', encoding='iso-8859-1') as file:
+#         reader = csv.DictReader(file)
+#         for row in reader:
+#             if row['Goodreads ID'] == str(book_id):
+#                 quotes.append({'text': row['Quote'], 'page_number': row['Page Number']})
 
-    return render_template('book.html', nav_items=nav_items,
-                            book=book_details, reviews=reviews, quotes=quotes)
+#     return render_template('book.html', nav_items=nav_items,
+#                             book=book_details, reviews=reviews, quotes=quotes)
 
+# DEPRECATED
+# @app.route('/playlist')
+# @login_required
+# def playlist():
+#     # Logic to fetch playlist data or perform any necessary actions before rendering the template
+#     # Example data for demonstration purposes
+#     nav_items = get_user_nav_items()
+#     playlist_name = "My Playlist"
+#     songs = ["Song 1", "Song 2", "Song 3"]
+
+#     return render_template('playlist.html', nav_items=nav_items, 
+#                             playlist_name=playlist_name, songs=songs)
+
+# DEPRECATED
+# @app.route('/book-db')
+# def display_books():
+#     conn = sqlite3.connect('instance/portfolio_prd.db')
+#     cursor = conn.cursor()
+#     cursor.execute('SELECT * FROM books')
+#     rows = cursor.fetchall()
+#     conn.close()
+#     return render_template('book-db.html', books_test=rows)
 
 # DEPRECATED
 # @app.route('/matt-ranking')

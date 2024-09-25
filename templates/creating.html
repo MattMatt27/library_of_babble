@@ -340,6 +340,7 @@
         <div id="artist-options"></div>
     </div>
     <div id="image-display">
+        <div id="selected-artists-display"></div>
         <div class="generated-image">
             <img src="" alt="Generated Image">
             <div class="combined-info">
@@ -347,7 +348,6 @@
                 <p class="prompt-text"></p>
             </div>
         </div>
-        <div id="selected-artists-display"></div>
     </div>
 </section>
 {% endblock %}
@@ -413,6 +413,7 @@
             updateSelectedArtistsDisplay();
             displayArtistOptions();
             updateDisplay();
+            updateGeneratedImageDisplay();
         }
     }
 
@@ -433,6 +434,8 @@
         updateSelectedArtistsDisplay();
         displayArtistOptions();
         updateDisplay();
+        updateGeneratedImageDisplay();
+        currentGeneratedImageIndex = 0;
     }
 
     function isValidAspectRatio(img) {
@@ -489,13 +492,6 @@
             return;
         }
 
-        // function updateImage() {
-        //     imgElement.src = validImages[currentIndex];
-        //     console.log(validImages[currentIndex].split('/').pop())
-        //     pieceNameElement.textContent = validImages[currentIndex].split('/').pop().replace(/%20/g, ' ').replace(/\.[^/.]+$/, '');
-        //     currentIndex = (currentIndex + 1) % validImages.length;
-        // }
-
         function updateImage() {
             imgElement.src = validImages[currentIndex];
             const fileName = validImages[currentIndex].split('/').pop();
@@ -515,12 +511,16 @@
         const modelText = document.querySelector('.model-name');
 
         if (selectedArtists.length > 0) {
+            console.log(selectedArtists)
             const relevantImages = allGeneratedImages.filter(image => 
                 image.artist_palette.length === selectedArtists.length &&
                 selectedArtists.every(artist => image.artist_palette.includes(artist.name))
             );
 
             if (relevantImages.length > 0) {
+                if (currentGeneratedImageIndex >= relevantImages.length) {
+                    currentGeneratedImageIndex = 0; // Reset index if out of bounds
+                }
                 const image = relevantImages[currentGeneratedImageIndex];
                 generatedImageElement.src = `/static/images/creating/lunacy/${image.file_name}`;
                 promptText.textContent = `Prompt: ${image.prompt}`;

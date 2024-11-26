@@ -13,7 +13,7 @@ from alcohol_labels import get_recently_added_labels, read_alc_labels_from_csv
 from database import movie_analytics, save_movies_to_database, merge_movie_data, connect_to_database
 from database2 import load_goodreads_data_into_books, load_boredom_killer_into_movies, load_boredom_killer_into_tvshows, load_letterboxd_data_into_movies, load_artworks_data, load_generated_images_data
 from playlist_parse import parse_and_load_playlists
-from artworks import get_approved_artworks_from_db
+from artworks import get_approved_artworks_from_db, get_approved_artworks_from_db2
 
 import pandas as pd
 from datetime import datetime, timedelta
@@ -437,13 +437,47 @@ def creating():
     return render_template('creating.html', 
                            artists=artist_data, 
                            generated_images=generated_image_data, nav_items=nav_items)
-@app.route('/pondering')
+@app.route('/pondering2')
 @login_required
-def pondering():
+def pondering2():
     nav_items = get_user_nav_items()
     approved_artworks = get_approved_artworks_from_db()
     random.shuffle(approved_artworks)
     return render_template('pondering.html', approved_artworks=approved_artworks, nav_items=nav_items)
+
+@app.route('/pondering')
+@login_required
+def pondering():
+    nav_items = get_user_nav_items()
+
+    # Get pagination and filter parameters from the request
+    page = request.args.get('page', 1, type=int)
+    per_page = 100
+    sort_order = request.args.get('sort_order', 'random')
+    start_date = request.args.get('start_date', None, type=int)
+    end_date = request.args.get('end_date', None, type=int)
+    artist_filter = request.args.getlist('artist')
+    selected_artists = request.args.getlist('artist')
+
+    # Fetch paginated and filtered artworks
+    approved_artworks, total_pages, all_artists = get_approved_artworks_from_db2(
+        page=page,
+        per_page=per_page,
+        sort_order=sort_order,
+        start_date=start_date,
+        end_date=end_date,
+        artist_filter=artist_filter
+    )
+
+    return render_template(
+        'pondering2.html',
+        approved_artworks=approved_artworks,
+        nav_items=nav_items,
+        current_page=page,
+        total_pages=total_pages,
+        all_artists=all_artists,
+        selected_artists=selected_artists
+    )
 
 @app.route('/watching')
 @login_required

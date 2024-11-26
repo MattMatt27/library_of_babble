@@ -172,7 +172,7 @@ def get_approved_artworks_from_db(page=1, per_page=100, sort_order='asc', start_
         artwork = {
             'id': row[0],
             'title': f"{row[1]} ({row[3]})" if row[1] else f"From the {row[5]} series ({row[3]})",
-            'artist': unquote(row[2]),
+            'artist': unquote(row[2]).strip(),
             'year': row[3],
             'file_name': unquote(row[4]) if row[4] else 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg',
             'series': row[5],

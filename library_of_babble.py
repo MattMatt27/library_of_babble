@@ -122,6 +122,10 @@ class Artworks(db.Model):
     collections = db.Column(db.String(255))
     site_approved = db.Column(db.Boolean, default=0, nullable=False)
 
+class LikedArtworks(db.Model):
+    user_id = db.Column(db.Integer, primary_key=True)
+    artwork_id = db.Column(db.String, primary_key=True)
+
 class GeneratedImages(db.Model):
     id = db.Column(db.String, primary_key=True)
     file_name = db.Column(db.String(255), nullable=False)
@@ -445,12 +449,13 @@ def pondering():
 
     # Get pagination and filter parameters from the request
     page = request.args.get('page', 1, type=int)
-    per_page = 100
+    per_page = 50
     sort_order = request.args.get('sort_order', 'random')
     start_date = request.args.get('start_date', None, type=int)
     end_date = request.args.get('end_date', None, type=int)
     artist_filter = request.args.getlist('artist')
     selected_artists = request.args.getlist('artist')
+    liked_artworks = {like.artwork_id for like in LikedArtworks.query.filter_by(user_id=current_user.id).all()}
 
     # Fetch paginated and filtered artworks
     approved_artworks, total_pages, all_artists = get_approved_artworks_from_db(
@@ -469,8 +474,40 @@ def pondering():
         current_page=page,
         total_pages=total_pages,
         all_artists=all_artists,
-        selected_artists=selected_artists
+        selected_artists=selected_artists,
+        liked_artworks=liked_artworks
     )
+
+@app.route('/like_artwork', methods=['POST'])
+@login_required
+def like_artwork():
+    artwork_id = request.json.get('artwork_id')
+    if not artwork_id:
+        return jsonify({'error': 'Artwork ID is required'}), 400
+
+    liked = LikedArtworks.query.filter_by(user_id=current_user.id, artwork_id=artwork_id).first()
+    if liked:
+        # If already liked, remove the like
+        db.session.delete(liked)
+        db.session.commit()
+        return jsonify({'liked': False})
+    else:
+        # Otherwise, add the like
+        new_like = LikedArtworks(user_id=current_user.id, artwork_id=artwork_id)
+        db.session.add(new_like)
+        db.session.commit()
+        return jsonify({'liked': True})
+
+@app.route('/is_liked', methods=['GET'])
+@login_required
+def is_liked():
+    artwork_id = request.args.get('artwork_id')
+    if not artwork_id:
+        return jsonify({'error': 'Artwork ID is required'}), 400
+
+    liked = LikedArtworks.query.filter_by(user_id=current_user.id, artwork_id=artwork_id).first()
+    return jsonify({'liked': bool(liked)})
+
 
 @app.route('/watching')
 @login_required

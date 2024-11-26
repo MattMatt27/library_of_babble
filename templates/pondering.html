@@ -28,6 +28,7 @@
         gap: 20px;
         justify-content: center;
         padding: 20px;
+        padding-top: 5px;
     }
     .content-item {
         background-color: #C1DFF0;
@@ -35,7 +36,8 @@
         overflow: hidden;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         transition: transform 0.3s ease;
-        cursor: pointer;
+        display: inline-block;
+        text-align: left;
     }
     .content-item:hover {
         transform: translateY(-5px);
@@ -52,10 +54,12 @@
         width: auto;
         object-fit: contain;
         border-radius: 0px;
+        cursor: pointer;
     }
     .content-details {
         padding: 15px;
         box-sizing: border-box;
+        max-width: calc(150% + 20px);
     }
     .content-item h3 {
         font-size: 16px;
@@ -74,6 +78,7 @@
         align-items: flex-start;
         word-wrap: break-word;
         hyphens: auto;
+        max-width: calc(150% + 20px);
     }
 
     .controls {
@@ -261,6 +266,34 @@
         transform: scale(1.2);
         color: #ccc;
     }
+
+    .button-container {
+        margin-top: 15px;
+    }
+
+    .full-text-button {
+        background-color: #C1DFF0; 
+        color: #093249; 
+        font-size: 17px;
+        padding: 10px 20px; 
+        border-radius: 5px; 
+        border: none;
+        text-decoration: none; 
+        transition: background-color 0.3s; 
+        align-items: center;
+        cursor: pointer;
+    }
+    .full-text-button::after {
+        content: ' →';
+    }
+
+    .full-text-button:hover {
+        background-color: #093249; 
+        color: #C1DFF0;
+        border: solid white 1px;
+        text-decoration: none;
+    }
+
 </style>
 <link rel="stylesheet" href="https://unpkg.com/photoswipe/dist/photoswipe.css">
 <link rel="stylesheet" href="https://unpkg.com/photoswipe/dist/default-skin/default-skin.css">
@@ -288,6 +321,7 @@
             <option value="desc" {% if request.args.get('sort_order') == 'desc' %}selected{% endif %}>Descending</option>
         </select>
     </div>
+    <p class="button-container"><a href="/galleries" class="full-text-button">View Collections</a></p>
     <!-- <div class="control-item">
         <label>Date Range:</label>
         <div class="date-pickers">
@@ -313,7 +347,8 @@
         </div>
         <div class="content-details">
             <h3>{{ artwork.title }}</h3>
-            <p><strong>{{ artwork.artist }}</strong></p>
+            <!-- <p class="artist-name"><strong>{{ artwork.artist }}</strong></p> -->
+            <p class="artist-name"><strong><a href="#" class="filter-artist" data-artist="{{ artwork.artist }}">{{ artwork.artist }}</a></strong></p>
             <p>🎨 {{ artwork.medium if artwork.medium else "Unknown" }}</p>
             <p>📍 {{ artwork.location }}</p>
         </div>
@@ -333,13 +368,13 @@
     <div class="image-viewer-content">
         <button id="close-viewer" class="close-viewer">&times;</button>
         <button class="like-button" data-artwork-id="">
-            <img src="{{ url_for('static', filename='icons/heart-outline.png') }}" alt="Heart Icon" class="heart-icon">
+            <img src="{{ url_for('static', filename='images/assets/hearts/heart_outline.png') }}" alt="Heart Icon" class="heart-icon">
         </button>
         <button id="prev-image" class="nav-arrow prev-arrow">&lt;</button>
         <img id="viewer-image" src="" alt="Artwork">
         <div class="image-details">
             <h2 id="viewer-title"></h2>
-            <p><strong>Artist:</strong> <span id="viewer-artist"></span></p>
+            <p class="artist-name"><strong>Artist:</strong> <span id="viewer-artist"></span></p>
             <p><strong>Medium:</strong> <span id="viewer-medium"></span></p>
             <p><strong>Location:</strong> <span id="viewer-location"></span></p>
         </div>
@@ -556,6 +591,25 @@
             if (e.key === 'ArrowRight') {
                 showNextImage();
             }
+        });
+    });
+</script>
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        // Existing code...
+
+        // Add click event listener for artist links
+        $('.filter-artist').on('click', function (event) {
+            event.preventDefault(); // Prevent the default anchor behavior
+            const artist = $(this).data('artist');
+            const params = new URLSearchParams(window.location.search);
+
+            // Reset other filters and set the artist filter
+            params.set('page', 1); // Reset to first page
+            params.set('artist', artist);
+
+            // Redirect to updated URL with artist filter
+            window.location.href = `${window.location.pathname}?${params.toString()}`;
         });
     });
 </script>

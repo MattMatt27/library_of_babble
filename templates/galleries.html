@@ -1,0 +1,457 @@
+{% extends "base.html" %}
+
+{% block title %}🖼️ Galleries{% endblock %}
+
+{% set active_page = 'pondering' %}
+
+{% block extra_styles %}
+<style type="text/css">
+	body {
+        background-color: #121212;
+        color: #ffffff;
+        font-family: Garamond, sans-serif;
+        margin: 0;
+        font-size: 20px;
+    }
+
+    header {
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        width: 100%;
+    }
+	.gallery {
+	    background: #fff;
+	    border: 1px solid #ddd;
+	    border-radius: 8px;
+	    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+	    padding: 15px;
+	    margin: 15px;
+	    background-color: #C1DFF0;
+	}
+
+	.gallery-header {
+	    display: flex;
+	    justify-content: space-between;
+	    align-items: center;
+	    margin-bottom: 10px;
+	}
+
+	.gallery-header h2 {
+	    margin: 0;
+	    font-size: 1.5em;
+	    color: #444;
+	}
+
+	.view-all {
+	    background: #007bff;
+	    color: white;
+	    border: none;
+	    padding: 8px 15px;
+	    border-radius: 4px;
+	    cursor: pointer;
+	    transition: background-color 0.3s ease;
+	}
+
+	.view-all:hover {
+	    background: #0056b3;
+	}
+
+	.gallery-row {
+	    display: flex;
+	    gap: 10px;
+	    overflow-x: auto;
+	    padding-bottom: 10px;
+	}
+
+	.gallery-row img {
+	    height: 300px; 
+	    border-radius: 5px;
+	    object-fit: cover;
+	    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+	    transition: transform 0.3s ease;
+	    cursor: pointer;
+	}
+
+	.gallery-row img:hover {
+	    transform: scale(1.05);
+	}
+
+	.gallery-row::-webkit-scrollbar {
+	    height: 8px;
+	}
+
+	.gallery-row::-webkit-scrollbar-thumb {
+	    background: #ccc;
+	    border-radius: 4px;
+	}
+
+	.image-viewer {
+        display: none; /* Hidden by default */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    .image-viewer-content {
+        position: relative;
+        text-align: center;
+        max-width: 90%;
+        max-height: 90%;
+    }
+
+    .image-viewer img {
+        max-width: 100%;
+        max-height: 70vh;
+        margin-bottom: 20px;
+    }
+
+    .image-details {
+        color: #fff;
+        text-align: center;
+    }
+
+    .image-details h2 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .image-details p {
+        margin: 5px 0;
+        font-size: 16px;
+    }
+
+    .close-viewer {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: none;
+        border: none;
+        font-size: 30px;
+        color: white;
+        cursor: pointer;
+        z-index: 1001;
+    }
+
+    .nav-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: white;
+        font-size: 40px;
+        cursor: pointer;
+        z-index: 1001;
+    }
+
+    .nav-arrow:hover {
+        color: #ccc;
+    }
+
+    .prev-arrow {
+        left: 20px;
+    }
+
+    .next-arrow {
+        right: 20px;
+    }
+
+    .close-viewer:hover {
+        color: #ccc;
+    }
+
+    .like-button {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 30px;
+        color: white;
+    }
+
+    .heart-icon {
+        width: 34px;
+        height: 34px;
+        transition: transform 0.2s ease;
+        margin-bottom: 0;
+    }
+
+    .like-button:hover .heart-icon {
+        transform: scale(1.2);
+        color: #ccc;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="gallery">
+    <div class="gallery-header">
+        <h2>Your Liked Artworks ({{ liked_artworks|length }})</h2>
+        <button class="view-all" onclick="openGallery('liked-artworks')">View All</button>
+    </div>
+    <div class="gallery-row" id="liked-artworks">
+        {% for artwork in display_liked_artworks %}
+        <img 
+            src="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}" 
+            alt="{{ artwork.title }}"
+            data-img-id="{{ artwork.id }}"
+            data-full-img="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
+            data-title="{{ artwork.title }}"
+            data-artist="{{ artwork.artist }}"
+            data-year="{{ artwork.year }}"
+            data-location="{{ artwork.location }}"
+            data-medium="{{ artwork.medium }}"
+            data-description="{{ artwork.description }}">
+        {% endfor %}
+    </div>
+</div>
+
+<div class="gallery">
+    <div class="gallery-header">
+        <h2>Boston Museums ({{ at_boston_musuems|length }})</h2>
+        <button class="view-all" onclick="openGallery('worcester-art')">View All</button>
+    </div>
+    <div class="gallery-row" id="worcester-art">
+        {% for artwork in display_at_boston_musuems %}
+        <img 
+            src="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}" 
+            alt="{{ artwork.title }}"
+            data-img-id="{{ artwork.id }}"
+            data-full-img="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
+            data-title="{{ artwork.title }}"
+            data-artist="{{ artwork.artist }}"
+            data-year="{{ artwork.year }}"
+            data-location="{{ artwork.location }}"
+            data-medium="{{ artwork.medium }}"
+            data-description="{{ artwork.description }}">
+        {% endfor %}
+    </div>
+</div>
+
+
+<div class="gallery">
+    <div class="gallery-header">
+        <h2>Worcester Museum of Art ({{ worcester_artworks|length }})</h2>
+        <button class="view-all" onclick="openGallery('worcester-art')">View All</button>
+    </div>
+    <div class="gallery-row" id="worcester-art">
+        {% for artwork in display_worcester_artworks %}
+        <img 
+            src="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}" 
+            alt="{{ artwork.title }}"
+            data-img-id="{{ artwork.id }}"
+            data-full-img="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
+            data-title="{{ artwork.title }}"
+            data-artist="{{ artwork.artist }}"
+            data-year="{{ artwork.year }}"
+            data-location="{{ artwork.location }}"
+            data-medium="{{ artwork.medium }}"
+            data-description="{{ artwork.description }}">
+        {% endfor %}
+    </div>
+</div>
+
+<div class="gallery">
+    <div class="gallery-header">
+        <h2>Oil on Canvas ({{ oil_on_canvas_artworks|length }})</h2>
+        <button class="view-all" onclick="openGallery('watercolors')">View All</button>
+    </div>
+    <div class="gallery-row" id="watercolors">
+        {% for artwork in display_oil_on_canvas_artworks %}
+        <img 
+            src="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}" 
+            alt="{{ artwork.title }}"
+            data-img-id="{{ artwork.id }}"
+            data-full-img="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
+            data-title="{{ artwork.title }}"
+            data-artist="{{ artwork.artist }}"
+            data-year="{{ artwork.year }}"
+            data-location="{{ artwork.location }}"
+            data-medium="{{ artwork.medium }}"
+            data-description="{{ artwork.description }}">
+        {% endfor %}
+    </div>
+</div>
+
+<div class="gallery">
+    <div class="gallery-header">
+        <h2>Watercolors ({{ watercolor_artworks|length }})</h2>
+        <button class="view-all" onclick="openGallery('watercolors')">View All</button>
+    </div>
+    <div class="gallery-row" id="watercolors">
+        {% for artwork in display_watercolor_artworks %}
+        <img 
+            src="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}" 
+            alt="{{ artwork.title }}"
+            data-img-id="{{ artwork.id }}"
+            data-full-img="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
+            data-title="{{ artwork.title }}"
+            data-artist="{{ artwork.artist }}"
+            data-year="{{ artwork.year }}"
+            data-location="{{ artwork.location }}"
+            data-medium="{{ artwork.medium }}"
+            data-description="{{ artwork.description }}">
+        {% endfor %}
+    </div>
+</div>
+
+<div id="image-viewer" class="image-viewer">
+    <div class="image-viewer-content">
+        <button id="close-viewer" class="close-viewer">&times;</button>
+        <button class="like-button" data-artwork-id="">
+            <img src="{{ url_for('static', filename='images/assets/hearts/heart_outline.png') }}" alt="Heart Icon" class="heart-icon">
+        </button>
+        <button id="prev-image" class="nav-arrow prev-arrow">&lt;</button>
+        <img id="viewer-image" src="" alt="Artwork">
+        <div class="image-details">
+            <h2 id="viewer-title"></h2>
+            <p class="artist-name"><strong>Artist:</strong> <span id="viewer-artist"></span></p>
+            <p><strong>Medium:</strong> <span id="viewer-medium"></span></p>
+            <p><strong>Location:</strong> <span id="viewer-location"></span></p>
+        </div>
+        <button id="next-image" class="nav-arrow next-arrow">&gt;</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const viewer = document.getElementById('image-viewer');
+        const viewerImage = document.getElementById('viewer-image');
+        const viewerTitle = document.getElementById('viewer-title');
+        const viewerArtist = document.getElementById('viewer-artist');
+        const viewerMedium = document.getElementById('viewer-medium');
+        const viewerLocation = document.getElementById('viewer-location');
+        const closeViewerButton = document.getElementById('close-viewer');
+        const prevArrow = document.getElementById('prev-image');
+        const nextArrow = document.getElementById('next-image');
+        const likeButton = viewer.querySelector('.like-button');
+        const heartIcon = likeButton.querySelector('.heart-icon');
+
+        const images = Array.from(document.querySelectorAll('.gallery img')); // Collect all images
+        let currentIndex = 0; // Track the current image index
+        let currentArtworkId = null;
+
+        // Function to open the image viewer
+        function openImageViewer(index) {
+            currentIndex = index;
+            const imgElement = images[currentIndex];
+
+            const fullImgSrc = imgElement.getAttribute('data-full-img');
+            const imgId = imgElement.getAttribute('data-img-id');
+            const title = imgElement.getAttribute('data-title');
+            const artist = imgElement.getAttribute('data-artist');
+            const medium = imgElement.getAttribute('data-medium');
+            const location = imgElement.getAttribute('data-location');
+
+            viewerImage.src = fullImgSrc;
+            viewerTitle.textContent = title || "Unknown Title";
+            viewerArtist.textContent = artist || "Unknown Artist";
+            viewerMedium.textContent = medium || "Unknown Medium";
+            viewerLocation.textContent = location || "Unknown Location";
+
+            currentArtworkId = imgId;
+            likeButton.setAttribute('data-artwork-id', imgId);
+
+            updateLikeButtonState(imgId);
+
+            viewer.style.display = 'flex'; // Show the viewer
+        }
+
+        // Function to close the image viewer
+        function closeImageViewer() {
+            viewer.style.display = 'none'; // Hide the viewer
+        }
+
+        // Function to navigate to the previous image
+        function showPrevImage() {
+            currentIndex = (currentIndex - 1 + images.length) % images.length; // Wrap around to the last image
+            openImageViewer(currentIndex);
+        }
+
+        // Function to navigate to the next image
+        function showNextImage() {
+            currentIndex = (currentIndex + 1) % images.length; // Wrap around to the first image
+            openImageViewer(currentIndex);
+        }
+
+        function updateLikeButtonState(artworkId) {
+            fetch(`/is_liked?artwork_id=${artworkId}`, { method: 'GET' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.liked) {
+                        heartIcon.src = '/static/images/assets/hearts/heart_filled.png'; 
+                    } else {
+                        heartIcon.src = '/static/images/assets/hearts/heart_outline.png'; 
+                    }
+                })
+                .catch(error => console.error('Error fetching like state:', error));
+        }
+
+        likeButton.addEventListener('click', function () {
+            if (!currentArtworkId) return;
+
+            fetch('/like_artwork', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ artwork_id: currentArtworkId }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.liked) {
+                        heartIcon.src = '/static/images/assets/hearts/heart_filled.png';
+                    } else {
+                        heartIcon.src = '/static/images/assets/hearts/heart_outline.png'; 
+                    }
+                })
+                .catch(error => console.error('Error toggling like state:', error));
+        });
+
+        // Attach event listener to all images
+        images.forEach((img, index) => {
+            img.addEventListener('click', () => openImageViewer(index));
+        });
+
+        // Attach event listener to the close button
+        closeViewerButton.addEventListener('click', closeImageViewer);
+
+        // Attach event listeners to the navigation arrows
+        prevArrow.addEventListener('click', showPrevImage);
+        nextArrow.addEventListener('click', showNextImage);
+
+        // Close viewer on outside click
+        viewer.addEventListener('click', (e) => {
+            if (e.target === viewer) {
+                closeImageViewer();
+            }
+        });
+
+        // Close viewer on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeImageViewer();
+            }
+            if (e.key === 'ArrowLeft') {
+                showPrevImage();
+            }
+            if (e.key === 'ArrowRight') {
+                showNextImage();
+            }
+        });
+    });
+</script>
+{% endblock %}

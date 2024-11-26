@@ -13,7 +13,7 @@ from alcohol_labels import get_recently_added_labels, read_alc_labels_from_csv
 from database import movie_analytics, save_movies_to_database, merge_movie_data, connect_to_database
 from database2 import load_goodreads_data_into_books, load_boredom_killer_into_movies, load_boredom_killer_into_tvshows, load_letterboxd_data_into_movies, load_artworks_data, load_generated_images_data
 from playlist_parse import parse_and_load_playlists
-from artworks import get_approved_artworks_from_db
+from artworks import get_approved_artworks_from_db, get_all_artworks
 
 import pandas as pd
 from datetime import datetime, timedelta
@@ -507,6 +507,47 @@ def is_liked():
 
     liked = LikedArtworks.query.filter_by(user_id=current_user.id, artwork_id=artwork_id).first()
     return jsonify({'liked': bool(liked)})
+
+@app.route('/galleries')
+def galleries():
+    nav_items = get_user_nav_items()
+    all_artworks = get_all_artworks()
+
+    liked_artwork_ids = {like.artwork_id for like in LikedArtworks.query.filter_by(user_id=current_user.id).all()}
+    at_boston_musuems_ids = {work.id for work in Artworks.query.filter(Artworks.location.like('%Boston%')).all()}
+    worcester_artwork_ids = {work.id for work in Artworks.query.filter_by(location="Worcester Art Museum, Worcester, MA").all()}
+    oil_on_canvas_artwork_ids = {work.id for work in Artworks.query.filter_by(medium="Oil on canvas").all()}
+    watercolor_artwork_ids = {work.id for work in Artworks.query.filter(Artworks.medium.like('%watercolor%')).all()}
+
+    # Filter `all_artworks` based on these IDs
+    liked_artworks = [art for art in all_artworks if art['id'] in liked_artwork_ids]
+    at_boston_musuems = [art for art in all_artworks if art['id'] in at_boston_musuems_ids]
+    worcester_artworks = [art for art in all_artworks if art['id'] in worcester_artwork_ids]
+    oil_on_canvas_artworks = [art for art in all_artworks if art['id'] in oil_on_canvas_artwork_ids]
+    watercolor_artworks = [art for art in all_artworks if art['id'] in watercolor_artwork_ids]
+
+    random.shuffle(all_artworks)
+
+    display_liked_artworks = [art for art in all_artworks if art['id'] in liked_artwork_ids][:25]
+    display_at_boston_musuems = [art for art in all_artworks if art['id'] in at_boston_musuems_ids][:25]
+    display_worcester_artworks = [art for art in all_artworks if art['id'] in worcester_artwork_ids][:25]
+    display_oil_on_canvas_artworks = [art for art in all_artworks if art['id'] in oil_on_canvas_artwork_ids][:25]
+    display_watercolor_artworks = [art for art in all_artworks if art['id'] in watercolor_artwork_ids][:25]
+
+    # Render the template
+    return render_template('galleries.html', 
+                           nav_items=nav_items,
+                           display_liked_artworks=display_liked_artworks,
+                           liked_artworks=liked_artworks,
+                           display_at_boston_musuems=display_at_boston_musuems,
+                           at_boston_musuems=at_boston_musuems,
+                           display_worcester_artworks=display_worcester_artworks,
+                           worcester_artworks=worcester_artworks,
+                           display_oil_on_canvas_artworks=display_oil_on_canvas_artworks,
+                           oil_on_canvas_artworks=oil_on_canvas_artworks,
+                           display_watercolor_artworks=display_watercolor_artworks,
+                           watercolor_artworks=watercolor_artworks,
+                           all_artworks=all_artworks)
 
 
 @app.route('/watching')

@@ -18,20 +18,50 @@ if not SPOTIPY_CLIENT_ID or not SPOTIPY_CLIENT_SECRET:
 
 spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET))
 
-# Function to generate monthly playlists DataFrame
-def generate_monthly_playlists_df():
-    monthly_playlists_df = pd.DataFrame(columns=['playlist_name', 'playlist_id', 'playlist_art'])
+# # Function to generate monthly playlists DataFrame
+# def generate_monthly_playlists_df_old():
+#     monthly_playlists_df = pd.DataFrame(columns=['playlist_name', 'playlist_id', 'playlist_art'])
     
+#     # Define the month format used in playlist names
+#     month_format = {
+#         1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'June',
+#         7: 'July', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'
+#     }
+    
+#     # Get the current date and calculate the last completed month
+#     current_date = datetime.now()
+#     last_month = current_date.replace(day=1) - timedelta(days=1)
+    
+#     # Generate the month_list dynamically
+#     start_date = datetime(2019, 2, 1)
+#     month_list = []
+#     while start_date <= last_month:
+#         month_str = f"({month_format[start_date.month]} {str(start_date.year)[2:]})"
+#         month_list.append(month_str)
+#         start_date = (start_date.replace(day=1) + timedelta(days=32)).replace(day=1)
+    
+#     with open('data/matts_playlists.csv', 'r', encoding='iso-8859-1') as file:
+#         reader = csv.DictReader(file)
+#         for row in reader:
+#             if any(month in row['playlist_name'] for month in month_list):
+#                 monthly_playlists_df = monthly_playlists_df.append(row, ignore_index=True)
+    
+#     return monthly_playlists_df
+
+def generate_monthly_playlists_df():
+    # Create an empty DataFrame for matching playlists (optional for debugging/validation)
+    monthly_playlists_df = pd.DataFrame(columns=['playlist_name', 'playlist_id', 'playlist_art'])
+
     # Define the month format used in playlist names
     month_format = {
         1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'June',
         7: 'July', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'
     }
-    
+
     # Get the current date and calculate the last completed month
     current_date = datetime.now()
     last_month = current_date.replace(day=1) - timedelta(days=1)
-    
+
     # Generate the month_list dynamically
     start_date = datetime(2019, 2, 1)
     month_list = []
@@ -39,13 +69,33 @@ def generate_monthly_playlists_df():
         month_str = f"({month_format[start_date.month]} {str(start_date.year)[2:]})"
         month_list.append(month_str)
         start_date = (start_date.replace(day=1) + timedelta(days=32)).replace(day=1)
+
+    conn = sqlite3.connect('instance/portfolio_prd.db')
+    cursor = conn.cursor()
     
-    with open('data/matts_playlists.csv', 'r', encoding='iso-8859-1') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            if any(month in row['playlist_name'] for month in month_list):
-                monthly_playlists_df = monthly_playlists_df.append(row, ignore_index=True)
+    # Query playlists
+    cursor.execute("SELECT id, name, album_art FROM playlists")
+    playlists = cursor.fetchall()
+
+    # Match playlists with month_list
+    matching_playlists = [
+        {"playlist_id": row[0], "playlist_name": row[1], "playlist_art": row[2]}
+        for row in playlists if any(month in row[1] for month in month_list)
+    ]
     
+    # Optionally store matching playlists into a DataFrame for validation/debugging
+    monthly_playlists_df = pd.DataFrame(matching_playlists)
+
+    # Update the database to set site_approved = 1 for matching playlists
+    for playlist in matching_playlists:
+        cursor.execute(
+            "UPDATE playlists SET site_approved = 1 WHERE id = ?",
+            (playlist["playlist_id"],)
+        )
+
+    # Commit changes to the database
+    conn.commit()
+
     return monthly_playlists_df
 
 # Function to select playlist based on month and year

@@ -316,13 +316,15 @@
     function initializeDatepicker() {
         var currentDate = new Date();
         var firstOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        var lastCompletedMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+
         
         $("#datepickerInput").datepicker({
             dateFormat: "MM yy",
             changeMonth: true,
             changeYear: true,
             minDate: new Date(2019, 2 - 1),
-            maxDate: firstOfMonth,
+            maxDate: lastCompletedMonth,
             showButtonPanel: true,
             onClose: handleDatepickerClose,
             beforeShow: function(input, inst) {

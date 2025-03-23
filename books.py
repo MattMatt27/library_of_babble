@@ -36,18 +36,25 @@ def read_books_from_db():
     conn = sqlite3.connect('instance/portfolio_prd.db')
     cursor = conn.cursor()
 
-    # Execute a SELECT query to fetch all books
-    cursor.execute('SELECT id, title, author, original_publication_year, cover_image_url, date_read, my_rating, my_review FROM books WHERE my_rating > 0 AND date_read != ""')
+    # Join Books with Reviews to get the latest review data
+    query = """
+    SELECT b.id, b.title, b.author, b.original_publication_year, b.cover_image_url, 
+           r.date_reviewed, r.rating, r.review_text
+    FROM books b
+    JOIN reviews r ON r.item_id = CAST(b.id AS TEXT) AND r.item_type = 'Book'
+    WHERE r.rating > 0 AND r.date_reviewed != ""
+    """
+    
+    cursor.execute(query)
     rows = cursor.fetchall()
 
     for row in rows:
-
         book = {
             'id': row[0], 
             'title': re.sub(r'\s*[\[({][^\[\](){}]*[\])}]|:.*', '', row[1]),
             'author': row[2], 
             'publication_year': row[3], 
-            'cover_image_url': row[4] if row[4] else 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg',
+            'cover_image_url': row[4] if row[4] else 'https://theprairiesbookreview.com/wp-content/uploads/2023/11/cover-not-availble-image.jpg',
             'date_read': row[5], 
             'my_rating': str(row[6]), 
             'my_review': row[7] 
@@ -55,52 +62,76 @@ def read_books_from_db():
         books.append(book)
 
     books.sort(key=lambda x: x['date_read'], reverse=True)
-
     conn.close() 
-
     return books
 
-# Function to get the five most recently read books
 def get_recently_read_books():
-    books = read_books_from_db()
-    # Sort the books by date read in descending order
-    sorted_books = sorted(books, key=lambda x: x.get('date_read', datetime.min), reverse=True)
-    return sorted_books[:10]
-
-def get_books_from_bookshelf(bookshelf):
-    bookshelf_books = []
+    """Get recently read books using the Reviews table"""
     conn = sqlite3.connect('instance/portfolio_prd.db')
     cursor = conn.cursor()
-
-    # Fetch books where 'matts-recommended-fiction' is in bookshelves
+    
     query = """
-        SELECT id, title, author, original_publication_year, cover_image_url, date_read, my_rating, my_review 
-        FROM books
-        WHERE bookshelves LIKE ?
+    SELECT b.id, b.title, b.author, b.original_publication_year, b.cover_image_url, 
+           r.date_reviewed, r.rating, r.review_text
+    FROM books b
+    JOIN reviews r ON r.item_id = CAST(b.id AS TEXT) AND r.item_type = 'Book'
+    WHERE r.rating > 0
+    ORDER BY r.date_reviewed DESC
+    LIMIT 10
     """
-
-    # Execute the query with the parameter
-    cursor.execute(query, (f'%{bookshelf}%',))
-
+    
+    cursor.execute(query)
     rows = cursor.fetchall()
-
+    
+    books = []
     for row in rows:
-
         book = {
             'id': row[0], 
             'title': re.sub(r'\s*[\[({][^\[\](){}]*[\])}]|:.*', '', row[1]),
             'author': row[2], 
             'publication_year': row[3], 
-            'cover_image_url': row[4] if row[4] else 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg',
+            'cover_image_url': row[4] if row[4] else 'https://theprairiesbookreview.com/wp-content/uploads/2023/11/cover-not-availble-image.jpg',
             'date_read': row[5], 
             'my_rating': str(row[6]), 
             'my_review': row[7] 
         }
-        bookshelf_books.append(book)
-
-    sorted_books = sorted(bookshelf_books, key=lambda x: x.get('publication_year', datetime.min), reverse=False)
-
-    # Close connection
+        books.append(book)
+    
     conn.close()
+    return books
 
+def get_books_from_bookshelf(bookshelf):
+    """Get books from a specific bookshelf using the Collections table"""
+    conn = sqlite3.connect('instance/portfolio_prd.db')
+    cursor = conn.cursor()
+    
+    query = """
+    SELECT b.id, b.title, b.author, b.original_publication_year, b.cover_image_url, 
+           r.date_reviewed, r.rating, r.review_text
+    FROM books b
+    JOIN collections c ON c.item_id = CAST(b.id AS TEXT) AND c.item_type = 'Book'
+    LEFT JOIN reviews r ON r.item_id = CAST(b.id AS TEXT) AND r.item_type = 'Book'
+    WHERE c.collection_name = ?
+    """
+    
+    cursor.execute(query, (bookshelf,))
+    rows = cursor.fetchall()
+    
+    books = []
+    for row in rows:
+        book = {
+            'id': row[0], 
+            'title': re.sub(r'\s*[\[({][^\[\](){}]*[\])}]|:.*', '', row[1]),
+            'author': row[2], 
+            'publication_year': row[3], 
+            'cover_image_url': row[4] if row[4] else 'https://theprairiesbookreview.com/wp-content/uploads/2023/11/cover-not-availble-image.jpg',
+            'date_read': row[5], 
+            'my_rating': str(row[6]) if row[6] else '0', 
+            'my_review': row[7] 
+        }
+        books.append(book)
+    
+    # Sort by publication year
+    sorted_books = sorted(books, key=lambda x: x.get('publication_year', 0), reverse=False)
+    conn.close()
     return sorted_books

@@ -167,7 +167,7 @@
         {% endfor %}
     </div>
 </div>
-<div class="recently-watched">
+<!-- <div class="recently-watched">
     <div class="recently-watched-header">
         <h2>Recently Watched Shows</h2>
         <p class="button-container"><a href="/movies" class="full-text-button">See All </a></p>
@@ -178,13 +178,13 @@
                 <img src="{{ show['cover_image_url'] }}" alt="{{ show['title'] }}">
                 <p style="font-size: 18px;"><strong>{{ show['title'] }}</strong></p>
                 <p>{{ show['year'] }}</p>
-                <!-- <p>
+                <p>
                     <img src="{{ url_for('static', filename='images/assets/stars/' + show['my_rating'] + '.png') }}" alt="{{ show['my_rating'] }} Stars" style="width: 50%;">
-                </p> -->
+                </p> 
             </div>
         {% endfor %}
     </div>
-</div>
+</div> -->
 {% endblock %}
 
 {% block extra_scripts %}

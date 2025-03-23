@@ -18,6 +18,94 @@ def parse_date(date_str):
             continue
     raise ValueError(f"Date format for '{date_str}' is not recognized")
 
+def load_book_quotes_from_csv(db, BookQuote):
+    csv_file = 'book_quotes.csv'
+    csv_path = csv_folder / csv_file
+    
+    if not csv_path.exists():
+        print(f"CSV file {csv_file} not found in {csv_folder}")
+        return
+    
+    # Track existing quotes to avoid duplicates
+    existing_quotes = {}
+    for quote in BookQuote.query.all():
+        quote_key = (quote.book_id, quote.quote_text)
+        existing_quotes[quote_key] = quote
+    
+    quotes_added = 0
+    quotes_updated = 0
+    
+    # Try different encodings
+    encodings_to_try = ['utf-8', 'latin-1', 'iso-8859-1', 'windows-1252']
+    
+    for encoding in encodings_to_try:
+        try:
+            with open(csv_path, 'r', newline='', encoding=encoding) as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    try:
+                        book_id = row['Goodreads ID'].strip()
+                        quote_text = row['Quote'].strip()
+                        
+                        # Skip empty quotes or missing book IDs
+                        if not book_id or not quote_text:
+                            continue
+                        
+                        # Try to convert page number to integer, use None if not possible
+                        try:
+                            page_number = int(row['Page Number']) if row['Page Number'].strip() else None
+                        except ValueError:
+                            page_number = None
+                        
+                        # Check if this quote already exists
+                        quote_key = (book_id, quote_text)
+                        if quote_key in existing_quotes:
+                            # Update existing quote if page number has changed
+                            existing_quote = existing_quotes[quote_key]
+                            if existing_quote.page_number != page_number and page_number is not None:
+                                existing_quote.page_number = page_number
+                                db.session.add(existing_quote)
+                                quotes_updated += 1
+                        else:
+                            # Create new quote
+                            new_quote = BookQuote(
+                                book_id=book_id,
+                                quote_text=quote_text,
+                                page_number=page_number
+                            )
+                            db.session.add(new_quote)
+                            quotes_added += 1
+                            
+                    except Exception as e:
+                        print(f"Error processing quote: {e}")
+                        continue
+                
+                db.session.commit()
+                print(f"Book quotes loaded using {encoding} encoding: {quotes_added} added, {quotes_updated} updated")
+                
+                # If we got here without errors, we've found the right encoding
+                break
+                
+        except UnicodeDecodeError:
+            # Try the next encoding
+            print(f"Failed to open with {encoding} encoding, trying next...")
+            continue
+        except Exception as e:
+            print(f"Unexpected error opening file with {encoding} encoding: {e}")
+            continue
+    else:
+        # This executes if the loop didn't break - meaning no encoding worked
+        print("Could not read the file with any of the attempted encodings")
+        return
+    
+    # Move the processed file
+    if not loaded_folder.exists():
+        loaded_folder.mkdir(parents=True)
+    
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    new_file_name = f"{current_date}_{csv_file}"
+    shutil.move(str(csv_path), str(loaded_folder / new_file_name))
+
 def get_book_cover_image_openlibrary(isbn):
     url = f"https://openlibrary.org/api/books?bibkeys=ISBN:{isbn}&format=json&jscmd=data"
     response = requests.get(url)
@@ -29,14 +117,14 @@ def get_book_cover_image_openlibrary(isbn):
                 return book_data["cover"]["large"]
     return None
 
-def load_goodreads_data_into_books(db, model_class, csv_file):
+def load_goodreads_data_into_books(db, Books, Reviews, Collections, csv_file):
     csv_path = csv_folder / csv_file
+    
     with open(csv_path, 'r', newline='', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         for row in reader:
-            existing_book = model_class.query.filter_by(id=int(row['Book Id'])).first()
-            # if existing_book:
-            #     continue
+            existing_book = Books.query.filter_by(id=int(row['Book Id'])).first()
+            
             try:
                 number_of_pages = int(row['Number of Pages']) if row['Number of Pages'].strip() else None
             except ValueError:
@@ -52,6 +140,7 @@ def load_goodreads_data_into_books(db, model_class, csv_file):
             except ValueError:
                 original_publication_year = None  # Handle non-numeric or empty strings
 
+            # Check if the cover image URL field exists
             # cover_image_url = get_book_cover_image_openlibrary(row['ISBN13']) if row['ISBN13'] else None
 
             data = {
@@ -74,12 +163,15 @@ def load_goodreads_data_into_books(db, model_class, csv_file):
                 'private_notes': row['Private Notes'],
                 'read_count': int(row['Read Count']),
                 'owned_copies': int(row['Owned Copies']),
-                'cover_image_url': row['Cover Image URL']
+                'cover_image_url': ''
             }
 
             if existing_book:
                 # Preserve my_rating, my_review, and private_notes
                 preserved_fields = {
+                    'title': existing_book.title,
+                    'author': existing_book.author,
+                    'original_publication_year': existing_book.original_publication_year,
                     'my_rating': existing_book.my_rating,
                     'my_review': existing_book.my_review,
                     'private_notes': existing_book.private_notes,
@@ -98,8 +190,60 @@ def load_goodreads_data_into_books(db, model_class, csv_file):
                 db.session.add(existing_book)
             else:
                 data['id'] = int(row['Book Id'])
-                record = model_class(**data)
+                record = Books(**data)
                 db.session.add(record)
+            
+            # Handle review data if it exists
+            book_id = int(row['Book Id'])
+            if (row['My Rating'].strip() or row['My Review'].strip()) and row['Date Read'].strip():
+                # Check if review already exists with the same date
+                existing_review = Reviews.query.filter_by(
+                    item_type='Book',
+                    item_id=str(book_id),
+                    date_reviewed=row['Date Read']
+                ).first()
+                
+                if not existing_review:
+                    # Create new review - no existing review with this date
+                    review = Reviews(
+                        item_type='Book',
+                        item_id=str(book_id),
+                        rating=my_rating,
+                        review_text=row['My Review'],
+                        date_reviewed=row['Date Read']
+                    )
+                    db.session.add(review)
+                # else:
+                    # Update the existing review with this date
+                    # if my_rating is not None:  # Only update if rating is provided
+                    #     existing_review.rating = my_rating
+                    # if row['My Review'].strip():  # Only update if review text is provided
+                    #     existing_review.review_text = row['My Review']
+                    
+            
+            # Handle bookshelves/collections data
+            excluded_bookshelves = ['to-read', 'currently-reading', 'books-on-tape']
+            if row['Bookshelves'].strip():
+                bookshelf_list = row['Bookshelves'].split(',')
+                
+                # Get existing collections for this book
+                existing_collections = set(
+                    collection.collection_name for collection in 
+                    Collections.query.filter_by(item_type='Book', item_id=str(book_id)).all()
+                )
+                
+                # Add new collections without deleting existing ones
+                for bookshelf_name in bookshelf_list:
+                    bookshelf_name = bookshelf_name.strip()
+                    if bookshelf_name and bookshelf_name not in excluded_bookshelves:
+                        # Only add if it doesn't already exist
+                        if bookshelf_name not in existing_collections:
+                            collection = Collections(
+                                collection_name=bookshelf_name,
+                                item_type='Book',
+                                item_id=str(book_id)
+                            )
+                            db.session.add(collection)
 
         db.session.commit()
 
@@ -110,14 +254,14 @@ def load_goodreads_data_into_books(db, model_class, csv_file):
     new_file_name = f"{current_date}_{csv_file}"
     shutil.move(str(csv_path), str(loaded_folder / new_file_name))
 
-def load_boredom_killer_into_tvshows(db, model_class):
+def load_boredom_killer_into_tvshows(db, TVShows, Reviews, Collections):
     csv_file = 'Boredom Killer - TV.csv'
     csv_path = csv_folder / csv_file
     
-    # Get all existing movie TMDb IDs
-    existing_shows = {tvshow.tvdb_id: tvshow for tvshow in model_class.query.all()}
+    # Get all existing TV show TVDB IDs
+    existing_shows = {tvshow.tvdb_id: tvshow for tvshow in TVShows.query.all()}
     
-    # Set to store TMDb IDs of movies in the CSV
+    # Set to store TVDB IDs of shows in the CSV
     csv_shows = {}
     duplicate_count = 0
     
@@ -126,7 +270,7 @@ def load_boredom_killer_into_tvshows(db, model_class):
         for row_number, row in enumerate(reader, start=2):  # start=2 because row 1 is headers
             tvdb_id = row['TVDB ID'].strip()
             
-            # Skip rows with null or empty TMDB ID
+            # Skip rows with null or empty TVDB ID
             if not tvdb_id or not row['Year']:
                 continue
             
@@ -135,7 +279,7 @@ def load_boredom_killer_into_tvshows(db, model_class):
                 duplicate_count += 1
                 print(f"Row {row_number}: Duplicate TVDB ID found: {tvdb_id}. Keeping the latest entry.")
             
-            # Prepare data for movie
+            # Prepare data for TV show
             data = {
                 'tvdb_id': tvdb_id,
                 'imdb_id': row['IMDB ID'].strip() if row['IMDB ID'] else None,
@@ -155,13 +299,59 @@ def load_boredom_killer_into_tvshows(db, model_class):
         if tvdb_id in existing_shows:
             # Update existing show
             existing_show = existing_shows[tvdb_id]
+            
+            # Preserve fields that shouldn't be overwritten
+            preserved_fields = {
+                'my_rating': existing_show.my_rating,
+                'my_review': existing_show.my_review,
+                'date_finished': existing_show.date_finished,
+                'last_watched': existing_show.last_watched
+            }
+            
             for key, value in data.items():
                 if value is not None:
                     setattr(existing_show, key, value)
+            
+            # Restore preserved fields
+            for key, value in preserved_fields.items():
+                setattr(existing_show, key, value)
+            
+            # Update collections based on the new collections data
+            if 'collections' in data and data['collections']:
+                # Get existing collections
+                existing_collections = set(
+                    collection.collection_name for collection in 
+                    Collections.query.filter_by(item_type='TVShow', item_id=tvdb_id).all()
+                )
+                
+                # Add new collections without deleting existing ones
+                collection_list = data['collections'].split('|')
+                for collection_name in collection_list:
+                    collection_name = collection_name.strip()
+                    if collection_name and collection_name not in existing_collections:
+                        collection = Collections(
+                            collection_name=collection_name,
+                            item_type='TVShow',
+                            item_id=tvdb_id
+                        )
+                        db.session.add(collection)
         else:
             # Create new TV show record
-            new_show = model_class(**data)
+            new_show = TVShows(**data)
             db.session.add(new_show)
+            
+            # Add collections if available
+            if 'collections' in data and data['collections']:
+                collection_list = data['collections'].split('|')
+                for collection_name in collection_list:
+                    collection_name = collection_name.strip()
+                    if collection_name:
+                        collection = Collections(
+                            collection_name=collection_name,
+                            item_type='TVShow',
+                            item_id=tvdb_id
+                        )
+                        db.session.add(collection)
     
     # Commit all changes
     db.session.commit()
@@ -173,8 +363,7 @@ def load_boredom_killer_into_tvshows(db, model_class):
     new_file_name = f"{current_date}_{csv_file}"
     shutil.move(str(csv_path), str(loaded_folder / new_file_name))
 
-
-def load_boredom_killer_into_movies(db, Movies):
+def load_boredom_killer_into_movies(db, Movies, Reviews, Collections):
     csv_file = 'Boredom Killer - Movies.csv'
     csv_path = csv_folder / csv_file
     
@@ -221,13 +410,58 @@ def load_boredom_killer_into_movies(db, Movies):
         if tmdb_id in existing_movies:
             # Update existing movie
             existing_movie = existing_movies[tmdb_id]
+            
+            # Preserve fields that shouldn't be overwritten
+            preserved_fields = {
+                'my_rating': existing_movie.my_rating,
+                'my_review': existing_movie.my_review,
+                'date_watched': existing_movie.date_watched
+            }
+            
             for key, value in data.items():
                 if value is not None:
                     setattr(existing_movie, key, value)
+            
+            # Restore preserved fields
+            for key, value in preserved_fields.items():
+                setattr(existing_movie, key, value)
+            
+            # Update collections based on the new collections data
+            if 'collections' in data and data['collections']:
+                # Get existing collections
+                existing_collections = set(
+                    collection.collection_name for collection in 
+                    Collections.query.filter_by(item_type='Movie', item_id=tmdb_id).all()
+                )
+                
+                # Add new collections without deleting existing ones
+                collection_list = data['collections'].split('|')
+                for collection_name in collection_list:
+                    collection_name = collection_name.strip()
+                    if collection_name and collection_name not in existing_collections:
+                        collection = Collections(
+                            collection_name=collection_name,
+                            item_type='Movie',
+                            item_id=tmdb_id
+                        )
+                        db.session.add(collection)
         else:
             # Create new movie record
             new_movie = Movies(**data)
             db.session.add(new_movie)
+            
+            # Add collections if available
+            if 'collections' in data and data['collections']:
+                collection_list = data['collections'].split('|')
+                for collection_name in collection_list:
+                    collection_name = collection_name.strip()
+                    if collection_name:
+                        collection = Collections(
+                            collection_name=collection_name,
+                            item_type='Movie',
+                            item_id=tmdb_id
+                        )
+                        db.session.add(collection)
     
     # Commit all changes
     db.session.commit()
@@ -239,8 +473,7 @@ def load_boredom_killer_into_movies(db, Movies):
     new_file_name = f"{current_date}_{csv_file}"
     shutil.move(str(csv_path), str(loaded_folder / new_file_name))
 
-
-def load_letterboxd_data_into_movies(db, model_class):
+def load_letterboxd_data_into_movies(db, Movies, Reviews):
     ratings_path = letterboxd_folder / 'ratings.csv'
     reviews_path = letterboxd_folder / 'reviews.csv'
     
@@ -271,9 +504,9 @@ def load_letterboxd_data_into_movies(db, model_class):
     # Process combined data
     for (title, year), data in combined_data.items():
         # Sort ratings by letterboxd_id (as a proxy for recency, since we don't have dates)
-        ratings = sorted(data['ratings'], key=lambda x: x['letterboxd_id'], reverse=True)
+        ratings = sorted(data['ratings'], key=lambda x: x['letterboxd_id'], reverse=True) if data['ratings'] else []
         # Sort reviews by date_watched in descending order
-        reviews = sorted(data['reviews'], key=lambda x: x['date_watched'], reverse=True)
+        reviews = sorted(data['reviews'], key=lambda x: x['date_watched'], reverse=True) if data['reviews'] else []
         
         # Use the most recent rating
         my_rating = ratings[0]['my_rating'] if ratings else None
@@ -295,13 +528,43 @@ def load_letterboxd_data_into_movies(db, model_class):
             my_review = None
         
         # Check if movie exists in database
-        existing_movie = model_class.query.filter_by(letterboxd_id=letterboxd_id).first()
+        existing_movie = Movies.query.filter_by(letterboxd_id=letterboxd_id).first()
         if existing_movie:
-            # Update existing movie
-            existing_movie.my_rating = my_rating
-            existing_movie.my_review = my_review
-            existing_movie.date_watched = date_watched
+            # Update existing movie - only if fields are empty
+            if not existing_movie.my_rating and my_rating:
+                existing_movie.my_rating = my_rating
+            if not existing_movie.my_review and my_review:
+                existing_movie.my_review = my_review
+            if not existing_movie.date_watched and date_watched:
+                existing_movie.date_watched = date_watched.strftime('%Y-%m-%d')
+                
             db.session.add(existing_movie)
+            
+            # Update the Reviews table if review doesn't already exist
+            if date_watched and (my_rating or my_review):
+                # Check if review already exists
+                existing_review = Reviews.query.filter_by(
+                    item_type='Movie',
+                    item_id=existing_movie.tmdb_id,
+                    date_reviewed=date_watched.strftime('%Y-%m-%d')
+                ).first()
+                
+                if existing_review:
+                    # Only update if fields are empty
+                    if not existing_review.rating and my_rating:
+                        existing_review.rating = int(float(my_rating)) if my_rating else None
+                    if not existing_review.review_text and my_review:
+                        existing_review.review_text = my_review
+                else:
+                    # Create new review
+                    review = Reviews(
+                        item_type='Movie',
+                        item_id=existing_movie.tmdb_id,
+                        rating=int(float(my_rating)) if my_rating else None,
+                        review_text=my_review,
+                        date_reviewed=date_watched.strftime('%Y-%m-%d')
+                    )
+                    db.session.add(review)
         else:
             # Print out the name and year of the movie not found in the database
             print(f"Movie not found in database: {title} ({year})")

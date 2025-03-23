@@ -11,7 +11,7 @@ from shows import get_recently_watched_shows, read_shows_from_db, get_shows_from
 from pins import get_recently_added_pins, read_pins_from_csv
 from alcohol_labels import get_recently_added_labels, read_alc_labels_from_csv
 from database import movie_analytics, save_movies_to_database, merge_movie_data, connect_to_database
-from database2 import load_goodreads_data_into_books, load_boredom_killer_into_movies, load_boredom_killer_into_tvshows, load_letterboxd_data_into_movies, load_artworks_data, load_generated_images_data
+from database2 import load_goodreads_data_into_books, load_boredom_killer_into_movies, load_boredom_killer_into_tvshows, load_book_quotes_from_csv, load_letterboxd_data_into_movies, load_artworks_data, load_generated_images_data
 from playlist_parse import parse_and_load_playlists
 from artworks import get_approved_artworks_from_db, get_all_artworks
 
@@ -61,6 +61,12 @@ class Books(db.Model):
     owned_copies = db.Column(db.Integer)
     cover_image_url = db.Column(db.String(255))
 
+class BookQuote(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    book_id = db.Column(db.String(50), nullable=False)
+    quote_text = db.Column(db.Text, nullable=False)
+    page_number = db.Column(db.Integer)
+
 class Movies(db.Model):
     tmdb_id = db.Column(db.String, primary_key=True)
     imdb_id = db.Column(db.String)
@@ -89,6 +95,20 @@ class TVShows(db.Model):
     cover_image_url = db.Column(db.String(255))
     collections = db.Column(db.String(255))
     status = db.Column(db.String(20))
+
+class Reviews(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    item_type = db.Column(db.String(20), nullable=False) 
+    item_id = db.Column(db.String(50), nullable=False) 
+    rating = db.Column(db.Integer)
+    review_text = db.Column(db.Text)
+    date_reviewed = db.Column(db.String(20))
+    
+class Collections(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    collection_name = db.Column(db.String(100), nullable=False)
+    item_type = db.Column(db.String(20), nullable=False)
+    item_id = db.Column(db.String(50), nullable=False)
 
 class Playlists(db.Model):
     user_id = db.Column(db.String, nullable=False)
@@ -161,7 +181,7 @@ def check_and_load_books():
             csv_path = Path('data/staging') / csv_file
             if csv_path.exists():
                 try:
-                    load_goodreads_data_into_books(db, Books, csv_file)
+                    load_goodreads_data_into_books(db, Books, Reviews, Collections, csv_file)
                     print(f"Books loaded from {csv_file} successfully!")
                     update_last_run('check_and_load_books')
                 except Exception as e:
@@ -171,6 +191,23 @@ def check_and_load_books():
         else:
             print(f"Books have been updated within the past day.")
 
+def check_and_load_quotes():
+    with app.app_context():
+        if should_run_function('check_and_load_quotes', 1):
+            csv_file = 'book_quotes.csv'
+            csv_path = Path('data/staging') / csv_file
+            if csv_path.exists():
+                try:
+                    load_book_quotes_from_csv(db, BookQuote)
+                    print(f"Quotes loaded from {csv_file} successfully!")
+                    update_last_run('check_and_load_books')
+                except Exception as e:
+                    print(f"Error loading quotes: {e}")
+            else:
+                print(f"CSV file {csv_file} not found in data/staging.")
+        else:
+            print(f"Quotes have been updated within the past day.")
+
 def check_and_load_shows():
     with app.app_context():
         if should_run_function('check_and_load_shows', 1):
@@ -178,7 +215,7 @@ def check_and_load_shows():
             csv_path = Path('data/staging') / csv_file
             if csv_path.exists():
                 try:
-                    load_boredom_killer_into_tvshows(db, TVShows)
+                    load_boredom_killer_into_tvshows(db, TVShows, Reviews, Collections)
                     print(f"TV Shows loaded from Boredom Killer successfully!")
                 except Exception as e:
                     print(f"Error loading TV shows: {e}")
@@ -194,7 +231,7 @@ def check_and_load_movies():
             csv_path = Path('data/staging') / csv_file
             if csv_path.exists():
                 try:
-                    load_boredom_killer_into_movies(db, Movies)
+                    load_boredom_killer_into_movies(db, Movies, Reviews, Collections)
                     print(f"Movies loaded from Boredom Killer successfully!")
                 except Exception as e:
                     print(f"Error loading movies: {e}")
@@ -204,7 +241,7 @@ def check_and_load_movies():
             letterboxd_path = Path('data/staging/letterboxd') 
             if letterboxd_path.exists():
                 try:
-                    load_letterboxd_data_into_movies(db, Movies)
+                    load_letterboxd_data_into_movies(db, Movies, Reviews)
                     print(f"Movies loaded from Letterboxd successfully!")
                     update_last_run('check_and_load_movies')
                 except Exception as e:
@@ -263,6 +300,230 @@ def check_and_load_generative_art():
                 print("Generative Art data not found in data/staging.")
         else:
             print("Generative Art has been updated within the past day.")
+
+
+def migrate_reviews_data(overwrite=False):
+    """
+    Migrate existing reviews from Books, Movies, and TVShows to the Reviews table
+    
+    Args:
+        overwrite (bool): If True, will overwrite existing reviews; if False, will skip existing reviews
+    """
+    with app.app_context():
+        print("Starting review migration...")
+        
+        # First, check if migration has already been run
+        existing_reviews_count = Reviews.query.count()
+        if existing_reviews_count > 0:
+            if not overwrite:
+                response = input(f"Found {existing_reviews_count} existing reviews. Continue with migration? (y/n): ").strip().lower()
+                if response != 'y':
+                    print("Review migration aborted.")
+                    return
+            else:
+                print(f"Found {existing_reviews_count} existing reviews. Overwrite mode is enabled - existing records will be updated.")
+        
+        # Migrate book reviews
+        books = Books.query.filter((Books.my_review.isnot(None)) | (Books.my_rating.isnot(None)) & (Books.my_rating > 0)).all()
+        print(f"Found {len(books)} books with reviews/ratings")
+        for book in books:
+            if book.date_read:  # Only migrate books that have been read
+                # Check for existing reviews
+                existing = Reviews.query.filter_by(
+                    item_type='Book', 
+                    item_id=str(book.id),
+                    date_reviewed=book.date_read
+                ).first()
+                
+                if existing and overwrite:
+                    # Update existing review
+                    existing.rating = book.my_rating
+                    existing.review_text = book.my_review
+                    db.session.add(existing)
+                    print(f"Updated existing review for book ID {book.id}")
+                elif not existing:
+                    # Create new review
+                    review = Reviews(
+                        item_type='Book',
+                        item_id=str(book.id),
+                        rating=book.my_rating,
+                        review_text=book.my_review,
+                        date_reviewed=book.date_read
+                    )
+                    db.session.add(review)
+                    print(f"Added new review for book ID {book.id}")
+        
+        # Migrate movie reviews
+        movies = Movies.query.filter((Movies.my_review.isnot(None)) | ((Movies.my_rating.isnot(None)) & (Movies.my_rating > 0))).all()
+        print(f"Found {len(movies)} movies with reviews/ratings")
+        for movie in movies:
+            if movie.date_watched:  # Only migrate movies that have been watched
+                # Check for existing reviews
+                existing = Reviews.query.filter_by(
+                    item_type='Movie', 
+                    item_id=movie.tmdb_id,
+                    date_reviewed=movie.date_watched
+                ).first()
+                
+                if existing and overwrite:
+                    # Update existing review
+                    existing.rating = movie.my_rating
+                    existing.review_text = movie.my_review
+                    db.session.add(existing)
+                    print(f"Updated existing review for movie ID {movie.tmdb_id}")
+                elif not existing:
+                    # Create new review
+                    review = Reviews(
+                        item_type='Movie',
+                        item_id=movie.tmdb_id,
+                        rating=movie.my_rating,
+                        review_text=movie.my_review,
+                        date_reviewed=movie.date_watched
+                    )
+                    db.session.add(review)
+                    print(f"Added new review for movie ID {movie.tmdb_id}")
+        
+        # Migrate TV show reviews
+        shows = TVShows.query.filter((TVShows.my_review.isnot(None)) | ((TVShows.my_rating.isnot(None)) & (TVShows.my_rating > 0))).all()
+        print(f"Found {len(shows)} TV shows with reviews/ratings")
+        for show in shows:
+            date_reviewed = show.last_watched if show.last_watched else show.date_finished
+            if date_reviewed:  # Use last_watched or date_finished
+                # Check for existing reviews
+                existing = Reviews.query.filter_by(
+                    item_type='TVShow', 
+                    item_id=show.tvdb_id,
+                    date_reviewed=date_reviewed
+                ).first()
+                
+                if existing and overwrite:
+                    # Update existing review
+                    existing.rating = show.my_rating
+                    existing.review_text = show.my_review
+                    db.session.add(existing)
+                    print(f"Updated existing review for TV show ID {show.tvdb_id}")
+                elif not existing:
+                    # Create new review
+                    review = Reviews(
+                        item_type='TVShow',
+                        item_id=show.tvdb_id,
+                        rating=show.my_rating,
+                        review_text=show.my_review,
+                        date_reviewed=date_reviewed
+                    )
+                    db.session.add(review)
+                    print(f"Added new review for TV show ID {show.tvdb_id}")
+        
+        db.session.commit()
+        print("Review data migration completed successfully!")
+
+def migrate_collections_data():
+    """Migrate collection data from Books, Movies, and TVShows to the Collections table"""
+    with app.app_context():
+        print("Starting collections migration...")
+        
+        # First, check if migration has already been run
+        existing_collections_count = Collections.query.count()
+        if existing_collections_count > 0:
+            response = input(f"Found {existing_collections_count} existing collections. Continue with migration? (y/n): ").strip().lower()
+            if response != 'y':
+                print("Collections migration aborted.")
+                return
+        
+        # Excluded bookshelves that we don't want to migrate
+        excluded_bookshelves = ['to-read', 'currently-reading', 'books-on-tape']
+        
+        # Migrate movie collections (pipe-delimited)
+        movies = Movies.query.filter(Movies.collections.isnot(None)).all()
+        print(f"Found {len(movies)} movies with collections")
+        for movie in movies:
+            if movie.collections:
+                collection_list = movie.collections.split('|')
+                for collection_name in collection_list:
+                    collection_name = collection_name.strip()
+                    if collection_name:
+                        # Check for existing collection to avoid duplicates
+                        existing = Collections.query.filter_by(
+                            collection_name=collection_name,
+                            item_type='Movie',
+                            item_id=movie.tmdb_id
+                        ).first()
+                        
+                        if not existing:
+                            collection = Collections(
+                                collection_name=collection_name,
+                                item_type='Movie',
+                                item_id=movie.tmdb_id
+                            )
+                            db.session.add(collection)
+        
+        # Migrate TV show collections (pipe-delimited)
+        shows = TVShows.query.filter(TVShows.collections.isnot(None)).all()
+        print(f"Found {len(shows)} TV shows with collections")
+        for show in shows:
+            if show.collections:
+                collection_list = show.collections.split('|')
+                for collection_name in collection_list:
+                    collection_name = collection_name.strip()
+                    if collection_name:
+                        # Check for existing collection to avoid duplicates
+                        existing = Collections.query.filter_by(
+                            collection_name=collection_name,
+                            item_type='TVShow',
+                            item_id=show.tvdb_id
+                        ).first()
+                        
+                        if not existing:
+                            collection = Collections(
+                                collection_name=collection_name,
+                                item_type='TVShow',
+                                item_id=show.tvdb_id
+                            )
+                            db.session.add(collection)
+        
+        # Migrate book bookshelves to collections (comma-delimited)
+        books = Books.query.filter(Books.bookshelves.isnot(None)).all()
+        print(f"Found {len(books)} books with bookshelves")
+        for book in books:
+            if book.bookshelves:
+                bookshelf_list = book.bookshelves.split(',')
+                for bookshelf_name in bookshelf_list:
+                    bookshelf_name = bookshelf_name.strip()
+                    # Skip excluded bookshelves
+                    if bookshelf_name and bookshelf_name not in excluded_bookshelves:
+                        # Check for existing collection to avoid duplicates
+                        existing = Collections.query.filter_by(
+                            collection_name=bookshelf_name,
+                            item_type='Book',
+                            item_id=str(book.id)
+                        ).first()
+                        
+                        if not existing:
+                            collection = Collections(
+                                collection_name=bookshelf_name,
+                                item_type='Book',
+                                item_id=str(book.id)
+                            )
+                            db.session.add(collection)
+        
+        db.session.commit()
+        print("Collections data migration completed successfully!")
+
+
+def get_reviews_for_item(item_type, item_id):
+    """Get all reviews for a specific item"""
+    return Reviews.query.filter_by(item_type=item_type, item_id=item_id).all()
+
+def get_collection_items(collection_name, item_type=None):
+    """Get all items in a collection, optionally filtered by type"""
+    query = Collections.query.filter_by(collection_name=collection_name)
+    if item_type:
+        query = query.filter_by(item_type=item_type)
+    return query.all()
+
+def get_item_collections(item_type, item_id):
+    """Get all collections that an item belongs to"""
+    return Collections.query.filter_by(item_type=item_type, item_id=item_id).all()
 
 
 
@@ -586,22 +847,6 @@ def reading():
                                            recommended_nonfiction_books = recommended_nonfiction_books,
                                            current_user=current_user, nav_items=nav_items)
 
-@app.route('/update_review/<int:book_id>', methods=['POST'])
-@login_required
-def update_review(book_id):
-    nav_items = get_user_nav_items()
-    if current_user.role != 'admin':
-        return "You do not have permission to update reviews."
-
-    book = Books.query.get_or_404(book_id)
-    new_review = request.form.get('my_review')
-
-    # Update the book's review
-    book.my_review = new_review
-    db.session.commit()
-
-    return redirect(url_for('books'))
-
 @app.route('/collecting')
 def collecting():
     nav_items = get_user_nav_items()
@@ -635,7 +880,7 @@ def listening():
         selected_month = request.json['month']
         selected_year = request.json['year']
         search_term = request.json['playlist_code']
-        print(search_term)
+        # print(search_term)
     
         monthly_playlists_df = generate_monthly_playlists_df()
         playlist_id, playlist_art, playlist_name = select_playlist(monthly_playlists_df, search_term)
@@ -648,39 +893,178 @@ def listening():
                 'playlist_name': playlist_name,
             }
             
-            print(playlist_data)
+            # print(playlist_data)
             return jsonify(playlist_data)  # Return JSON response with playlist data
         else:
             return jsonify({'error': 'Playlist not found for the selected month and year.'}), 404
     else:
-        return render_template('listening.html', nav_items=nav_items,
-                                approved_playlists=approved_playlists)
+        # Exclude monthly playlists when rendering the page
+        monthly_playlists_df = generate_monthly_playlists_df()
+        monthly_playlist_ids = monthly_playlists_df['playlist_id'].tolist()
+
+        # Filter approved playlists
+        approved_playlists = [
+            playlist for playlist in approved_playlists
+            if playlist['id'] not in monthly_playlist_ids
+        ]
+
+        # Render template with filtered approved playlists
+        return render_template(
+            'listening.html',
+            nav_items=nav_items,
+            approved_playlists=approved_playlists
+        )
 
 
-
-# Reimplement book specific pages once multi-reviews and quotes are handled
-# @app.route('/book/<int:book_id>')
-# def book(book_id):
-#     nav_items = get_user_nav_items()
-#     books = read_books_from_csv()
-#     book_details = None
-#     reviews = []
-
-#     for book in books:
-#         if book['id'] == str(book_id):
-#             book_details = book
-#             book['title'] = truncate_title(book['title'])
-#             reviews.append({'date_read': book['date_read'], 'my_rating': book['my_rating'], 'my_review': book['my_review']})
+@app.route('/book/<int:book_id>')
+def book(book_id):
+    nav_items = get_user_nav_items()
     
-#     quotes = []
-#     with open('data/book_quotes.csv', 'r', encoding='iso-8859-1') as file:
-#         reader = csv.DictReader(file)
-#         for row in reader:
-#             if row['Goodreads ID'] == str(book_id):
-#                 quotes.append({'text': row['Quote'], 'page_number': row['Page Number']})
+    # Get book details from the database
+    book = Books.query.get(book_id)
+    
+    # If book doesn't exist, return a 404 page
+    if not book:
+        return render_template('404.html', nav_items=nav_items), 404
+    
+    book_details = {
+        'id': book.id,
+        'title': truncate_title(book.title),
+        'author': book.author,
+        'publication_year': book.original_publication_year,
+        'cover_image_url': book.cover_image_url if book.cover_image_url else 'https://theprairiesbookreview.com/wp-content/uploads/2023/11/cover-not-availble-image.jpg',
+    }
+    
+    # Get reviews from the new Reviews table
+    reviews = []
+    review_records = Reviews.query.filter_by(item_type='Book', item_id=str(book_id)).order_by(Reviews.date_reviewed.desc()).all()
+    for review in review_records:
+        reviews.append({
+            'date_read': review.date_reviewed,
+            'my_rating': str(review.rating) if review.rating else '0',
+            'my_review': review.review_text
+        })
+    
+    # Get quotes from CSV
+    # quotes = []
+    # try:
+    #     with open('data/book_quotes.csv', 'r', encoding='iso-8859-1') as file:
+    #         reader = csv.DictReader(file)
+    #         for row in reader:
+    #             if row['Goodreads ID'] == str(book_id):
+    #                 quotes.append({'text': row['Quote'], 'page_number': row['Page Number']})
+    # except (FileNotFoundError, IOError) as e:
+    #     print(f"Error reading quotes file: {e}")
 
-#     return render_template('book.html', nav_items=nav_items,
-#                             book=book_details, reviews=reviews, quotes=quotes)
+    quotes = []
+    quote_records = BookQuote.query.filter_by(book_id=str(book_id)).order_by(BookQuote.page_number).all()
+    for quote in quote_records:
+        quotes.append({
+            'text': quote.quote_text,
+            'page_number': quote.page_number if quote.page_number else "N/A"
+        })
+    
+    return render_template('book.html', nav_items=nav_items,
+                          book=book_details, reviews=reviews, quotes=quotes)
+
+# @app.route('/update_review/<int:book_id>', methods=['POST'])
+# @login_required
+# def update_review(book_id):
+#     nav_items = get_user_nav_items()
+#     if current_user.role != 'admin':
+#         return "You do not have permission to update reviews."
+
+#     book = Books.query.get_or_404(book_id)
+#     new_review = request.form.get('my_review')
+
+#     # Update the book's review
+#     book.my_review = new_review
+#     db.session.commit()
+
+#     return redirect(url_for('books'))
+
+
+@app.route('/update_review/<int:book_id>', methods=['POST'])
+@login_required
+def update_review(book_id):
+    nav_items = get_user_nav_items()
+    if current_user.role != 'admin':
+        return "You do not have permission to update reviews."
+    
+    book = Books.query.get_or_404(book_id)
+    new_review_text = request.form.get('my_review')
+    new_rating = request.form.get('my_rating')
+    date_reviewed = request.form.get('date_reviewed', book.date_read)
+    
+    # Convert rating to integer if provided
+    if new_rating:
+        try:
+            new_rating = int(new_rating)
+        except ValueError:
+            new_rating = None
+    
+    # Check if a review exists for this date
+    existing_review = Reviews.query.filter_by(
+        item_type='Book', 
+        item_id=str(book_id),
+        date_reviewed=date_reviewed
+    ).first()
+    
+    if existing_review:
+        # Update existing review
+        existing_review.review_text = new_review_text
+        if new_rating is not None:  # Only update rating if provided
+            existing_review.rating = new_rating
+    else:
+        # Create new review
+        review = Reviews(
+            item_type='Book',
+            item_id=str(book_id),
+            rating=new_rating,
+            review_text=new_review_text,
+            date_reviewed=date_reviewed
+        )
+        db.session.add(review)
+    
+    # For backwards compatibility, also update the book record
+    book.my_review = new_review_text
+    if new_rating is not None:
+        book.my_rating = new_rating
+    
+    db.session.commit()
+    return redirect(url_for('books'))
+
+@app.route('/add_quote/<book_id>', methods=['POST'])
+@login_required
+def add_quote(book_id):
+    """Add a new quote for a book"""
+    # Get form data
+    quote_text = request.form.get('quote_text')
+    page_number = request.form.get('page_number')
+    
+    # Validate data
+    if not quote_text:
+        flash('Quote text is required.', 'error')
+        return redirect(url_for('book', book_id=book_id))
+    
+    # Create new quote object
+    new_quote = BookQuote(
+        book_id=book_id,
+        quote_text=quote_text,
+        page_number=page_number if page_number else None
+    )
+    
+    # Save to database
+    try:
+        db.session.add(new_quote)
+        db.session.commit()
+        flash('Quote added successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error adding quote: {str(e)}', 'error')
+    
+    # Redirect back to the book detail page
+    return redirect(url_for('book', book_id=book_id))
 
 # DEPRECATED
 # @app.route('/playlist')
@@ -739,9 +1123,13 @@ def listening():
 if __name__ == '__main__':
     init_db()
     check_and_load_books()
+    check_and_load_quotes()
     check_and_load_movies()
     check_and_load_shows()
     check_and_load_playlists()
     check_and_load_artworks()
     check_and_load_generative_art()
+
+    # migrate_reviews_data()
+    # migrate_collections_data()
     app.run(debug=True)

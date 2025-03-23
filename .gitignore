@@ -13,5 +13,8 @@ data/desktop.ini
 data/loaded
 data/staging/wait/
 
+# Large directories
+static/images/artists/
+
 # Local Only
 ids.env

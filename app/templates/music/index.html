@@ -6,240 +6,14 @@
 
 {% block extra_styles %}
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-<style>
-    body {
-        overflow: hidden;
-    }
-
-    .container {
-        display: flex;
-        width: 100%;
-        height: 95vh;
-    }
-
-    .divider {
-        width: 5px;
-        background-color: #555;
-        cursor: ew-resize;
-    }
-
-    .playlist-browser {
-        flex: 0 0 60%;
-        padding: 20px;
-        padding-left: 30px;
-        overflow-y: auto;
-    }
-
-    .playlist-details {
-        flex: 0 0 30%;
-        padding: 20px;
-    }
-
-    .introduction {
-        padding: 20px;
-        padding-bottom: 0px;
-        padding-top: 10px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        text-align: center;
-        align-items: center;
-        background-color: #093249;
-        border-radius: 10px;
-        margin-bottom: 10px;
-    }
-
-    .monthly-playlists, .color-playlists, .tv-playlists, .individual-playlists {
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        text-align: center;
-        align-items: center;
-        background-color: #093249;
-        border-radius: 10px;
-        margin-bottom: 10px;
-    }
-
-    .section-description {
-        margin: 5px;
-        margin-bottom: 15px;
-    }
-    
-    .section-title {
-        margin: 5px;
-    }
-
-    #datepickerInput {
-        text-align: center;
-        font-family: Garamond, sans-serif;
-        font-size: 20px;
-        max-width: calc(100% - 10px);
-    }
-
-    .playlist-details iframe {
-        width: 100%;
-        height: calc(98vh - 90px); 
-        border: none;
-    }
-
-    .image-caption {
-        text-align: center;
-    }
-
-    .image-caption img {
-        width: 100%;
-        max-width: 200px;
-        height: auto;
-        cursor: pointer;
-        margin-bottom: 0px;
-    }
-
-    .caption-text {
-        margin: 0;
-        font-size: 14px;
-        color: #fff; 
-    }
-
-    .playlist-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 2fr)); 
-        grid-gap: 10px; 
-        width: 100%;
-        justify-items: center; 
-        align-items: center; 
-    }
-
-    .playlist-grid img {
-        width: 100%;
-        max-width: 200px; 
-        height: auto;
-        cursor: pointer;
-    }
-
-    .selected-playlist {
-        display: none;
-    }
-
-    .selected-playlist-content {
-        display: flex;
-        align-items: center;
-        margin-bottom: 10px;
-        background-color: #C1DFF0;
-        color: #121212;
-        padding: 20px;
-        border-radius: 5px;
-    }
-
-    .other-playlist-details {
-        text-align: left;
-        padding: 10px;
-    }
-
-    .playlist-art img {
-        width: 170px;
-        height: auto;
-        margin-right: 10px;
-    }
-
-    .playlist-title {
-        font-size: 40px;
-        font-weight: bold;
-        margin-bottom: 5px;
-        margin-top: 0px;
-    }
-
-    .playlist-description {
-        font-size: 20px;
-        margin: 0;
-    }
-
-    .disable-selection {
-        user-select: none;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-    }
-
-    @media screen and (min-width: 900px) {
-        .open-spotify-button {
-            display: none;
-        }
-    }
-
-    @media screen and (max-width: 900px) {
-        body {
-            overflow-y: auto;
-        }
-
-        .container {
-            flex-direction: column;
-            height: auto;
-        }
-
-        .playlist-browser {
-            flex: 1 0 auto;
-            width: 95%;
-            height: 95%;
-            padding: 10px;
-            margin-left: 5px;
-            margin-bottom: 0px;
-            overflow-y: visible;
-        }
-
-        .divider, .playlist-details {
-            display: none;
-        }
-
-        .selected-playlist-content {
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-
-        .playlist-art img {
-            margin-right: 0;
-            margin-bottom: 10px;
-        }
-
-        .other-playlist-details {
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-
-        .open-spotify-button {
-            display: inline-block;
-            background-color: #1DB954;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            text-decoration: none;
-            margin-top: 10px;
-        }
-
-        .playlist-grid {
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        }
-
-        .playlist-title {
-            font-size: 30px;
-        }
-
-        .playlist-description {
-            font-size: 16px;
-        }
-    }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/listening.css') }}">
 {% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="listening-container">
     <div class="playlist-browser" id="playlist-browser">
-        <div class="introduction">
-            <p class="section-description"> As a data engineer and an archaeologist by education, classification and curation are hobbies of mine. I have no musical ability of my own but I get a lot of joy out of sorting songs and curating playlists. My public playlist profile on Spotify is a wasteland that is impossible to navigate, so I created this page to highlight some of my personal favorites hidden in the mass of abandoned playlists. Hope you enjoy.</p>
+        <div class="playlist-section introduction">
+            <p class="section-description">As a data engineer and an archaeologist by education, classification and curation are hobbies of mine. I have no musical ability of my own but I get a lot of joy out of sorting songs and curating playlists. My public playlist profile on Spotify is a wasteland that is impossible to navigate, so I created this page to highlight some of my personal favorites hidden in the mass of abandoned playlists. Hope you enjoy.</p>
         </div>
         <div class="selected-playlist">
             <div class="selected-playlist-content">
@@ -253,12 +27,12 @@
                 </div>
             </div>
         </div>
-        <div class="monthly-playlists">
+        <div class="playlist-section monthly-playlists">
             <h1 class="section-title">Monthly Playlists</h1>
-            <p class="section-description">Every month I create a new playlist for songs that I am listening to on repeat. It is usually moslty new songs I heard for the first time that month with the occassional song I love thrown in. Use the search below to see what I was listening to in any given month since February 2019.</p>
-            <input type="text" id="datepickerInput" placeholder="Select month and year">
+            <p class="section-description">Every month I create a new playlist for songs that I am listening to on repeat. It is usually mostly new songs I heard for the first time that month with the occasional song I love thrown in. Use the search below to see what I was listening to in any given month since February 2019.</p>
+            <input type="text" id="datepickerInput" placeholder="Select month and year" autocomplete="off">
         </div>
-        <div class="color-playlists">
+        <div class="playlist-section color-playlists">
             <h1 class="section-title">Color Playlists</h1>
             <p class="section-description">Out of boredom, I went through my liked songs and created separate playlists based on the color of their album art. In most cases I have tried avoiding adding multiple songs from the same album to any of the playlists (choosing just my favorite track instead).</p>
             <div class="playlist-grid">
@@ -270,7 +44,7 @@
                 <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84132105904431b23c5dbe97e3" id="1uuMuf5NLjCPkFQNa0q2zS" playlistname="Purple" description="Songs with predominantly purple album art"> 
             </div>
         </div>
-        <div class="tv-playlists">
+        <div class="playlist-section tv-playlists">
             <h1 class="section-title">TV Show Playlists</h1>
             <p class="section-description">One of the things that will keep me invested in a TV show is good music. I have started making small playlists of songs I like from shows that I think had really solid soundtracks.</p>
             <div class="playlist-grid">
@@ -281,8 +55,8 @@
 
             </div>
         </div>
-        <div class="individual-playlists">
-            <h1 class="section-title" style="margin-bottom: 15px;">Other Playlists</h1>
+        <div class="playlist-section individual-playlists">
+            <h1 class="section-title">Other Playlists</h1>
             <div class="playlist-grid">
                 {% for playlist in approved_playlists %}
                     <div class="image-caption">
@@ -318,7 +92,18 @@
         var firstOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
         var lastCompletedMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
 
-        
+        function positionDatepicker(inst) {
+            var input = $("#datepickerInput");
+            var inputOffset = input.offset();
+            var inputHeight = input.outerHeight();
+
+            inst.dpDiv.css({
+                position: 'absolute',
+                top: inputOffset.top + inputHeight + 5,
+                left: inputOffset.left
+            });
+        }
+
         $("#datepickerInput").datepicker({
             dateFormat: "MM yy",
             changeMonth: true,
@@ -329,21 +114,22 @@
             onClose: handleDatepickerClose,
             beforeShow: function(input, inst) {
                 setTimeout(function() {
-                    inst.dpDiv.css({
-                        top: $("#datepickerInput").offset().top + 35,
-                        left: $("#datepickerInput").offset().left
-                    });
+                    $(".ui-datepicker-calendar").hide();
+                    positionDatepicker(inst);
                 }, 0);
-            },
+            }
         });
 
         $("#datepickerInput").focus(function() {
             $(".ui-datepicker-calendar").hide();
-            $("#ui-datepicker-div").position({
-                my: "center top",
-                at: "center bottom",
-                of: $(this)
-            });
+        });
+
+        // Reposition datepicker on scroll
+        $('.playlist-browser').on('scroll', function() {
+            if ($("#ui-datepicker-div").is(":visible")) {
+                var inst = $.datepicker._getInst($("#datepickerInput")[0]);
+                positionDatepicker(inst);
+            }
         });
     }
 
@@ -413,37 +199,62 @@
         var iframeSrc = `https://open.spotify.com/embed/playlist/${imageId}`;
         $("#playlistFrame").attr('src', iframeSrc);
         $('.playlist-browser').scrollTop(0);
+
+        // Clear the datepicker input
+        $("#datepickerInput").val('');
     }
 
     function initializeResizableDivider() {
         const divider = document.getElementById('divider');
         const playlistBrowser = document.getElementById('playlist-browser');
         const playlistDetails = document.getElementById('playlist-details');
+        const container = document.querySelector('.listening-container');
         let isResizing = false;
 
-        divider.addEventListener('mousedown', function (e) {
-            isResizing = true;
-            document.body.classList.add('disable-selection');
-        });
-
-        document.addEventListener('mousemove', function (e) {
-            if (!isResizing) return;
-            let containerWidth = document.querySelector('.container').offsetWidth;
-            let newWidth = (e.clientX / containerWidth) * 100;
-            let adjustedWidth = containerWidth > 2000 ? 95 : 95 - Math.ceil((2000 - containerWidth) / 200);
-            
-            if (newWidth > 30 && newWidth < 70) {
-                playlistBrowser.style.flex = `0 0 ${newWidth}%`;
-                playlistDetails.style.flex = `0 0 ${adjustedWidth - newWidth}%`;
-            }
-        });
-
-        document.addEventListener('mouseup', function (e) {
+        function stopResizing() {
             if (isResizing) {
                 isResizing = false;
                 document.body.classList.remove('disable-selection');
             }
+        }
+
+        function handleMouseMove(e) {
+            if (!isResizing) return;
+
+            // Check if any mouse button is still pressed
+            // If no buttons are pressed (e.buttons === 0), stop resizing
+            if (e.buttons === 0) {
+                stopResizing();
+                return;
+            }
+
+            // Prevent default to avoid any text selection
+            e.preventDefault();
+
+            const containerRect = container.getBoundingClientRect();
+            const containerWidth = containerRect.width;
+            const offsetX = e.clientX - containerRect.left;
+            const newWidth = (offsetX / containerWidth) * 100;
+
+            // Allow resizing between 25% and 75%
+            if (newWidth > 25 && newWidth < 75) {
+                const remainingWidth = 100 - newWidth;
+                playlistBrowser.style.flex = `0 0 ${newWidth}%`;
+                playlistDetails.style.flex = `0 0 ${remainingWidth}%`;
+            }
+        }
+
+        divider.addEventListener('mousedown', function (e) {
+            isResizing = true;
+            document.body.classList.add('disable-selection');
+            e.preventDefault();
         });
+
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', stopResizing);
+
+        // Stop resizing if focus is lost
+        window.addEventListener('blur', stopResizing);
     }
 </script>
 {% endblock %}

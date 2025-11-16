@@ -1,0 +1,73 @@
+/**
+ * Home Page Styles
+ */
+
+body.home-page,
+body.home-page html {
+  height: 100%;
+  overflow: hidden;
+}
+
+.home-content {
+  background-size: cover;
+  background-position: center;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Gradient overlay for better text contrast */
+.home-content::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(13, 17, 23, 0.7) 0%,
+    rgba(13, 17, 23, 0.3) 50%,
+    rgba(13, 17, 23, 0.5) 100%
+  );
+  pointer-events: none;
+}
+
+.hero-section {
+  padding-left: var(--space-12);
+  padding-right: var(--space-12);
+  position: relative;
+  z-index: 1;
+}
+
+.hero-section h1 {
+  font-size: var(--font-4xl);
+  color: var(--text-primary);
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8),
+               0 2px 4px rgba(0, 0, 0, 0.6);
+  margin: 0;
+  font-weight: var(--font-bold);
+  letter-spacing: -0.02em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero-section {
+    padding-left: var(--space-8);
+    padding-right: var(--space-8);
+  }
+
+  .hero-section h1 {
+    font-size: var(--font-3xl);
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-section {
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+
+  .hero-section h1 {
+    font-size: var(--font-2xl);
+  }
+}

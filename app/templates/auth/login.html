@@ -80,7 +80,7 @@
 
 {% block content %}
 <div class="login-container">
-    <form method="POST" action="{{ url_for('login') }}">
+    <form method="POST" action="{{ url_for('auth.login') }}">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required>
         <br>
@@ -237,7 +237,7 @@
         </nav>
     </header>
     <div class="login-container">
-        <form method="POST" action="{{ url_for('login') }}">
+        <form method="POST" action="{{ url_for('auth.login') }}">
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required>
             <br>

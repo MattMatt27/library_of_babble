@@ -122,6 +122,10 @@ def update_review(book_id):
 
     db.session.commit()
 
+    # Redirect back to the referring page (index or detail)
+    referrer = request.referrer
+    if referrer and '/books/' in referrer and referrer.endswith('/books/'):
+        return redirect(url_for('books.index'))
     return redirect(url_for('books.detail', book_id=book_id))
 
 

@@ -60,6 +60,8 @@ def read_books_from_db():
     ).filter(
         Reviews.rating > 0,
         Reviews.date_reviewed != ""
+    ).order_by(
+        Reviews.date_reviewed.desc()
     ).all()
 
     for book, review in query:

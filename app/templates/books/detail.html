@@ -3,236 +3,217 @@
 {% set active_page = 'reading' %}
 
 {% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/books.css') }}">
 <style>
-    .book-container {
-        margin: 0;
-        padding: 20px;
-    }
-    
-    .book-info {
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 40px;
-    }
-    
-    .book-header {
-        margin-bottom: 20px;
-    }
-    
-    .book-title {
-        font-size: 2.5rem;
-        margin-bottom: 8px;
-    }
-    
-    .book-author {
-        font-size: 1.3rem;
-        margin-bottom: 8px;
-        color: #aaa;
-    }
-    
-    .book-year {
-        font-size: 1rem;
-        color: #777;
-    }
-    
-    .book-content {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 30px;
-    }
-    
-    .book-image-container {
-        flex: 0 0 300px;
-    }
-    
-    .book-image {
-        width: 100%;
-        /*height: 100%;
-        object-fit: cover;  This makes the image fill the container */
-        object-position: center; /* Centers the image */
-        display: block;
-    }
-    
-    .reviews-container {
-        flex: 1;
-        min-width: 300px;
-    }
-    
-    .section-title {
-        font-size: 1.8rem;
-        margin-top: 5px;
-        margin-bottom: 20px;
-        border-bottom: 1px solid #333;
-        padding-bottom: 8px;
-    }
-    
-    .review-item {
-        margin-bottom: 30px;
-        padding-bottom: 20px;
-        border-bottom: 1px solid #333;
-    }
-    
-    .review-item:last-child {
-        border-bottom: none;
-    }
-    
-    .review-date {
-        color: #777;
-        margin-bottom: 10px;
-    }
-    
-    .review-stars {
-        margin-bottom: 15px;
-    }
-    
-    .review-text {
-        margin-top: 10px;
-        line-height: 1.6;
-    }
-    
-    .quotes-container {
-        width: 100%;
-        margin-top: 20px;
-    }
-    
-    .quotes-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 5px;
-    }
-    
-    .quote-item {
-        margin-bottom: 20px;
-        padding-left: 15px;
-        border-left: 3px solid #007bff;
-    }
-    
-    .quote-text {
-        font-style: italic;
-        margin-bottom: 8px;
-    }
-    
-    .quote-page {
-        color: #777;
-        font-size: 0.9rem;
-    }
-    
-    .no-content {
-        color: #777;
-        font-style: italic;
-    }
-    
-    .add-quote-btn {
-        background-color: #007bff;
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 1rem;
-        transition: background-color 0.3s;
-    }
-    
-    .add-quote-btn:hover {
-        background-color: #0056b3;
-    }
-    
-    .quote-form-container {
-        background-color: #f5f5f5;
-        border-radius: 5px;
-        padding: 20px;
-        margin-bottom: 20px;
-        display: none;
-        border: 1px solid #ddd;
-    }
-    
-    .quote-form {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
+/* Book detail page styles */
+.book-detail-container {
+  margin-top: var(--space-4);
+}
 
-    .quote-entry-labels {
-        color: #000000;
-    }
-    
-    .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-    }
-    
-    .form-group label {
-        font-weight: bold;
-    }
-    
-    .form-group textarea {
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        resize: vertical;
-        min-height: 100px;
-    }
-    
-    .form-group input {
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
-    
-    .form-buttons {
-        display: flex;
-        gap: 10px;
-    }
-    
-    .submit-btn {
-        background-color: #28a745;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-    
-    .submit-btn:hover {
-        background-color: #218838;
-    }
-    
-    .cancel-btn {
-        background-color: #dc3545;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-    
-    .cancel-btn:hover {
-        background-color: #c82333;
-    }
-    
-    @media (max-width: 768px) {
-        .book-content {
-            flex-direction: column;
-        }
-        
-        .book-image-container {
-            margin-bottom: 30px;
-        }
-    }
+.book-detail-main {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.book-detail-sidebar {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.book-detail-image {
+  margin-bottom: var(--space-5);
+}
+
+.book-detail-image img {
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-primary);
+}
+
+.book-detail-title {
+  font-size: var(--font-2xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+  line-height: var(--leading-tight);
+}
+
+.book-detail-author {
+  font-size: var(--font-lg);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.book-detail-year {
+  font-size: var(--font-base);
+  color: var(--text-tertiary);
+}
+
+/* Reviews section */
+.reviews-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.section-title {
+  font-size: var(--font-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.review-item {
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.review-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.review-date {
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+}
+
+.review-stars img {
+  height: 24px;
+  width: auto;
+}
+
+.review-content {
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+/* Quotes section */
+.quotes-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.quotes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.quotes-header .section-title {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.quote-item {
+  margin-bottom: var(--space-5);
+  padding-left: var(--space-4);
+  border-left: 3px solid var(--accent-blue);
+}
+
+.quote-text {
+  font-style: italic;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.quote-page {
+  color: var(--text-tertiary);
+  font-size: var(--font-sm);
+}
+
+.no-content {
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+/* Quote form */
+.quote-form-container {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-base);
+  padding: var(--space-5);
+  margin-bottom: var(--space-5);
+  display: none;
+}
+
+.quote-form-container.active {
+  display: block;
+}
+
+.add-quote-btn-icon {
+  display: none;
+}
+
+/* Mobile responsive */
+@media (max-width: 900px) {
+  .book-detail-main {
+    grid-template-columns: 1fr;
+  }
+
+  .book-detail-sidebar {
+    text-align: center;
+  }
+
+  .book-detail-image {
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .add-quote-btn-icon {
+    display: inline;
+  }
+
+  .add-quote-btn-icon::before {
+    content: '+';
+    font-size: var(--font-xl);
+  }
+
+  .add-quote-btn-text {
+    display: none;
+  }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="book-container">
-    <div class="book-info">
-        <div class="book-header">
-            <h1 class="book-title">{{ book.title }}</h1>
-            <div class="book-author">by {{ book.author }}</div>
-            <div class="book-year">
+<div class="container book-detail-container">
+    <!-- Main content: Sidebar + Reviews -->
+    <div class="book-detail-main">
+        <!-- Left sidebar: Book details -->
+        <div class="book-detail-sidebar">
+            <div class="book-detail-image">
+                <img src="{{ book.cover_image_url }}" alt="{{ book.title }}">
+            </div>
+
+            <h1 class="book-detail-title">{{ book.title }}</h1>
+            <div class="book-detail-author">by {{ book.author }}</div>
+            <div class="book-detail-year">
                 {% if book.publication_year is not none %}
                     {% if book.publication_year < 0 %}
                         {{ -book.publication_year }} BC
@@ -244,71 +225,69 @@
                 {% endif %}
             </div>
         </div>
-        
-        <div class="book-content">
-            <div class="book-image-container">
-                <img src="{{ book.cover_image_url }}" alt="{{ book.title }}" class="book-image">
-            </div>
-            
-            <div class="reviews-container">
-                <h2 class="section-title">Reviews</h2>
-                {% if reviews %}
-                    {% for review in reviews %}
-                        <div class="review-item">
+
+        <!-- Right side: Reviews -->
+        <div class="reviews-section">
+            <h2 class="section-title">Reviews</h2>
+            {% if reviews %}
+                {% for review in reviews %}
+                    <div class="review-item">
+                        <div class="review-header">
                             <div class="review-date">Finished on {{ review.date_read }}</div>
-                            <div class="review-stars">
-                                {% if review.my_rating and review.my_rating != '0' %}
-                                    <img src="{{ url_for('static', filename='images/assets/stars/' + review.my_rating + '.png') }}" 
-                                         alt="{{ review.my_rating }} Stars" style="height: 24px;">
-                                {% else %}
-                                    <span class="no-content">No rating</span>
-                                {% endif %}
-                            </div>
-                            {% if review.my_review %}
-                                <div class="review-text">{{ review.my_review }}</div>
-                            {% else %}
-                                <div class="no-content">No written review</div>
+                            {% if review.my_rating and review.my_rating != '0' %}
+                                <div class="review-stars">
+                                    <img src="{{ url_for('static', filename='images/assets/stars/' + review.my_rating + '.png') }}"
+                                         alt="{{ review.my_rating }} Stars">
+                                </div>
                             {% endif %}
                         </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="no-content">No reviews available for this book.</p>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    
-    <div class="quotes-container">
-        <div class="quotes-header">
-            <h2 class="section-title">Memorable Quotes</h2>
-            {% if current_user.is_authenticated and current_user.role == 'admin' %}
-                <button class="add-quote-btn" onclick="toggleQuoteForm()">Add Quote</button>
+                        {% if review.my_review %}
+                            <div class="review-content">{{ review.my_review|safe }}</div>
+                        {% else %}
+                            <div class="no-content">No written review</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="no-content">No reviews available for this book.</p>
             {% endif %}
         </div>
-        
+    </div>
+
+    <!-- Quotes section -->
+    <div class="quotes-section">
+        <div class="quotes-header">
+            <h2 class="section-title mb-0">Memorable Quotes</h2>
+            {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                <button class="btn btn-primary btn-sm" onclick="toggleQuoteForm()">
+                    <span class="add-quote-btn-icon"></span><span class="add-quote-btn-text">Add Quote</span>
+                </button>
+            {% endif %}
+        </div>
+
         <div id="quoteFormContainer" class="quote-form-container">
-            <form id="quoteForm" class="quote-form" action="{{ url_for('books.add_quote', book_id=book.id) }}" method="POST">
+            <form class="form-group" action="{{ url_for('books.add_quote', book_id=book.id) }}" method="POST">
                 <div class="form-group">
-                    <label class="quote-entry-labels" for="quoteText">Quote Text:</label>
-                    <textarea id="quoteText" name="quote_text" required></textarea>
+                    <label class="form-label" for="quoteText">Quote Text</label>
+                    <textarea id="quoteText" name="quote_text" class="form-textarea" rows="4" required></textarea>
                 </div>
-                
+
                 <div class="form-group">
-                    <label class="quote-entry-labels" for="pageNumber">Page Number:</label>
-                    <input type="number" id="pageNumber" name="page_number" min="1">
+                    <label class="form-label" for="pageNumber">Page Number</label>
+                    <input type="number" id="pageNumber" name="page_number" class="form-input" min="1">
                 </div>
-                
-                <div class="form-buttons">
-                    <button type="submit" class="submit-btn">Save Quote</button>
-                    <button type="button" class="cancel-btn" onclick="toggleQuoteForm()">Cancel</button>
+
+                <div class="flex gap-3">
+                    <button type="submit" class="btn btn-success btn-sm">Save Quote</button>
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="toggleQuoteForm()">Cancel</button>
                 </div>
             </form>
         </div>
-        
+
         {% if quotes %}
             {% for quote in quotes %}
                 <div class="quote-item">
-                    <div class="quote-text">"{{ quote.text|replace('\n', '<br>')|safe }}"</div>
+                    <div class="quote-text">"{{ quote.text }}"</div>
                     <div class="quote-page">Page {{ quote.page_number }}</div>
                 </div>
             {% endfor %}
@@ -319,176 +298,11 @@
 </div>
 {% endblock %}
 
-
 {% block extra_scripts %}
 <script>
     function toggleQuoteForm() {
         const formContainer = document.getElementById("quoteFormContainer");
-        if (formContainer.style.display === "block") {
-            formContainer.style.display = "none";
-        } else {
-            formContainer.style.display = "block";
-        }
+        formContainer.classList.toggle('active');
     }
 </script>
 {% endblock %}
-
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ book.title }}</title>
-    <style>
-        .navbar {
-            background-color: rgba(0, 0, 0, 0.5); /* Transparent black background */
-            overflow: hidden;
-            font-family: Garamond, sans-serif; /* Use a common sans-serif font */
-            font-size: 20px;
-        }
-
-        .navbar a {
-            float: left;
-            display: block;
-            color: #fff;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-        }
-
-        .navbar a.active {
-            background-color: #555;
-        }
-        
-        body {
-            background-color: #333; /* Dark grey background color */
-            color: #fff; /* White text color */
-            font-family: Arial, sans-serif; /* Optional: specify font family */
-            margin: 0; /* Optional: remove default body margin */
-            padding: 0; /* Optional: remove default body padding */
-        }
-        .header-text {
-            padding-left: 20px;
-            text-align: center;
-        }
-        .header-container {
-            display: flex; /* Use flexbox for layout */
-            align-items: center; /* Center vertically */
-            
-        }
-        .back-button {
-            background-color: #007bff; /* Blue background color for button */
-            color: #ffffff; /* White text color */
-            padding: 10px 20px; /* Add padding */
-            margin-left: 20px;
-            border-radius: 5px; /* Rounded corners */
-            text-decoration: none; /* Remove underline from button */
-            transition: background-color 0.3s; /* Smooth transition for background color */
-            display: flex; /* Use flexbox for layout */
-            align-items: center; /* Center vertically */
-        }
-        .back-button:hover {
-            background-color: #0056b3; /* Darker blue on hover */
-        }
-        h2 {
-            margin-left: 20px; /* Add space below section titles */
-        }
-        table {
-            width: 96%; /* Make table fill its container */
-            border-collapse: collapse; /* Collapse table borders */
-            margin-left: 20px;
-            margin-bottom: 20px; /* Add space below table */
-        }
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #444;
-        }
-        .quotes-section {
-            margin-top: 20px; /* Add some space between the header and quotes */
-        }
-        blockquote {
-            background-color: #444; /* Dark grey background color for quotes */
-            color: #fff; /* White text color */
-            padding: 20px; /* Add padding around the quote */
-            margin-bottom: 20px; /* Add space between quotes */
-            border-left: 5px solid #007bff; /* Blue border on the left */
-        }
-
-        blockquote p {
-            margin: 0; /* Remove default margin for paragraphs inside blockquote */
-        }
-
-        blockquote footer {
-            margin-top: 10px; /* Add space between quote and page number */
-        }
-        .missing-data {
-            margin-left: 30px;
-        }
-    </style>
-</head>
-<body>
-    <nav class="navbar">
-        <div>
-            <a href="/">Home</a>
-            <a href="/writing">Writing</a>
-            <a href="/development">Development</a>
-            <a href="/library" class="active">Library</a>
-            <a href="/music">Music</a>
-            <a href="/antiques">Antiques</a>
-        </div>
-    </nav>
-    <div class="header-container">
-        <p><a href="/books" class="back-button">← Back</a></p>
-        <h1 class="header-text">{{ book.title }}</h1>
-    </div>
-    <div class="book-details">
-        Notes Section: Per book have a way to save notes that are separate from reviews (Bertram recs etc.) Maybe make a book_notes.csv so that all notes live in one csv document. One weakness of csvs is formatting which needs to be resolved 
-        <div class="reviews-section">
-            <h2>Reviews</h2>
-             Check if there are reviews for the book 
-            {% if reviews %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date Finished</th>
-                        <th>Rating</th>
-                        <th>Review</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    Loop through book reviews
-                    {% for review in reviews %}
-                    <tr>
-                        <td>{{ review.date_read }}</td>
-                        <td>{{ review.my_rating }}</td>
-                        <td>{{ review.my_review }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <p class="missing-data">No reviews available for this book.</p>
-            {% endif %}
-        </div>
-        <div class="quotes-section">
-            <h2>Quotes</h2>
-            {% if quotes %}
-            <div class="quotes">
-                {% for quote in quotes %}
-                <blockquote>
-                    <p>{{ quote.text }}</p>
-                    <footer>Page Number: <strong>{{ quote.page_number }}</strong></footer>
-                </blockquote>
-                {% endfor %}
-            </div>
-            {% else %}
-            <p class="missing-data">No quotes available for this book.</p>
-            {% endif %}
-        </div>
-
-    </div>
-</body> -->

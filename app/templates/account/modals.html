@@ -1,0 +1,248 @@
+<!-- Admin Tool Modals -->
+
+<!-- Goodreads Import Modal -->
+<div class="modal-overlay" id="goodreadsModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Import Goodreads Export</h3>
+            <button class="modal-close" onclick="closeModal('goodreadsModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="color: var(--text-secondary); margin-bottom: var(--space-4);">
+                Upload your Goodreads CSV export file. The system will add new books and report any conflicts with existing data.
+            </p>
+            <form id="goodreadsForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="goodreadsFile" style="display: block; margin-bottom: var(--space-2);">Goodreads CSV File</label>
+                    <div class="file-drop-zone" onclick="document.getElementById('goodreadsFile').click()">
+                        <span class="file-drop-text" id="goodreadsFileName">Click to select CSV file or drag and drop</span>
+                        <input type="file" id="goodreadsFile" name="file" accept=".csv" required style="display: none;">
+                    </div>
+                </div>
+                <div id="goodreadsProgress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="goodreadsProgressBar"></div>
+                    </div>
+                    <div class="progress-text" id="goodreadsProgressText">Preparing...</div>
+                </div>
+                <div id="goodreadsStatus"></div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="goodreadsCancelBtn" onclick="closeModal('goodreadsModal')">Cancel</button>
+            <button class="btn btn-primary" id="goodreadsImportBtn" onclick="submitGoodreadsImport()">Import</button>
+        </div>
+    </div>
+</div>
+
+<!-- More modals will be added here -->
+<!-- For now, we'll create placeholders that can be built out later -->
+
+<div class="modal-overlay" id="letterboxdModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Import Letterboxd Export</h3>
+            <button class="modal-close" onclick="closeModal('letterboxdModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="color: var(--text-secondary); margin-bottom: var(--space-4);">
+                Upload your Letterboxd ratings.csv and reviews.csv files. The system will add reviews and ratings to existing movies.
+            </p>
+            <form id="letterboxdForm" enctype="multipart/form-data">
+                <!-- Ratings CSV (Required) -->
+                <div class="form-group">
+                    <label for="letterboxdRatingsFile" style="display: block; margin-bottom: var(--space-2);">Ratings CSV (Required)</label>
+                    <div class="file-drop-zone" onclick="document.getElementById('letterboxdRatingsFile').click()">
+                        <span class="file-drop-text" id="letterboxdRatingsFileName">Click to select ratings.csv</span>
+                        <input type="file" id="letterboxdRatingsFile" name="ratings_file" accept=".csv" required style="display: none;">
+                    </div>
+                </div>
+
+                <!-- Reviews CSV (Required) -->
+                <div class="form-group">
+                    <label for="letterboxdReviewsFile" style="display: block; margin-bottom: var(--space-2);">Reviews CSV (Required)</label>
+                    <div class="file-drop-zone" onclick="document.getElementById('letterboxdReviewsFile').click()">
+                        <span class="file-drop-text" id="letterboxdReviewsFileName">Click to select reviews.csv</span>
+                        <input type="file" id="letterboxdReviewsFile" name="reviews_file" accept=".csv" required style="display: none;">
+                    </div>
+                </div>
+
+                <!-- Reset Option -->
+                <div class="form-group" style="margin-top: var(--space-4);">
+                    <label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer;">
+                        <input type="checkbox" id="letterboxdResetData" name="reset_data" style="width: auto;">
+                        <span>Reset existing ratings and reviews (overwrite all Letterboxd data)</span>
+                    </label>
+                    <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: var(--space-1); margin-left: calc(var(--space-2) + 1em);">
+                        If checked, all existing ratings and reviews will be cleared and replaced with data from the uploaded files.
+                    </p>
+                </div>
+
+                <div id="letterboxdProgress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="letterboxdProgressBar"></div>
+                    </div>
+                    <div class="progress-text" id="letterboxdProgressText">Preparing...</div>
+                </div>
+                <div id="letterboxdStatus"></div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="letterboxdCancelBtn" onclick="closeModal('letterboxdModal')">Cancel</button>
+            <button class="btn btn-primary" id="letterboxdImportBtn" onclick="submitLetterboxdImport()">Import</button>
+        </div>
+    </div>
+</div>
+
+<!-- Boredom Killer Unified Modal -->
+<div class="modal-overlay" id="bkModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Import Boredom Killer Files</h3>
+            <button class="modal-close" onclick="closeModal('bkModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="color: var(--text-secondary); margin-bottom: var(--space-4);">
+                Upload your Boredom Killer CSV files. You can upload one or more files at a time. All fields are optional.
+            </p>
+            <form id="bkForm" enctype="multipart/form-data">
+                <!-- Movies (Optional) -->
+                <div class="form-group">
+                    <label for="bkMoviesFile" style="display: block; margin-bottom: var(--space-2);">Movies CSV (Optional)</label>
+                    <div class="file-drop-zone" onclick="document.getElementById('bkMoviesFile').click()">
+                        <span class="file-drop-text" id="bkMoviesFileName">Click to select Boredom Killer - Movies.csv</span>
+                        <input type="file" id="bkMoviesFile" name="movies_file" accept=".csv" style="display: none;">
+                    </div>
+                </div>
+
+                <!-- Documentaries (Optional) -->
+                <div class="form-group">
+                    <label for="bkDocsFile" style="display: block; margin-bottom: var(--space-2);">Documentaries CSV (Optional)</label>
+                    <div class="file-drop-zone" onclick="document.getElementById('bkDocsFile').click()">
+                        <span class="file-drop-text" id="bkDocsFileName">Click to select Boredom Killer - Documentaries.csv</span>
+                        <input type="file" id="bkDocsFile" name="docs_file" accept=".csv" style="display: none;">
+                    </div>
+                </div>
+
+                <!-- TV Shows (Optional) -->
+                <div class="form-group">
+                    <label for="bkTVFile" style="display: block; margin-bottom: var(--space-2);">TV Shows CSV (Optional)</label>
+                    <div class="file-drop-zone" onclick="document.getElementById('bkTVFile').click()">
+                        <span class="file-drop-text" id="bkTVFileName">Click to select Boredom Killer - TV.csv</span>
+                        <input type="file" id="bkTVFile" name="tv_file" accept=".csv" style="display: none;">
+                    </div>
+                </div>
+
+                <!-- Docuseries (Optional) -->
+                <div class="form-group">
+                    <label for="bkDocuseriesFile" style="display: block; margin-bottom: var(--space-2);">Docuseries CSV (Optional)</label>
+                    <div class="file-drop-zone" onclick="document.getElementById('bkDocuseriesFile').click()">
+                        <span class="file-drop-text" id="bkDocuseriesFileName">Click to select Boredom Killer - Docuseries.csv</span>
+                        <input type="file" id="bkDocuseriesFile" name="docuseries_file" accept=".csv" style="display: none;">
+                    </div>
+                </div>
+
+                <div id="bkProgress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="bkProgressBar"></div>
+                    </div>
+                    <div class="progress-text" id="bkProgressText">Preparing...</div>
+                </div>
+                <div id="bkStatus"></div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="bkCancelBtn" onclick="closeModal('bkModal')">Cancel</button>
+            <button class="btn btn-primary" id="bkImportBtn" onclick="submitBKImport()">Import</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="showsModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Import TV Shows</h3>
+            <button class="modal-close" onclick="closeModal('showsModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="color: var(--text-secondary); margin-bottom: var(--space-4);">
+                Upload your TV Shows CSV file. The system will add new shows and report any conflicts with existing data.
+            </p>
+            <form id="showsForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="showsFile">TV Shows CSV File</label>
+                    <input type="file" id="showsFile" name="file" accept=".csv" required>
+                </div>
+                <div id="showsStatus"></div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('showsModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="submitShowsImport()">Import</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="spotifyModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Refresh Spotify Playlists</h3>
+            <button class="modal-close" onclick="closeModal('spotifyModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="color: var(--text-secondary); margin-bottom: var(--space-4);">
+                This will refresh all Spotify playlists from your Spotify account. This may take a few minutes.
+            </p>
+            <div id="spotifyStatus"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('spotifyModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="submitSpotifyRefresh()">Refresh</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="uploadArtworkModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Upload New Artwork</h3>
+            <button class="modal-close" onclick="closeModal('uploadArtworkModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Artwork upload coming soon...</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('uploadArtworkModal')">Close</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="manageUsersModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Manage Users</h3>
+            <button class="modal-close" onclick="closeModal('manageUsersModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>User management coming soon...</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('manageUsersModal')">Close</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="importArtworksModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Import Artworks CSV</h3>
+            <button class="modal-close" onclick="closeModal('importArtworksModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Artworks CSV import coming soon...</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('importArtworksModal')">Close</button>
+        </div>
+    </div>
+</div>

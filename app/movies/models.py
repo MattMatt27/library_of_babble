@@ -15,7 +15,7 @@ class Movies(db.Model):
     title = db.Column(db.String(500), nullable=False)
     director = db.Column(db.String(200))
     year = db.Column(db.Integer, nullable=False)
-    my_rating = db.Column(db.Integer)
+    my_rating = db.Column(db.Float)
     date_watched = db.Column(db.String(20))
     my_review = db.Column(db.Text)
     language = db.Column(db.String(50))

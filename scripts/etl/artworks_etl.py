@@ -1,10 +1,17 @@
 """
 Artworks ETL Script
 Loads artworks and AI-generated images from CSV files
+
+INCREMENTAL IMPORT STRATEGY:
+- Database is source of truth
+- Existing artworks are locked - only report conflicts if data differs
+- New artworks are added
+- NEVER deletes existing artworks (even if not in CSV)
 """
 import csv
 import sys
 import uuid
+import json
 from pathlib import Path
 from datetime import datetime
 import shutil
@@ -19,27 +26,46 @@ from app.artworks.models import Artworks, GeneratedImages
 # Configure paths
 CSV_FOLDER = Path('data/staging/')
 LOADED_FOLDER = Path('data/loaded/')
+REPORTS_FOLDER = Path('data/reports/')
+
+
+def generate_conflict_report(source_file, import_type, conflicts):
+    """Generate a JSON conflict report and save to reports folder"""
+    if not conflicts:
+        return None
+
+    if not REPORTS_FOLDER.exists():
+        REPORTS_FOLDER.mkdir(parents=True)
+
+    timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    report_data = {
+        'import_type': import_type,
+        'source_file': source_file,
+        'timestamp': timestamp,
+        'summary': {
+            'total_conflicts': len(conflicts)
+        },
+        'conflicts': conflicts
+    }
+
+    report_filename = f"{import_type}_conflicts_{timestamp}.json"
+    report_path = REPORTS_FOLDER / report_filename
+
+    with open(report_path, 'w', encoding='utf-8') as f:
+        json.dump(report_data, f, indent=2, ensure_ascii=False)
+
+    print(f"\n⚠️  Conflict report generated: {report_path}")
+    return report_path
 
 
 def load_artworks_from_csv(csv_file='artworks.csv'):
     """
-    Load artworks from CSV file
+    Load artworks from CSV file (INCREMENTAL)
 
-    Expected CSV columns:
-    - Title
-    - Artist
-    - After
-    - Year
-    - Series
-    - Series ID
-    - file_name
-    - site_approved
-    - Location
-    - Description
-    - Medium
-    - Tags
-
-    Note: This function syncs with the CSV - artworks not in the CSV will be removed
+    Strategy:
+    - Existing artworks are locked - compare and report conflicts if data differs
+    - New artworks are added
+    - NEVER deletes artworks (database is source of truth)
     """
     csv_path = CSV_FOLDER / csv_file
 
@@ -47,27 +73,20 @@ def load_artworks_from_csv(csv_file='artworks.csv'):
         print(f"CSV file {csv_file} not found in {CSV_FOLDER}")
         return
 
-    # Get all existing artwork IDs
-    existing_artwork_ids = set(artwork.id for artwork in Artworks.query.all())
+    # Build a map of existing artworks by their unique key
+    existing_artworks = {}
+    for artwork in Artworks.query.all():
+        key = (artwork.title, artwork.artist, artwork.year, artwork.series, artwork.series_id)
+        existing_artworks[key] = artwork
 
-    # Set to store IDs of artworks in the CSV
-    csv_artwork_ids = set()
+    conflicts = []
     artworks_added = 0
-    artworks_updated = 0
+    artworks_skipped = 0
 
     with open(csv_path, 'r', newline='', encoding='utf-8') as file:
         reader = csv.DictReader(file)
-        for row in reader:
-            # Check if artwork already exists
-            existing_artwork = Artworks.query.filter_by(
-                title=row['Title'],
-                artist=row['Artist'],
-                year=row['Year'] if row['Year'].strip() else None,
-                series=row['Series'],
-                series_id=int(row['Series ID']) if row['Series ID'].strip() else None
-            ).first()
-
-            # Prepare data for new artwork
+        for row_num, row in enumerate(reader, start=2):
+            # Prepare data for artwork
             data = {
                 'title': row['Title'],
                 'artist': row['Artist'],
@@ -83,32 +102,55 @@ def load_artworks_from_csv(csv_file='artworks.csv'):
                 'collections': row['Tags']  # Mapping Tags to collections
             }
 
-            if existing_artwork:
-                # Update existing artwork
-                for key, value in data.items():
-                    setattr(existing_artwork, key, value)
-                csv_artwork_ids.add(existing_artwork.id)
-                artworks_updated += 1
+            # Create unique key
+            key = (data['title'], data['artist'], data['year'], data['series'], data['series_id'])
+
+            if key in existing_artworks:
+                # Artwork exists - compare data
+                existing_artwork = existing_artworks[key]
+                has_conflict = False
+                conflict_fields = {}
+
+                for field_key, csv_value in data.items():
+                    db_value = getattr(existing_artwork, field_key)
+
+                    if csv_value != db_value:
+                        has_conflict = True
+                        conflict_fields[field_key] = {
+                            'db_value': db_value,
+                            'csv_value': csv_value
+                        }
+
+                if has_conflict:
+                    conflicts.append({
+                        'row': row_num,
+                        'title': data['title'],
+                        'artist': data['artist'],
+                        'year': data['year'],
+                        'issue': 'Artwork data differs from database',
+                        'conflicting_fields': conflict_fields
+                    })
+
+                artworks_skipped += 1
             else:
-                # Create new artwork record
+                # New artwork - add it
                 data['id'] = str(uuid.uuid4())  # Generate a new random ID
                 new_artwork = Artworks(**data)
                 db.session.add(new_artwork)
-                csv_artwork_ids.add(data['id'])
                 artworks_added += 1
-
-    # Remove artworks not in the CSV
-    artworks_to_remove = existing_artwork_ids - csv_artwork_ids
-    artworks_removed = 0
-    for artwork_id in artworks_to_remove:
-        artwork_to_remove = Artworks.query.get(artwork_id)
-        if artwork_to_remove:
-            db.session.delete(artwork_to_remove)
-            artworks_removed += 1
 
     # Commit all changes
     db.session.commit()
-    print(f"Artworks loaded: {artworks_added} added, {artworks_updated} updated, {artworks_removed} removed")
+
+    print(f"\n🖼️  Artworks Import Summary:")
+    print(f"  Artworks added: {artworks_added}")
+    print(f"  Artworks skipped (unchanged): {artworks_skipped - len(conflicts)}")
+    print(f"  Conflicts detected: {len(conflicts)}")
+    print(f"  Note: Artworks in database but not in CSV are preserved (never deleted)")
+
+    # Generate conflict report if needed
+    if conflicts:
+        generate_conflict_report(csv_file, 'artworks', conflicts)
 
     # Move the processed file
     if not LOADED_FOLDER.exists():
@@ -117,19 +159,17 @@ def load_artworks_from_csv(csv_file='artworks.csv'):
     new_file_name = f"{current_date}_{csv_file}"
     shutil.move(str(csv_path), str(LOADED_FOLDER / new_file_name))
 
+    return {'added': artworks_added, 'conflicts': len(conflicts)}
+
 
 def load_generated_images_from_csv(csv_file='generated_images.csv'):
     """
-    Load AI-generated images from CSV file
+    Load AI-generated images from CSV file (INCREMENTAL)
 
-    Expected CSV columns:
-    - Model
-    - Model Version
-    - Prompt
-    - Artist Palette
-    - File Name
-
-    Note: This function syncs with the CSV - images not in the CSV will be removed
+    Strategy:
+    - Existing images are locked - compare and report conflicts if data differs
+    - New images are added
+    - NEVER deletes images (database is source of truth)
     """
     csv_path = CSV_FOLDER / csv_file
 
@@ -137,23 +177,19 @@ def load_generated_images_from_csv(csv_file='generated_images.csv'):
         print(f"CSV file {csv_file} not found in {CSV_FOLDER}")
         return
 
-    # Get all existing generated image IDs
-    existing_image_ids = set(image.id for image in GeneratedImages.query.all())
+    # Build a map of existing images by file_name
+    existing_images = {}
+    for image in GeneratedImages.query.all():
+        existing_images[image.file_name] = image
 
-    # Set to store IDs of generated images in the CSV
-    csv_image_ids = set()
+    conflicts = []
     images_added = 0
-    images_updated = 0
+    images_skipped = 0
 
     with open(csv_path, 'r', newline='', encoding='utf-8') as file:
         reader = csv.DictReader(file)
-        for row in reader:
-            # Check if generated image already exists
-            existing_image = GeneratedImages.query.filter_by(
-                file_name=row['File Name']
-            ).first()
-
-            # Prepare data for new or existing generated image
+        for row_num, row in enumerate(reader, start=2):
+            # Prepare data for generated image
             data = {
                 'model': row['Model'],
                 'model_version': int(row['Model Version']) if row['Model Version'].strip() else None,
@@ -162,32 +198,53 @@ def load_generated_images_from_csv(csv_file='generated_images.csv'):
                 'file_name': row['File Name']
             }
 
-            if existing_image:
-                # Update existing generated image
-                for key, value in data.items():
-                    setattr(existing_image, key, value)
-                csv_image_ids.add(existing_image.id)
-                images_updated += 1
+            file_name = data['file_name']
+
+            if file_name in existing_images:
+                # Image exists - compare data
+                existing_image = existing_images[file_name]
+                has_conflict = False
+                conflict_fields = {}
+
+                for field_key, csv_value in data.items():
+                    db_value = getattr(existing_image, field_key)
+
+                    if csv_value != db_value:
+                        has_conflict = True
+                        conflict_fields[field_key] = {
+                            'db_value': db_value,
+                            'csv_value': csv_value
+                        }
+
+                if has_conflict:
+                    conflicts.append({
+                        'row': row_num,
+                        'file_name': file_name,
+                        'model': data['model'],
+                        'issue': 'Generated image data differs from database',
+                        'conflicting_fields': conflict_fields
+                    })
+
+                images_skipped += 1
             else:
-                # Create new generated image record
+                # New generated image - add it
                 data['id'] = str(uuid.uuid4())  # Generate a UUID for the id
                 new_image = GeneratedImages(**data)
                 db.session.add(new_image)
-                csv_image_ids.add(data['id'])
                 images_added += 1
-
-    # Remove generated images not in the CSV
-    images_to_remove = existing_image_ids - csv_image_ids
-    images_removed = 0
-    for image_id in images_to_remove:
-        image_to_remove = GeneratedImages.query.get(image_id)
-        if image_to_remove:
-            db.session.delete(image_to_remove)
-            images_removed += 1
 
     # Commit all changes
     db.session.commit()
-    print(f"Generated images loaded: {images_added} added, {images_updated} updated, {images_removed} removed")
+
+    print(f"\n🎨 Generated Images Import Summary:")
+    print(f"  Images added: {images_added}")
+    print(f"  Images skipped (unchanged): {images_skipped - len(conflicts)}")
+    print(f"  Conflicts detected: {len(conflicts)}")
+    print(f"  Note: Images in database but not in CSV are preserved (never deleted)")
+
+    # Generate conflict report if needed
+    if conflicts:
+        generate_conflict_report(csv_file, 'generated_images', conflicts)
 
     # Move the processed file
     if not LOADED_FOLDER.exists():
@@ -195,6 +252,8 @@ def load_generated_images_from_csv(csv_file='generated_images.csv'):
     current_date = datetime.now().strftime('%Y-%m-%d')
     new_file_name = f"{current_date}_{csv_file}"
     shutil.move(str(csv_path), str(LOADED_FOLDER / new_file_name))
+
+    return {'added': images_added, 'conflicts': len(conflicts)}
 
 
 if __name__ == '__main__':

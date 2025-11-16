@@ -24,8 +24,7 @@ data/desktop.ini
 Boredom Killer - Movies.csv
 
 # Data processing directories
-data/loaded/
-data/staging/wait/
+data/
 
 # Large asset directories
 static/images/artists/

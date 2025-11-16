@@ -1,9 +1,17 @@
 """
 Movies ETL Script
 Loads movie data from Boredom Killer CSV and Letterboxd exports
+
+INCREMENTAL IMPORT STRATEGY:
+- Database is source of truth
+- Watched movies (has date_watched or my_rating) are locked - only report conflicts if data differs
+- Unwatched movies can be updated (metadata corrections)
+- New movies are added
+- Never deletes existing data
 """
 import csv
 import sys
+import json
 from pathlib import Path
 from datetime import datetime
 import shutil
@@ -21,6 +29,36 @@ from app.collections.models import Reviews, Collections
 CSV_FOLDER = Path('data/staging/')
 LETTERBOXD_FOLDER = Path('data/staging/letterboxd/')
 LOADED_FOLDER = Path('data/loaded/')
+REPORTS_FOLDER = Path('data/reports/')
+
+
+def generate_conflict_report(source_file, import_type, conflicts):
+    """Generate a JSON conflict report and save to reports folder"""
+    if not conflicts:
+        return None
+
+    if not REPORTS_FOLDER.exists():
+        REPORTS_FOLDER.mkdir(parents=True)
+
+    timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    report_data = {
+        'import_type': import_type,
+        'source_file': source_file,
+        'timestamp': timestamp,
+        'summary': {
+            'total_conflicts': len(conflicts)
+        },
+        'conflicts': conflicts
+    }
+
+    report_filename = f"{import_type}_conflicts_{timestamp}.json"
+    report_path = REPORTS_FOLDER / report_filename
+
+    with open(report_path, 'w', encoding='utf-8') as f:
+        json.dump(report_data, f, indent=2, ensure_ascii=False)
+
+    print(f"\n⚠️  Conflict report generated: {report_path}")
+    return report_path
 
 
 def parse_date(date_str):
@@ -33,24 +71,17 @@ def parse_date(date_str):
     raise ValueError(f"Date format for '{date_str}' is not recognized")
 
 
-def load_boredom_killer_movies(csv_file='Boredom Killer - Movies.csv'):
+def load_boredom_killer_movies(csv_file='Boredom Killer - Movies.csv', csv_folder=None):
     """
-    Load movies from Boredom Killer CSV
+    Load movies from Boredom Killer CSV (INCREMENTAL)
 
-    Expected CSV columns:
-    - TMDB ID
-    - IMDB ID
-    - Letterboxd ID
-    - Movie
-    - Director(s)
-    - Year
-    - Language
-    - Image (cover image URL)
-    - Collections
-    - Tags
-    - Plex Status
+    Strategy:
+    - Watched movies (has date_watched or my_rating) are locked: compare and report conflicts if different
+    - Unwatched movies can be updated (metadata corrections)
+    - New movies are added
     """
-    csv_path = CSV_FOLDER / csv_file
+    folder = Path(csv_folder) if csv_folder else CSV_FOLDER
+    csv_path = folder / csv_file
 
     if not csv_path.exists():
         print(f"CSV file {csv_file} not found in {CSV_FOLDER}")
@@ -78,11 +109,14 @@ def load_boredom_killer_movies(csv_file='Boredom Killer - Movies.csv'):
                 print(f"Row {row_number}: Duplicate TMDB ID {tmdb_id}. Keeping latest entry.")
 
             # Prepare data for movie
+            # Handle both 'Movie' (for movies) and 'Documentary' (for documentaries) columns
+            title = row.get('Movie') or row.get('Documentary', '')
+
             data = {
                 'tmdb_id': tmdb_id,
                 'imdb_id': row['IMDB ID'].strip() if row['IMDB ID'] else None,
                 'letterboxd_id': row['Letterboxd ID'].strip() if row['Letterboxd ID'] else None,
-                'title': row['Movie'].strip(),
+                'title': title.strip(),
                 'director': row['Director(s)'].strip() if row['Director(s)'] else None,
                 'year': int(row['Year']) if row['Year'].strip().isdigit() else None,
                 'language': row['Language'].strip() if row['Language'] else None,
@@ -91,47 +125,77 @@ def load_boredom_killer_movies(csv_file='Boredom Killer - Movies.csv'):
                 'status': row['Plex Status'].strip() if row['Plex Status'] else None
             }
 
-            # Store the latest data for this TMDB ID
-            csv_movies[tmdb_id] = data
+            # Store the latest data for this TMDB ID, along with row number
+            csv_movies[tmdb_id] = {'data': data, 'row': row_number}
 
     if duplicate_count > 0:
         print(f"Found {duplicate_count} duplicates - kept latest entries")
 
     # Process the deduplicated data
+    conflicts = []
     movies_added = 0
     movies_updated = 0
+    movies_skipped = 0
+    collections_added = 0
 
-    for tmdb_id, data in csv_movies.items():
+    for tmdb_id, entry in csv_movies.items():
+        data = entry['data']
+        row_num = entry['row']
+
         if tmdb_id in existing_movies:
-            # Update existing movie
             existing_movie = existing_movies[tmdb_id]
 
-            # Preserve fields that shouldn't be overwritten
-            preserved_fields = {
-                'my_rating': existing_movie.my_rating,
-                'my_review': existing_movie.my_review,
-                'date_watched': existing_movie.date_watched
-            }
+            # Check if movie is watched (locked)
+            is_watched = existing_movie.date_watched or existing_movie.my_rating
 
-            for key, value in data.items():
-                if value is not None:
-                    setattr(existing_movie, key, value)
+            if is_watched:
+                # Movie is watched - it's locked
+                # Only compare metadata fields (not user-specific fields)
+                has_conflict = False
+                conflict_fields = {}
 
-            # Restore preserved fields
-            for key, value in preserved_fields.items():
-                setattr(existing_movie, key, value)
+                metadata_fields = ['title', 'director', 'year', 'language', 'cover_image_url',
+                                   'imdb_id', 'letterboxd_id', 'status']
 
-            movies_updated += 1
+                for key in metadata_fields:
+                    if key in data:
+                        csv_value = data[key]
+                        db_value = getattr(existing_movie, key)
 
-            # Update collections based on the new collections data
-            if 'collections' in data and data['collections']:
-                # Get existing collections
+                        if csv_value != db_value:
+                            has_conflict = True
+                            conflict_fields[key] = {
+                                'db_value': db_value,
+                                'csv_value': csv_value
+                            }
+
+                if has_conflict:
+                    conflicts.append({
+                        'row': row_num,
+                        'tmdb_id': tmdb_id,
+                        'title': data['title'],
+                        'director': data['director'],
+                        'year': data['year'],
+                        'issue': 'Watched movie metadata differs from database',
+                        'conflicting_fields': conflict_fields
+                    })
+
+                movies_skipped += 1
+            else:
+                # Movie is not watched - allow metadata update
+                for key, value in data.items():
+                    if key != 'collections' and value is not None:
+                        setattr(existing_movie, key, value)
+                db.session.add(existing_movie)
+                movies_updated += 1
+
+            # Update collections (always incremental, even for watched movies)
+            if data.get('collections'):
                 existing_collections = set(
                     collection.collection_name for collection in
                     Collections.query.filter_by(item_type='Movie', item_id=tmdb_id).all()
                 )
 
-                # Add new collections without deleting existing ones
                 collection_list = data['collections'].split('|')
                 for collection_name in collection_list:
                     collection_name = collection_name.strip()
@@ -142,6 +206,7 @@ def load_boredom_killer_movies(csv_file='Boredom Killer - Movies.csv'):
                             item_id=tmdb_id
                         )
                         db.session.add(collection)
+                        collections_added += 1
         else:
             # Create new movie record
             new_movie = Movies(**data)
@@ -149,7 +214,7 @@ def load_boredom_killer_movies(csv_file='Boredom Killer - Movies.csv'):
             movies_added += 1
 
             # Add collections if available
-            if 'collections' in data and data['collections']:
+            if data.get('collections'):
                 collection_list = data['collections'].split('|')
                 for collection_name in collection_list:
                     collection_name = collection_name.strip()
@@ -160,32 +225,48 @@ def load_boredom_killer_movies(csv_file='Boredom Killer - Movies.csv'):
                             item_id=tmdb_id
                         )
                         db.session.add(collection)
+                        collections_added += 1
 
     # Commit all changes
     db.session.commit()
-    print(f"Movies loaded: {movies_added} added, {movies_updated} updated")
 
-    # Move the processed file
-    if not LOADED_FOLDER.exists():
-        LOADED_FOLDER.mkdir(parents=True)
-    current_date = datetime.now().strftime('%Y-%m-%d')
-    new_file_name = f"{current_date}_{csv_file}"
-    shutil.move(str(csv_path), str(LOADED_FOLDER / new_file_name))
+    print(f"\n🎬 Boredom Killer Movies Import Summary:")
+    print(f"  Movies added: {movies_added}")
+    print(f"  Movies updated: {movies_updated}")
+    print(f"  Movies skipped (watched, unchanged): {movies_skipped - len(conflicts)}")
+    print(f"  Conflicts detected: {len(conflicts)}")
+    print(f"  Collections added: {collections_added}")
+
+    # Generate conflict report if needed
+    if conflicts:
+        generate_conflict_report(csv_file, 'boredom_killer_movies', conflicts)
+
+    # Move the processed file (only in interactive mode, not for web uploads)
+    if csv_folder is None:
+        if not LOADED_FOLDER.exists():
+            LOADED_FOLDER.mkdir(parents=True)
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        new_file_name = f"{current_date}_{csv_file}"
+        shutil.move(str(csv_path), str(LOADED_FOLDER / new_file_name))
+
+    return {'added': movies_added, 'updated': movies_updated, 'conflicts': len(conflicts)}
 
 
-def load_letterboxd_export():
+def load_letterboxd_export(letterboxd_folder=None):
     """
-    Load movie ratings and reviews from Letterboxd export
+    Load movie ratings and reviews from Letterboxd export (INCREMENTAL)
 
-    Expected folder structure in data/staging/letterboxd/:
-    - ratings.csv (Name, Year, Letterboxd URI, Rating)
-    - reviews.csv (Name, Year, Letterboxd URI, Review, Watched Date)
+    Strategy:
+    - Only updates empty fields in database (database is source of truth)
+    - Adds new reviews incrementally
+    - Reports movies not found in database
     """
-    ratings_path = LETTERBOXD_FOLDER / 'ratings.csv'
-    reviews_path = LETTERBOXD_FOLDER / 'reviews.csv'
+    folder = Path(letterboxd_folder) if letterboxd_folder else LETTERBOXD_FOLDER
+    ratings_path = folder / 'ratings.csv'
+    reviews_path = folder / 'reviews.csv'
 
     if not ratings_path.exists() or not reviews_path.exists():
-        print(f"Letterboxd export files not found in {LETTERBOXD_FOLDER}")
+        print(f"Letterboxd export files not found in {folder}")
         print("Expected: ratings.csv and reviews.csv")
         return
 
@@ -197,9 +278,17 @@ def load_letterboxd_export():
         reader = csv.DictReader(file)
         for row in reader:
             key = (row['Name'], row['Year'])
+            # Convert Letterboxd rating to float (0-5 scale)
+            rating = None
+            if row['Rating']:
+                try:
+                    rating = float(row['Rating'])
+                except (ValueError, TypeError):
+                    rating = None
+
             combined_data[key]['ratings'].append({
                 'letterboxd_id': row['Letterboxd URI'].replace('https://boxd.it/', ''),
-                'my_rating': row['Rating']
+                'my_rating': rating
             })
 
     # Process reviews
@@ -214,8 +303,9 @@ def load_letterboxd_export():
             })
 
     # Process combined data
+    movies_updated = 0
     reviews_added = 0
-    movies_not_found = 0
+    movies_not_found = []
 
     for (title, year), data in combined_data.items():
         # Sort ratings by letterboxd_id (as proxy for recency)
@@ -231,33 +321,45 @@ def load_letterboxd_export():
         letterboxd_id = ratings[0]['letterboxd_id'] if ratings else (reviews[0]['letterboxd_id'] if reviews else None)
 
         # Format reviews (combine multiple reviews with dates)
+        # Also clean <br> tags from review text
+        def clean_br_tags(text):
+            """Remove <br> tags and replace with newlines"""
+            if not text:
+                return text
+            return text.replace('<br>', '\n').replace('<br/>', '\n').replace('<br />', '\n')
+
         if len(reviews) > 1:
             sorted_reviews = sorted(reviews, key=lambda x: x['date_watched'], reverse=True)
             my_review = "\n\n".join([
-                f"{review['date_watched'].strftime('%m/%d/%Y')}\n{review['review']}"
+                f"{review['date_watched'].strftime('%m/%d/%Y')}\n{clean_br_tags(review['review'])}"
                 for review in sorted_reviews
             ])
         elif reviews:
-            my_review = reviews[0]['review']
+            my_review = clean_br_tags(reviews[0]['review'])
         else:
             my_review = None
 
         # Check if movie exists in database
         existing_movie = Movies.query.filter_by(letterboxd_id=letterboxd_id).first()
         if existing_movie:
-            # Update existing movie - only if fields are empty
+            # Update existing movie - only fill empty fields (database is source of truth)
+            updated = False
             if not existing_movie.my_rating and my_rating:
                 existing_movie.my_rating = my_rating
+                updated = True
             if not existing_movie.my_review and my_review:
                 existing_movie.my_review = my_review
+                updated = True
             if not existing_movie.date_watched and date_watched:
                 existing_movie.date_watched = date_watched.strftime('%Y-%m-%d')
+                updated = True
 
-            db.session.add(existing_movie)
+            if updated:
+                db.session.add(existing_movie)
+                movies_updated += 1
 
-            # Update the Reviews table
+            # Add reviews (incremental)
             if date_watched and (my_rating or my_review):
-                # Check if review already exists
                 existing_review = Reviews.query.filter_by(
                     item_type='Movie',
                     item_id=existing_movie.tmdb_id,
@@ -265,7 +367,7 @@ def load_letterboxd_export():
                 ).first()
 
                 if existing_review:
-                    # Only update if fields are empty
+                    # Only update empty fields
                     if not existing_review.rating and my_rating:
                         existing_review.rating = int(float(my_rating)) if my_rating else None
                     if not existing_review.review_text and my_review:
@@ -283,36 +385,171 @@ def load_letterboxd_export():
                     reviews_added += 1
         else:
             # Movie not found in database
-            print(f"Movie not found in database: {title} ({year})")
-            movies_not_found += 1
+            movies_not_found.append({
+                'title': title,
+                'year': year,
+                'letterboxd_id': letterboxd_id
+            })
 
     db.session.commit()
-    print(f"Letterboxd data loaded: {reviews_added} reviews added")
-    if movies_not_found > 0:
-        print(f"Note: {movies_not_found} movies not found in database (need to import Boredom Killer first)")
 
-    # Move processed files
-    if not LOADED_FOLDER.exists():
-        LOADED_FOLDER.mkdir(parents=True)
-    current_date = datetime.now().strftime('%Y-%m-%d')
-    new_folder_name = f"{current_date}_{LETTERBOXD_FOLDER.name}"
-    shutil.move(str(LETTERBOXD_FOLDER), str(LOADED_FOLDER / new_folder_name))
+    print(f"\n📽️  Letterboxd Import Summary:")
+    print(f"  Movies updated: {movies_updated}")
+    print(f"  Reviews added: {reviews_added}")
+    print(f"  Movies not found: {len(movies_not_found)}")
+
+    if movies_not_found:
+        print(f"\n⚠️  {len(movies_not_found)} movies from Letterboxd not found in database")
+        print("   (Import Boredom Killer CSV first to add these movies)")
+
+    # Move processed files (only in interactive mode, not for web uploads)
+    if letterboxd_folder is None:
+        if not LOADED_FOLDER.exists():
+            LOADED_FOLDER.mkdir(parents=True)
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        new_folder_name = f"{current_date}_{LETTERBOXD_FOLDER.name}"
+        shutil.move(str(LETTERBOXD_FOLDER), str(LOADED_FOLDER / new_folder_name))
+
+    return {'updated': movies_updated, 'reviews_added': reviews_added, 'not_found': len(movies_not_found)}
+
+
+def reset_sequence(table_name):
+    """Reset the auto-increment sequence for a table to avoid conflicts"""
+    try:
+        # For PostgreSQL
+        db.session.execute(db.text(f"""
+            SELECT setval(pg_get_serial_sequence('{table_name}', 'id'),
+                         COALESCE((SELECT MAX(id) FROM {table_name}), 1),
+                         true);
+        """))
+        db.session.commit()
+    except Exception as e:
+        # Silently fail for SQLite (doesn't need this)
+        db.session.rollback()
 
 
 if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Movies ETL Script')
+    parser.add_argument('file_path', nargs='?', help='Path to CSV file')
+    parser.add_argument('--bk-movies', action='store_true', help='Import Boredom Killer Movies CSV')
+    parser.add_argument('--bk-docs', action='store_true', help='Import Boredom Killer Documentaries CSV (goes to movies table)')
+    parser.add_argument('--letterboxd-ratings', help='Path to Letterboxd ratings.csv')
+    parser.add_argument('--letterboxd-reviews', help='Path to Letterboxd reviews.csv')
+    parser.add_argument('--reset-letterboxd', action='store_true', help='Reset all existing ratings and reviews before import')
+    parser.add_argument('--use-transaction', action='store_true', help='Run in transaction mode with automatic rollback on error')
+
+    args = parser.parse_args()
+
     app = create_app()
     with app.app_context():
-        print("Movies ETL Script")
-        print("=" * 50)
+        try:
+            # Reset sequences to prevent ID conflicts
+            reset_sequence('reviews')
+            reset_sequence('collections')
 
-        # Load Boredom Killer movies
-        print("\n1. Loading Boredom Killer movies...")
-        load_boredom_killer_movies()
+            # Interactive mode (no arguments)
+            if not any([args.bk_movies, args.bk_docs, args.letterboxd_ratings]):
+                print("Movies ETL Script")
+                print("=" * 50)
 
-        # Load Letterboxd export
-        print("\n2. Loading Letterboxd export...")
-        print("(Requires letterboxd folder with ratings.csv and reviews.csv)")
-        load_letterboxd_export()
+                # Load Boredom Killer movies
+                print("\n1. Loading Boredom Killer movies...")
+                load_boredom_killer_movies()
 
-        print("\n" + "=" * 50)
-        print("Movies ETL Complete!")
+                # Load Letterboxd export
+                print("\n2. Loading Letterboxd export...")
+                print("(Requires letterboxd folder with ratings.csv and reviews.csv)")
+                load_letterboxd_export()
+
+                print("\n" + "=" * 50)
+                print("Movies ETL Complete!")
+                sys.exit(0)
+
+            # CLI mode
+            if args.use_transaction:
+                print("Running in transaction mode - all changes will be rolled back on error")
+
+            # Boredom Killer Movies
+            if args.bk_movies:
+                if not args.file_path:
+                    print("Error: file_path required for --bk-movies")
+                    sys.exit(1)
+
+                print(f"Importing Boredom Killer Movies from: {args.file_path}")
+                file_path = Path(args.file_path)
+                result = load_boredom_killer_movies(file_path.name, csv_folder=str(file_path.parent))
+
+                if result:
+                    print(f"Movies added: {result.get('added', 0)}")
+                    print(f"Movies updated: {result.get('updated', 0)}")
+                    print(f"Conflicts reported: {result.get('conflicts', 0)}")
+
+            # Boredom Killer Documentaries (goes to movies table)
+            if args.bk_docs:
+                if not args.file_path:
+                    print("Error: file_path required for --bk-docs")
+                    sys.exit(1)
+
+                print(f"Importing Boredom Killer Documentaries from: {args.file_path}")
+                file_path = Path(args.file_path)
+                result = load_boredom_killer_movies(file_path.name, csv_folder=str(file_path.parent))
+
+                if result:
+                    print(f"Documentaries added: {result.get('added', 0)}")
+                    print(f"Documentaries updated: {result.get('updated', 0)}")
+                    print(f"Conflicts reported: {result.get('conflicts', 0)}")
+
+            # Letterboxd
+            if args.letterboxd_ratings and args.letterboxd_reviews:
+                print(f"Importing Letterboxd ratings from: {args.letterboxd_ratings}")
+                print(f"Importing Letterboxd reviews from: {args.letterboxd_reviews}")
+
+                # Reset existing ratings and reviews if requested
+                if args.reset_letterboxd:
+                    print("\n⚠️  Resetting all existing ratings and reviews...")
+                    # Clear all ratings, reviews, and date_watched from movies
+                    Movies.query.update({
+                        Movies.my_rating: None,
+                        Movies.my_review: None,
+                        Movies.date_watched: None
+                    })
+                    # Delete all movie reviews
+                    Reviews.query.filter_by(item_type='Movie').delete()
+                    db.session.commit()
+                    print("  ✓ All ratings and reviews cleared")
+
+                # Create temporary letterboxd folder with the files
+                import tempfile
+                temp_dir = Path(tempfile.mkdtemp())
+                letterboxd_temp = temp_dir / 'letterboxd'
+                letterboxd_temp.mkdir()
+
+                # Copy files to temp directory
+                shutil.copy(args.letterboxd_ratings, letterboxd_temp / 'ratings.csv')
+                shutil.copy(args.letterboxd_reviews, letterboxd_temp / 'reviews.csv')
+
+                # Pass the temp folder to the function
+                result = load_letterboxd_export(letterboxd_folder=str(letterboxd_temp))
+
+                # Cleanup temp directory
+                shutil.rmtree(temp_dir)
+
+                if result:
+                    print(f"Movies with ratings added: {result.get('updated', 0)}")
+                    print(f"Reviews added: {result.get('reviews_added', 0)}")
+
+            # Commit if transaction mode
+            if args.use_transaction:
+                db.session.commit()
+                print("✓ Transaction committed successfully")
+
+            sys.exit(0)
+
+        except Exception as e:
+            print(f"Error during import: {str(e)}", file=sys.stderr)
+            if args.use_transaction:
+                db.session.rollback()
+                print("✗ Transaction rolled back due to error", file=sys.stderr)
+            sys.exit(1)

@@ -65,6 +65,53 @@
 .navbar-right {
   display: flex;
   align-items: center;
+  gap: var(--space-3);
+}
+
+/* Account Button */
+.account-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-base);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.account-button i {
+  font-size: 18px;
+  line-height: 1;
+  color: #58a6ff !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.account-button:hover {
+  background-color: var(--bg-primary);
+  border-color: #58a6ff;
+  transform: scale(1.05);
+  text-decoration: none;
+}
+
+.account-button:hover i {
+  color: #79c0ff !important;
+}
+
+/* Side Menu Profile */
+.side-menu-account {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.side-menu-account i {
+  font-size: 18px;
 }
 
 /* Login/Logout Button */

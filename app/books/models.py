@@ -15,7 +15,7 @@ class Books(db.Model):
     additional_authors = db.Column(db.Text)  # Changed to Text for comma-separated lists
     isbn = db.Column(db.String(20))
     isbn13 = db.Column(db.String(20))
-    my_rating = db.Column(db.Integer)
+    my_rating = db.Column(db.Float)
     average_rating = db.Column(db.Float)
     publisher = db.Column(db.String(200))  # Increased for long publisher names
     number_of_pages = db.Column(db.Integer)

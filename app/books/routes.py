@@ -1,7 +1,7 @@
 """
 Books Routes
 """
-from flask import render_template, request, redirect, url_for, jsonify
+from flask import render_template, request, redirect, url_for, jsonify, flash
 from flask_login import login_required, current_user
 from app.books import books_bp
 from app.books.models import Books, BookQuote
@@ -148,4 +148,26 @@ def add_quote(book_id):
         db.session.add(new_quote)
         db.session.commit()
 
+    return redirect(url_for('books.detail', book_id=book_id))
+
+
+@books_bp.route('/update_cover_url/<int:book_id>', methods=['POST'])
+@login_required
+def update_cover_url(book_id):
+    """Update the cover image URL for a book (admin only)"""
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Permission denied'}), 403
+
+    book = Books.query.get_or_404(book_id)
+    cover_url = request.form.get('cover_url', '').strip()
+
+    if not cover_url:
+        flash('Please provide a valid URL', 'error')
+        return redirect(url_for('books.detail', book_id=book_id))
+
+    # Update the cover URL
+    book.cover_image_url = cover_url
+    db.session.commit()
+
+    flash('Cover image URL updated successfully!', 'success')
     return redirect(url_for('books.detail', book_id=book_id))

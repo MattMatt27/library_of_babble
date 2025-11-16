@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}⚙️ Account{% endblock %}
+
+{% set active_page = 'account' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/account.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="account-page">
+    <!-- Account Header -->
+    <div class="account-header">
+        <h1>Account Settings</h1>
+        <div class="account-info">
+            <div class="info-item">
+                <span class="info-label">Username</span>
+                <span class="info-value">{{ current_user.username }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Account Type</span>
+                <span class="info-value">{{ 'Administrator' if current_user.is_admin else 'Viewer' }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Member Since</span>
+                <span class="info-value">{{ current_user.created_at.strftime('%B %Y') if current_user.created_at else 'Unknown' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liked Artworks Section -->
+    {% if current_user.can_view_artworks %}
+    <div class="gallery-section">
+        <div class="gallery-section-header">
+            <h2>Your Liked Artworks <span class="gallery-count">({{ liked_count }})</span></h2>
+            <div class="section-actions">
+                {% if liked_count > 0 %}
+                <a href="{{ url_for('account.export_likes') }}" class="btn btn-secondary">Export Likes</a>
+                {% endif %}
+                <a href="{{ url_for('artworks.pondering') }}" class="btn btn-primary">Browse Artworks</a>
+            </div>
+        </div>
+
+        {% if liked_artworks %}
+        <div class="gallery-row">
+            {% for artwork in liked_artworks %}
+            <div class="gallery-item">
+                <img src="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
+                     alt="{{ artwork.title }}"
+                     data-artwork-id="{{ artwork.id }}">
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>You haven't liked any artworks yet.</p>
+            <a href="{{ url_for('artworks.pondering') }}" class="btn btn-primary">Explore Artworks</a>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Admin Tools Section -->
+    {% if current_user.is_admin %}
+    <div class="admin-tools-section">
+        <div class="section-header">
+            <h2>Admin Tools</h2>
+        </div>
+
+        <!-- Data Import Tools -->
+        <div class="tool-category">
+            <h3>Data Import</h3>
+            <div class="tool-grid">
+                <button class="tool-button" onclick="openModal('goodreadsModal')">
+                    <span class="tool-icon">
+                        <img src="{{ url_for('static', filename='images/logos/goodreads.png') }}" alt="Goodreads">
+                    </span>
+                    <span class="tool-label">Import Goodreads</span>
+                </button>
+                <button class="tool-button" onclick="openModal('bkModal')">
+                    <span class="tool-icon">
+                        <img src="{{ url_for('static', filename='images/logos/plex.png') }}" alt="Plex">
+                    </span>
+                    <span class="tool-label">Import Boredom Killer</span>
+                </button>
+                <button class="tool-button" onclick="openModal('letterboxdModal')">
+                    <span class="tool-icon">
+                        <img src="{{ url_for('static', filename='images/logos/letterboxd.png') }}" alt="Letterboxd">
+                    </span>
+                    <span class="tool-label">Import Letterboxd</span>
+                </button>
+                <button class="tool-button" onclick="openModal('spotifyModal')">
+                    <span class="tool-icon">
+                        <img src="{{ url_for('static', filename='images/logos/spotify.png') }}" alt="Spotify">
+                    </span>
+                    <span class="tool-label">Refresh Spotify</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Content Management Tools -->
+        <div class="tool-category">
+            <h3>Content Management</h3>
+            <div class="tool-grid">
+                <button class="tool-button" onclick="openModal('uploadArtworkModal')">
+                    <span class="tool-icon" data-type="artwork"></span>
+                    <span class="tool-label">Upload Artwork</span>
+                </button>
+                <button class="tool-button" onclick="openModal('manageUsersModal')">
+                    <span class="tool-icon" data-type="users"></span>
+                    <span class="tool-label">Manage Users</span>
+                </button>
+                <button class="tool-button" onclick="openModal('importArtworksModal')">
+                    <span class="tool-icon" data-type="import"></span>
+                    <span class="tool-label">Import Artworks CSV</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Database Statistics -->
+        <div class="tool-category">
+            <h3>Database Statistics</h3>
+            <div class="db-stats">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.books }}</div>
+                    <div class="stat-label">Books</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.movies }}</div>
+                    <div class="stat-label">Movies</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.shows }}</div>
+                    <div class="stat-label">TV Shows</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.artworks }}</div>
+                    <div class="stat-label">Artworks</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.playlists }}</div>
+                    <div class="stat-label">Playlists</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.users }}</div>
+                    <div class="stat-label">Users</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modals will go here -->
+{% include 'account/modals.html' %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/account.js') }}"></script>
+{% endblock %}

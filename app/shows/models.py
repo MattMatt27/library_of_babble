@@ -13,7 +13,7 @@ class TVShows(db.Model):
     imdb_id = db.Column(db.String)
     title = db.Column(db.String(500), nullable=False)
     year = db.Column(db.Integer, nullable=False)
-    my_rating = db.Column(db.Integer)
+    my_rating = db.Column(db.Float)
     date_finished = db.Column(db.String(20))
     last_watched = db.Column(db.String(20))
     my_review = db.Column(db.Text)

@@ -1,0 +1,412 @@
+/**
+ * Listening Page Styles
+ */
+
+/* Override body overflow for this page */
+body {
+  overflow: hidden;
+}
+
+/* Main container - split layout with resizable divider */
+.listening-container {
+  display: flex;
+  width: 100%;
+  height: 95vh;
+}
+
+/* Resizable divider */
+.divider {
+  width: 5px;
+  background: var(--border-primary);
+  cursor: ew-resize;
+  transition: background var(--transition-fast);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.divider:hover {
+  background: var(--accent-blue);
+}
+
+.divider:active {
+  background: var(--accent-blue);
+}
+
+/* Left panel - playlist browser */
+.playlist-browser {
+  flex: 0 0 calc(60% - 2.5px);
+  padding: var(--space-5);
+  padding-left: var(--space-6);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+/* Right panel - playlist details (Spotify iframe) */
+.playlist-details {
+  flex: 0 0 calc(40% - 2.5px);
+  padding: var(--space-5);
+  padding-right: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.playlist-details iframe {
+  width: calc(100% - var(--space-5));
+  height: calc(98vh - 90px);
+  border: none;
+  border-radius: var(--radius-md);
+  display: block;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+/* Playlist sections */
+.playlist-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.section-title {
+  font-size: var(--font-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.section-description {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0 0 var(--space-4) 0;
+  max-width: 800px;
+}
+
+/* Introduction section */
+.introduction {
+  padding: var(--space-5);
+  padding-top: var(--space-3);
+  padding-bottom: 0;
+}
+
+.introduction .section-description {
+  margin-bottom: var(--space-3);
+}
+
+/* Date picker input */
+#datepickerInput {
+  text-align: center;
+  font-family: var(--font-primary);
+  font-size: var(--font-base);
+  width: 100%;
+  max-width: 300px;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-base);
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+#datepickerInput:hover {
+  border-color: var(--accent-blue);
+  background: var(--bg-tertiary);
+}
+
+#datepickerInput:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+}
+
+#datepickerInput::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* Custom jQuery UI Datepicker Styles */
+#ui-datepicker-div {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-primary) !important;
+  border-radius: var(--radius-md) !important;
+  padding: var(--space-4) !important;
+  box-shadow: var(--shadow-lg) !important;
+  font-family: var(--font-primary) !important;
+}
+
+#ui-datepicker-div .ui-datepicker-header {
+  background: var(--bg-tertiary) !important;
+  border: 1px solid var(--border-primary) !important;
+  border-radius: var(--radius-base) !important;
+  padding: var(--space-3) !important;
+  margin-bottom: var(--space-3) !important;
+}
+
+#ui-datepicker-div .ui-datepicker-title {
+  color: var(--text-primary) !important;
+  font-weight: var(--font-semibold) !important;
+  line-height: 1.8em !important;
+}
+
+#ui-datepicker-div .ui-datepicker-title select {
+  background: var(--bg-primary) !important;
+  border: 1px solid var(--border-primary) !important;
+  border-radius: var(--radius-base) !important;
+  color: var(--text-primary) !important;
+  padding: var(--space-2) var(--space-3) !important;
+  font-size: var(--font-sm) !important;
+  margin: 0 var(--space-2) !important;
+  cursor: pointer !important;
+  font-family: var(--font-primary) !important;
+  min-width: 100px !important;
+}
+
+#ui-datepicker-div .ui-datepicker-month {
+  min-width: 120px !important;
+}
+
+#ui-datepicker-div .ui-datepicker-year {
+  min-width: 80px !important;
+}
+
+#ui-datepicker-div .ui-datepicker-title select:hover {
+  border-color: var(--accent-blue) !important;
+}
+
+#ui-datepicker-div .ui-datepicker-title select:focus {
+  outline: none !important;
+  border-color: var(--accent-blue) !important;
+  box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.1) !important;
+}
+
+#ui-datepicker-div .ui-datepicker-prev,
+#ui-datepicker-div .ui-datepicker-next {
+  cursor: pointer !important;
+  top: 2px !important;
+}
+
+#ui-datepicker-div .ui-datepicker-prev:hover,
+#ui-datepicker-div .ui-datepicker-next:hover {
+  background: var(--bg-primary) !important;
+  border: 1px solid var(--border-primary) !important;
+  border-radius: var(--radius-base) !important;
+}
+
+#ui-datepicker-div .ui-widget-content {
+  background: var(--bg-secondary) !important;
+  border: none !important;
+  color: var(--text-primary) !important;
+}
+
+#ui-datepicker-div .ui-datepicker-calendar {
+  display: none !important;
+}
+
+#ui-datepicker-div .ui-datepicker-buttonpane {
+  background: transparent !important;
+  border-top: 1px solid var(--border-primary) !important;
+  padding-top: var(--space-3) !important;
+  margin-top: var(--space-3) !important;
+  text-align: center !important;
+}
+
+#ui-datepicker-div .ui-datepicker-buttonpane button {
+  background: var(--accent-blue) !important;
+  border: none !important;
+  border-radius: var(--radius-base) !important;
+  color: white !important;
+  padding: var(--space-2) var(--space-5) !important;
+  font-size: var(--font-sm) !important;
+  font-weight: var(--font-medium) !important;
+  cursor: pointer !important;
+  transition: background var(--transition-fast) !important;
+  margin: 0 !important;
+  font-family: var(--font-primary) !important;
+  box-shadow: none !important;
+  text-transform: none !important;
+}
+
+#ui-datepicker-div .ui-datepicker-buttonpane button:hover {
+  background: var(--accent-blue-hover) !important;
+}
+
+#ui-datepicker-div .ui-datepicker-buttonpane button:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2) !important;
+}
+
+/* Playlist grid */
+.playlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 2fr));
+  gap: var(--space-3);
+  width: 100%;
+  justify-items: center;
+  align-items: center;
+}
+
+.playlist-grid img {
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-primary);
+  transition: all var(--transition-base);
+}
+
+.playlist-grid img:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent-blue);
+}
+
+/* Selected playlist display */
+.selected-playlist {
+  display: none;
+}
+
+.selected-playlist-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  margin-bottom: var(--space-4);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+}
+
+.playlist-art {
+  flex-shrink: 0;
+}
+
+.playlist-art img {
+  width: 170px;
+  height: 170px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-secondary);
+}
+
+.other-playlist-details {
+  text-align: left;
+  padding: var(--space-3);
+}
+
+.playlist-title {
+  font-size: var(--font-3xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.playlist-description {
+  font-size: var(--font-lg);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Open in Spotify button (mobile only) */
+.open-spotify-button {
+  display: inline-block;
+  background: #1DB954;
+  color: white;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  font-weight: var(--font-semibold);
+  margin-top: var(--space-3);
+  transition: all var(--transition-fast);
+}
+
+.open-spotify-button:hover {
+  background: #1ed760;
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+/* Disable text selection during resize */
+.disable-selection {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Desktop: hide mobile button */
+@media screen and (min-width: 900px) {
+  .open-spotify-button {
+    display: none;
+  }
+}
+
+/* Mobile responsive */
+@media screen and (max-width: 900px) {
+  body {
+    overflow-y: auto;
+  }
+
+  .listening-container {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .playlist-browser {
+    flex: 1 0 auto;
+    width: 95%;
+    height: 95%;
+    padding: var(--space-3);
+    margin-left: 5px;
+    margin-bottom: 0;
+    overflow-y: visible;
+  }
+
+  .divider,
+  .playlist-details {
+    display: none;
+  }
+
+  .selected-playlist-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-4);
+  }
+
+  .playlist-art img {
+    width: 200px;
+    height: 200px;
+  }
+
+  .other-playlist-details {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .open-spotify-button {
+    display: inline-block;
+  }
+
+  .playlist-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+
+  .playlist-title {
+    font-size: var(--font-2xl);
+  }
+
+  .playlist-description {
+    font-size: var(--font-base);
+  }
+}

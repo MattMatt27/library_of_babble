@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}📚 Reading{% endblock %}
+
+{% set active_page = 'reading' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/books.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <section class="books-section">
+        <div class="books-section-header">
+            <h2>Recommended Fiction</h2>
+        </div>
+        <div class="books-grid">
+            {% for fiction_book in recommended_fiction_books %}
+                <a href="{{ url_for('books.detail', book_id=fiction_book.id) }}" class="book-card">
+                    <div class="book-card-image">
+                        <img src="{{ fiction_book['cover_image_url'] }}" alt="{{ fiction_book['title'] }}">
+                    </div>
+                    <div class="book-card-content">
+                        <div class="book-card-title">{{ fiction_book['title'] }}</div>
+                        <div class="book-card-author">{{ fiction_book['author'] }}</div>
+                        <div class="book-card-year">
+                            {% if fiction_book['publication_year'] is not none %}
+                                {% if fiction_book['publication_year'] < 0 %}
+                                    {{ -fiction_book['publication_year'] }} BC
+                                {% else %}
+                                    {{ fiction_book['publication_year'] }}
+                                {% endif %}
+                            {% else %}
+                                Unknown
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+    <section class="books-section">
+        <div class="books-section-header">
+            <h2>Recommended Non-Fiction</h2>
+        </div>
+        <div class="books-grid">
+            {% for nonfiction_book in recommended_nonfiction_books %}
+                <a href="{{ url_for('books.detail', book_id=nonfiction_book.id) }}" class="book-card">
+                    <div class="book-card-image">
+                        <img src="{{ nonfiction_book['cover_image_url'] }}" alt="{{ nonfiction_book['title'] }}">
+                    </div>
+                    <div class="book-card-content">
+                        <div class="book-card-title">{{ nonfiction_book['title'] }}</div>
+                        <div class="book-card-author">{{ nonfiction_book['author'] }}</div>
+                        <div class="book-card-year">
+                            {% if nonfiction_book['publication_year'] is not none %}
+                                {% if nonfiction_book['publication_year'] < 0 %}
+                                    {{ -nonfiction_book['publication_year'] }} BC
+                                {% else %}
+                                    {{ nonfiction_book['publication_year'] }}
+                                {% endif %}
+                            {% else %}
+                                Unknown
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+    <section class="books-section">
+        <div class="books-section-header">
+            <h2>Recently Read</h2>
+            <a href="{{ url_for('books.index') }}" class="see-all-btn">See All</a>
+        </div>
+        <div class="books-grid">
+            {% for book in recently_read_books %}
+                <a href="{{ url_for('books.detail', book_id=book.id) }}" class="book-card">
+                    <div class="book-card-image">
+                        <img src="{{ book['cover_image_url'] }}" alt="{{ book['title'] }}">
+                    </div>
+                    <div class="book-card-content">
+                        <div class="book-card-title">{{ book['title'] }}</div>
+                        <div class="book-card-author">{{ book['author'] }}</div>
+                        <div class="book-card-year">
+                            {% if book['publication_year'] is not none %}
+                                {% if book['publication_year'] < 0 %}
+                                    {{ -book['publication_year'] }} BC
+                                {% else %}
+                                    {{ book['publication_year'] }}
+                                {% endif %}
+                            {% else %}
+                                Unknown
+                            {% endif %}
+                        </div>
+                        {% if book['my_rating'] %}
+                        <div class="book-card-rating">
+                            <img src="{{ url_for('static', filename='images/assets/stars/' + book['my_rating']|string + '.png') }}" alt="{{ book['my_rating'] }} Stars">
+                        </div>
+                        {% endif %}
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Your Site Title{% endblock %}</title>
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    {% block extra_styles %}{% endblock %}
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="menu-icon">&#9776;</div>
+            <!-- <div class="desktop-nav">
+                <a href="/" {% if active_page == 'home' %}class="active"{% endif %}>Home</a>
+                <a href="/writing" {% if active_page == 'writing' %}class="active"{% endif %}>Writing</a>
+                <a href="/reading" {% if active_page == 'reading' %}class="active"{% endif %}>Reading</a>
+                <a href="/watching" {% if active_page == 'watching' %}class="active"{% endif %}>Watching</a>
+                <a href="/creating" {% if active_page == 'creating' %}class="active"{% endif %}>Creating</a>
+                <a href="/listening" {% if active_page == 'listening' %}class="active"{% endif %}>Listening</a>
+                <a href="/collecting" {% if active_page == 'collecting' %}class="active"{% endif %}>Collecting</a>
+                <a href="/pondering" {% if active_page == 'pondering' %}class="active"{% endif %}>Pondering</a>
+            </div> -->
+            <div class="desktop-nav">
+                {% for item in nav_items %}
+                    <a href="{{ item.url }}"
+                       {% if active_page == item.active_page %}class="active"{% endif %}>
+                        {{ item.name }}
+                    </a>
+                {% endfor %}
+            </div>
+            <div class="navbar-right">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('account.index') }}" class="account-button" title="Account Settings">
+                        <i class="fa-solid fa-user"></i>
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="login-button">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="login-button">Login</a>
+                {% endif %}
+            </div>
+        </nav>
+        <!-- <div class="side-menu">
+            <a href="javascript:void(0)" class="closebtn">&times;</a>
+            <a href="/" {% if active_page == 'home' %}class="active"{% endif %}>Home</a>
+            <a href="/writing" {% if active_page == 'writing' %}class="active"{% endif %}>Writing</a>
+            <a href="/reading" {% if active_page == 'reading' %}class="active"{% endif %}>Reading</a>
+            <a href="/watching" {% if active_page == 'watching' %}class="active"{% endif %}>Watching</a>
+            <a href="/creating" {% if active_page == 'creating' %}class="active"{% endif %}>Creating</a>
+            <a href="/listening" {% if active_page == 'listening' %}class="active"{% endif %}>Listening</a>
+            <a href="/collecting" {% if active_page == 'collecting' %}class="active"{% endif %}>Collecting</a>
+            <a href="/pondering" {% if active_page == 'pondering' %}class="active"{% endif %}>Pondering</a>
+            <div class="side-menu-login">
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('auth.logout') }}" class="login-button">Logout</a>
+                {% else %}
+                <a href="{{ url_for('auth.login') }}" class="login-button">Login</a>
+                {% endif %}
+            </div>
+        </div> -->
+        <div class="side-menu">
+            <a href="javascript:void(0)" class="closebtn">×</a>
+            {% for item in nav_items %}
+                <a href="{{ item.url }}"
+                   {% if active_page == item.active_page %}class="active"{% endif %}>
+                    {{ item.name }}
+                </a>
+            {% endfor %}
+            
+            <div class="side-menu-login">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('account.index') }}" class="side-menu-account">
+                        <i class="fa-solid fa-user"></i>
+                        Account
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="login-button">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="login-button">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function openNav() {
+            document.querySelector(".side-menu").style.width = "150px";
+        }
+        function closeNav() {
+            document.querySelector(".side-menu").style.width = "0";
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Event listeners
+            document.querySelector('.menu-icon').addEventListener('click', openNav);
+            document.querySelector('.closebtn').addEventListener('click', closeNav);
+            document.addEventListener('click', function(event) {
+                var sideMenu = document.querySelector('.side-menu');
+                var menuIcon = document.querySelector('.menu-icon');
+                if (!sideMenu.contains(event.target) && event.target !== menuIcon) {
+                    closeNav();
+                }
+            });
+        });
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

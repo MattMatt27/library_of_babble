@@ -1,0 +1,518 @@
+{% extends "base.html" %}
+{% block title %}{{ book.title }}{% endblock %}
+{% set active_page = 'reading' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/books.css') }}">
+<style>
+/* Book detail page styles */
+.book-detail-container {
+  margin-top: var(--space-4);
+}
+
+.book-detail-main {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.book-detail-sidebar {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.book-detail-image {
+  margin-bottom: var(--space-5);
+}
+
+.book-detail-image img {
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-primary);
+}
+
+/* Cover upload overlay for admin */
+.cover-upload-container {
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+}
+
+.cover-upload-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.cover-upload-container:hover .cover-upload-overlay {
+  opacity: 1;
+}
+
+.cover-upload-icon {
+  font-size: var(--font-3xl);
+  margin-bottom: var(--space-2);
+}
+
+.cover-upload-text {
+  color: white;
+  font-size: var(--font-base);
+  font-weight: var(--font-semibold);
+}
+
+.book-detail-title {
+  font-size: var(--font-2xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+  line-height: var(--leading-tight);
+}
+
+.book-detail-author {
+  font-size: var(--font-lg);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.book-detail-year {
+  font-size: var(--font-base);
+  color: var(--text-tertiary);
+}
+
+/* Reviews section */
+.reviews-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.section-title {
+  font-size: var(--font-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.review-item {
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.review-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.review-date {
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+}
+
+.review-stars img {
+  height: 24px;
+  width: auto;
+}
+
+.review-content {
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+/* Quotes section */
+.quotes-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.quotes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.quotes-header .section-title {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.quote-item {
+  margin-bottom: var(--space-5);
+  padding-left: var(--space-4);
+  border-left: 3px solid var(--accent-blue);
+}
+
+.quote-text {
+  font-style: italic;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.quote-page {
+  color: var(--text-tertiary);
+  font-size: var(--font-sm);
+}
+
+.no-content {
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+/* Quote form */
+.quote-form-container {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-base);
+  padding: var(--space-5);
+  margin-bottom: var(--space-5);
+  display: none;
+}
+
+.quote-form-container.active {
+  display: block;
+}
+
+.add-quote-btn-icon {
+  display: none;
+}
+
+/* Modal styles */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  z-index: 3000;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-4);
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  max-width: 600px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--border-primary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  font-size: var(--font-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: var(--font-2xl);
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-base);
+  transition: all var(--transition-fast);
+}
+
+.modal-close:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: var(--space-5);
+}
+
+.modal-footer {
+  padding: var(--space-5);
+  border-top: 1px solid var(--border-primary);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.form-input {
+  width: 100%;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-base);
+  color: var(--text-primary);
+  padding: var(--space-3);
+  font-size: var(--font-base);
+  font-family: var(--font-primary);
+  transition: all var(--transition-fast);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+}
+
+/* Mobile responsive */
+@media (max-width: 900px) {
+  .book-detail-main {
+    grid-template-columns: 1fr;
+  }
+
+  .book-detail-sidebar {
+    text-align: center;
+  }
+
+  .book-detail-image {
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .add-quote-btn-icon {
+    display: inline;
+  }
+
+  .add-quote-btn-icon::before {
+    content: '+';
+    font-size: var(--font-xl);
+  }
+
+  .add-quote-btn-text {
+    display: none;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container book-detail-container">
+    <!-- Main content: Sidebar + Reviews -->
+    <div class="book-detail-main">
+        <!-- Left sidebar: Book details -->
+        <div class="book-detail-sidebar">
+            <div class="book-detail-image">
+                {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                    <div class="cover-upload-container" onclick="showCoverUrlModal()">
+                        <img src="{{ book.cover_image_url }}" alt="{{ book.title }}">
+                        <div class="cover-upload-overlay">
+                            <span class="cover-upload-icon">📷</span>
+                            <span class="cover-upload-text">Update Cover URL</span>
+                        </div>
+                    </div>
+                {% else %}
+                    <img src="{{ book.cover_image_url }}" alt="{{ book.title }}">
+                {% endif %}
+            </div>
+
+            <h1 class="book-detail-title">{{ book.title }}</h1>
+            <div class="book-detail-author">by {{ book.author }}</div>
+            <div class="book-detail-year">
+                {% if book.publication_year is not none %}
+                    {% if book.publication_year < 0 %}
+                        {{ -book.publication_year }} BC
+                    {% else %}
+                        {{ book.publication_year }}
+                    {% endif %}
+                {% else %}
+                    Unknown publication year
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right side: Reviews -->
+        <div class="reviews-section">
+            <h2 class="section-title">Reviews</h2>
+            {% if reviews %}
+                {% for review in reviews %}
+                    <div class="review-item">
+                        <div class="review-header">
+                            <div class="review-date">Finished on {{ review.date_read }}</div>
+                            {% if review.my_rating and review.my_rating != '0' %}
+                                <div class="review-stars">
+                                    <img src="{{ url_for('static', filename='images/assets/stars/' + review.my_rating + '.png') }}"
+                                         alt="{{ review.my_rating }} Stars">
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% if review.my_review %}
+                            <div class="review-content">{{ review.my_review|safe }}</div>
+                        {% else %}
+                            <div class="no-content">No written review</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="no-content">No reviews available for this book.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quotes section -->
+    <div class="quotes-section">
+        <div class="quotes-header">
+            <h2 class="section-title mb-0">Memorable Quotes</h2>
+            {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                <button class="btn btn-primary btn-sm" onclick="toggleQuoteForm()">
+                    <span class="add-quote-btn-icon"></span><span class="add-quote-btn-text">Add Quote</span>
+                </button>
+            {% endif %}
+        </div>
+
+        <div id="quoteFormContainer" class="quote-form-container">
+            <form class="form-group" action="{{ url_for('books.add_quote', book_id=book.id) }}" method="POST">
+                <div class="form-group">
+                    <label class="form-label" for="quoteText">Quote Text</label>
+                    <textarea id="quoteText" name="quote_text" class="form-textarea" rows="4" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="pageNumber">Page Number</label>
+                    <input type="number" id="pageNumber" name="page_number" class="form-input" min="1">
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="submit" class="btn btn-success btn-sm">Save Quote</button>
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="toggleQuoteForm()">Cancel</button>
+                </div>
+            </form>
+        </div>
+
+        {% if quotes %}
+            {% for quote in quotes %}
+                <div class="quote-item">
+                    <div class="quote-text">"{{ quote.text }}"</div>
+                    <div class="quote-page">Page {{ quote.page_number }}</div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="no-content">No quotes available for this book.</p>
+        {% endif %}
+    </div>
+
+    <!-- Cover URL Modal (Admin Only) -->
+    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+    <div class="modal-overlay" id="coverUrlModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Update Cover Image URL</h3>
+                <button class="modal-close" onclick="closeCoverUrlModal()">&times;</button>
+            </div>
+            <form action="{{ url_for('books.update_cover_url', book_id=book.id) }}" method="POST">
+                <div class="modal-body">
+                    <p style="color: var(--text-secondary); margin-bottom: var(--space-4);">
+                        Enter the URL of the book cover image:
+                    </p>
+                    <div class="form-group">
+                        <label for="coverUrl">Cover Image URL</label>
+                        <input type="url" id="coverUrl" name="cover_url" class="form-input"
+                               value="{{ book.cover_image_url }}"
+                               placeholder="https://example.com/book-cover.jpg" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeCoverUrlModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Cover</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function toggleQuoteForm() {
+        const formContainer = document.getElementById("quoteFormContainer");
+        formContainer.classList.toggle('active');
+    }
+
+    function showCoverUrlModal() {
+        const modal = document.getElementById('coverUrlModal');
+        if (modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeCoverUrlModal() {
+        const modal = document.getElementById('coverUrlModal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    // Close modal on overlay click
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('coverUrlModal');
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeCoverUrlModal();
+                }
+            });
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const activeModal = document.querySelector('.modal-overlay.active');
+                if (activeModal) {
+                    closeCoverUrlModal();
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

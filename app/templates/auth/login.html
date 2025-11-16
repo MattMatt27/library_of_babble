@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}🔒 Login{% endblock %}
+
+{% set active_page = 'login' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/login.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="login-page">
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Welcome</h1>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('auth.login') }}" class="login-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" class="submit-btn">Sign In</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+<!-- 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+</head>
+<style>
+    /* Reset default margin and padding */
+    body, html {
+        margin: 0;
+        padding: 0;
+    }
+
+    .navbar {
+        background-color: rgba(0, 0, 0, 0.8); /* Transparent black background */
+        overflow: hidden;
+        font-family: Garamond, sans-serif; /* Use a common sans-serif font */
+        font-size: 20px;
+        color: #fff;
+    }
+
+    .navbar a {
+        float: left;
+        display: block;
+        color: #fff;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+    }
+
+    .navbar a.active {
+        background-color: #555;
+    }
+
+    .navbar a:link {
+        color: #fff;
+    }
+
+    .navbar a:visited {
+        color: #fff;
+    }
+
+    .navbar a:hover {
+        text-decoration: underline;
+    }
+
+    a:hover {
+        text-decoration: underline; /* Add underline on hover */
+    }
+
+    /* Center the login form vertically and horizontally */
+    .login-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: #C1DFF0; /* Light blue background */
+    }
+
+    /* Styling for the form elements */
+    form {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Soft box shadow */
+        text-align: center;
+        max-width: 300px;
+        width: 100%;
+        margin-top: -100px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 10px;
+        color: #093249; /* Dark blue text color */
+    }
+
+    input[type="text"], input[type="password"] {
+        width: calc(100% - 20px);
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    button {
+        background-color: #093249; /* Dark blue button color */
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+        background-color: #071F31; /* Darker blue on hover */
+    }
+
+    /* Alert messages for flash messages */
+    .alert {
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 5px;
+    }
+
+    .alert.success {
+        background-color: #4CAF50; /* Green for success messages */
+        color: white;
+    }
+
+    .alert.danger {
+        background-color: #f44336; /* Red for error messages */
+        color: white;
+    }
+
+</style>
+<body>
+    <header>
+        <nav>
+            <div class="navbar">
+                <a href="/">Home</a>
+                <a href="/writing">Writing</a>
+                <a href="/reading">Reading</a>
+                <a href="/watching">Watching</a>
+                <a href="/creating">Creating</a>
+                <a href="/listening">Listening</a>
+                <a href="/collecting">Collecting</a>
+            </div>
+        </nav>
+    </header>
+    <div class="login-container">
+        <form method="POST" action="{{ url_for('auth.login') }}">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <br>
+            <button type="submit">Login</button>
+        </form>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+    </div>
+</body>
+</html>
+ -->

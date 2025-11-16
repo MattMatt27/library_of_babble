@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}📙 Recently Read{% endblock %}
+
+{% set active_page = 'reading' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/books.css') }}">
+<style>
+/* Page-specific table styles */
+.books-table-section {
+  margin-top: var(--space-4);
+}
+
+.books-table {
+  width: 100%;
+}
+
+.books-table .image-column {
+  width: 200px;
+  text-align: center;
+}
+
+.books-table .image-column img {
+  max-height: 350px;
+  width: auto;
+  max-width: 100%;
+  border-radius: var(--radius-md);
+}
+
+.books-table .details-rating-column {
+  width: 350px;
+}
+
+.books-table .book-info-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.books-table .book-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.books-table .book-rating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-secondary);
+}
+
+.books-table .review-column {
+  min-width: 300px;
+}
+
+.books-table .stars-image {
+  height: 24px;
+  width: auto;
+}
+
+/* Review tabs (GitHub-style) */
+.review-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.review-tab {
+  background: transparent;
+  border: none;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition-fast);
+  margin-bottom: -1px;
+  font-family: var(--font-primary);
+}
+
+.review-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.review-tab.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--accent-blue);
+}
+
+.review-preview {
+  padding: var(--space-3);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-base);
+  min-height: 100px;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.review-preview blockquote {
+  margin: var(--space-3) 0;
+  padding-left: var(--space-4);
+  border-left: 3px solid var(--border-primary);
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.review-preview i {
+  font-style: italic;
+}
+
+.review-preview br {
+  display: block;
+  content: "";
+  margin-top: var(--space-2);
+}
+
+.review-textarea {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', 'Droid Sans Mono', 'Source Code Pro', monospace;
+  font-size: var(--font-sm);
+}
+
+/* Mobile responsive */
+@media screen and (max-width: 900px) {
+  .books-table-section {
+    margin-top: var(--space-3);
+  }
+
+  .table-container {
+    border: none;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+  }
+
+  .books-table,
+  .books-table tbody,
+  .books-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .books-table thead {
+    display: none;
+  }
+
+  .books-table tr {
+    margin-bottom: var(--space-6);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .books-table td {
+    display: block;
+    border: none;
+    text-align: center;
+    padding: var(--space-4);
+    border-bottom: none !important;
+  }
+
+  .books-table .image-column {
+    width: 100%;
+    padding-bottom: var(--space-3);
+  }
+
+  .books-table .image-column a {
+    display: block;
+  }
+
+  .books-table .image-column img {
+    max-height: 400px;
+    margin: 0 auto;
+  }
+
+  .books-table .details-rating-column {
+    width: 100%;
+    padding-top: 0;
+    padding-bottom: var(--space-4);
+  }
+
+  .books-table .book-info-wrapper {
+    gap: var(--space-3);
+  }
+
+  .books-table .book-rating {
+    justify-content: center;
+  }
+
+  .books-table .review-column {
+    width: 100%;
+    background: var(--bg-primary);
+    min-width: auto;
+    padding: var(--space-4);
+  }
+
+  .books-table .review-column .form-textarea {
+    font-size: var(--font-sm);
+    min-height: 100px;
+  }
+
+  .books-table tbody tr:hover {
+    background: var(--bg-secondary);
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container books-table-section">
+    <div class="table-container">
+        <table class="table books-table">
+            <thead>
+                <tr>
+                    <th class="text-center">Cover</th>
+                    <th>Book Details</th>
+                    <th>My Review</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in books %}
+                    <tr>
+                        <td class="image-column">
+                            <a href="{{ url_for('books.detail', book_id=book.id) }}">
+                                <img src="{{ book['cover_image_url'] }}" alt="{{ book['title'] }}">
+                            </a>
+                        </td>
+                        <td class="details-rating-column">
+                            <div class="book-info-wrapper">
+                                <div class="book-details">
+                                    <div class="font-semibold text-primary mb-2">{{ book['title'] }}</div>
+                                    <div class="text-secondary mb-1">{{ book['author'] }}</div>
+                                    <div class="text-tertiary text-sm">
+                                        {% if book['publication_year'] is not none %}
+                                            {% if book['publication_year'] < 0 %}
+                                                {{ -book['publication_year'] }} BC
+                                            {% else %}
+                                                {{ book['publication_year'] }}
+                                            {% endif %}
+                                        {% else %}
+                                            Unknown
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="book-rating">
+                                    <div class="text-secondary text-sm">{{ book['date_read'] }}</div>
+                                    <img class="stars-image" src="{{ url_for('static', filename='images/assets/stars/' + book['my_rating'] + '.png') }}" alt="{{ book['my_rating'] }} Stars">
+                                </div>
+                            </div>
+                        </td>
+                        <td class="review-column">
+                            <form action="{{ url_for('books.update_review', book_id=book.id) }}" method="POST" class="form-group mb-0">
+                                {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                    <div class="review-tabs">
+                                        <button type="button" class="review-tab active" data-tab="preview" data-book-id="{{ book.id }}">Preview</button>
+                                        <button type="button" class="review-tab" data-tab="write" data-book-id="{{ book.id }}">Write</button>
+                                    </div>
+                                {% endif %}
+
+                                <div class="review-preview" id="preview-{{ book.id }}">
+                                    {{ book['my_review']|safe }}
+                                </div>
+
+                                {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                <input type="hidden" name="date_read" value="{{ book['date_read'] }}">
+                                <textarea name="my_review"
+                                          id="textarea-{{ book.id }}"
+                                          class="form-textarea review-textarea"
+                                          rows="5"
+                                          style="display: none;">{{ book['my_review'] }}</textarea>
+                                {% endif %}
+
+                                {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                    <button type="submit" class="btn btn-primary btn-sm mt-3">Save</button>
+                                {% endif %}
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function autoResizeTextarea(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight + 5) + 'px';
+    }
+
+    // Handle review tab switching
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-resize all textareas on load
+        document.querySelectorAll('textarea').forEach(autoResizeTextarea);
+
+        // Add click handlers to all review tabs
+        document.querySelectorAll('.review-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const bookId = this.dataset.bookId;
+                const tabType = this.dataset.tab;
+                const preview = document.getElementById(`preview-${bookId}`);
+                const textarea = document.getElementById(`textarea-${bookId}`);
+                const tabs = this.parentElement.querySelectorAll('.review-tab');
+
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                // Toggle preview/write view
+                if (tabType === 'preview') {
+                    preview.style.display = 'block';
+                    textarea.style.display = 'none';
+                } else {
+                    preview.style.display = 'none';
+                    textarea.style.display = 'block';
+                    autoResizeTextarea(textarea);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

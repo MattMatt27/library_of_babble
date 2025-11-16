@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}⚠️ Page Not Found{% endblock %}
+
+{% set active_page = '404' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/error.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="error-background">
+        {% for image in images %}
+            <img src="{{ url_for('static', filename='images/creating/lunacy/' ~ image) }}" alt="Generative Art">
+        {% endfor %}
+    </div>
+
+    <div class="error-content">
+        <div class="error-card">
+            <div class="error-code">404</div>
+            <h1 class="error-title">Page Not Found</h1>
+            <p class="error-message">The page you're looking for does not appear to exist.</p>
+            <a href="{{ url_for('main.home') }}" class="error-action">Return Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // JavaScript to rotate generative art images
+    const images = document.querySelectorAll('.error-background img');
+    let currentIndex = 0;
+
+    function rotateImages() {
+        images[currentIndex].classList.remove('active');
+        currentIndex = (currentIndex + 1) % images.length;
+        images[currentIndex].classList.add('active');
+    }
+
+    // Rotate every 5 seconds
+    setInterval(rotateImages, 5000);
+
+    // Initial activation of the first image
+    if (images.length > 0) {
+        images[currentIndex].classList.add('active');
+    }
+</script>
+{% endblock %}

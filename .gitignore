@@ -1,20 +1,48 @@
-# Broken/Outdated files
-templates/music-dep.html
-templates/books-dep.html
-templates/book-db.html
-templates/matt_ranking-dep.html
-playlist.html
+# ============================================================================
+# Environment & Secrets
+# ============================================================================
+.env
+ids.env
 
-# Temproary files
-.cache*
+# ============================================================================
+# Python
+# ============================================================================
 __pycache__/
-Boredom Killer - Movies.csv
-data/desktop.ini
-data/loaded
-data/staging/wait/
+.venv/
+.cache*
 
-# Large directories
+# ============================================================================
+# Operating System
+# ============================================================================
+.DS_Store
+data/desktop.ini
+
+# ============================================================================
+# Data & Assets
+# ============================================================================
+# CSV imports
+Boredom Killer - Movies.csv
+
+# Data processing directories
+data/
+
+# Large asset directories
 static/images/artists/
 
-# Local Only
-ids.env
+# ============================================================================
+# Database
+# ============================================================================
+instance/*.db
+instance/*.db-journal
+
+# ============================================================================
+# Flask Migrations
+# ============================================================================
+migrations/versions/*.pyc
+
+# ============================================================================
+# Internal Documentation & Archive
+# ============================================================================
+ARCHITECTURE.md
+docs/ignore/
+archive/

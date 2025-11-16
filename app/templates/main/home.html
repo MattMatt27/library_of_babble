@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}🏠 Matt Flathers{% endblock %}
+
+{% set active_page = 'home' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/home.css') }}">
+<style>
+    body, html {
+        height: 100%;
+        overflow: hidden;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="home-content" style="background-image: url('{{ url_for('static', filename='images/home/IMG_4712.JPG') }}');">
+    <div class="hero-section">
+        <h1>Matt Flathers</h1>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        const images = [
+            '20190817_065826308_iOS.jpg',
+            '20190322_012125224_iOS.jpg',
+            'DSC_0825.jpg',
+            'IMG_6649.JPG',
+            'IMG_4712.JPG',
+        ];
+
+        let currentIndex = 0;
+
+        function changeBackground() {
+            document.querySelector('.home-content').style.backgroundImage = `url('{{ url_for('static', filename='images/home/') }}${images[currentIndex]}')`;
+            currentIndex = (currentIndex + 1) % images.length;
+        }
+
+        setInterval(changeBackground, 15000); // Change background every 15 seconds (15000 milliseconds)
+    });
+</script>
+{% endblock %}

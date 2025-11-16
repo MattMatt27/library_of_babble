@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+
+{% block title %}🛠️ Creating{% endblock %}
+
+{% set active_page = 'creating' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/creating.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Books on Tape Section -->
+    <section class="creating-section">
+        <h2>Books on Tape</h2>
+        <p>Coming Soon</p>
+        <div class="image-container">
+            <img src="{{ url_for('static', filename='images/creating/books-on-tape/Origins.jpg') }}" alt="Books on Tape - Origins">
+            <img src="{{ url_for('static', filename='images/creating/books-on-tape/Books.jpg') }}" alt="Books on Tape - Books">
+            <img src="{{ url_for('static', filename='images/creating/books-on-tape/Sample_stack.jpg') }}" alt="Books on Tape - Sample Stack">
+        </div>
+    </section>
+
+    <!-- Generative Art Section -->
+    <section class="creating-section">
+        <h2>Generative Art</h2>
+        <p>I have always been drawn to the practice of curation, loving to sort, classify, and organize objects. Consequently, my primary engagement with art has been curatorial in nature- learning about art movements, specific influential figures, and the collections of famous museums and institutions.</p>
+
+        <p>Sadly, I have never been very effective as a visual artist in most manual mediums. Even when I have an idea in my mind, I fail to execute it on the page in front of me. As such, the production of visual art always seemed out of reach for me.</p>
+
+        <p>It was in this artistic malaise that I discovered generative AI, which has offered me a unique medium to produce visual artifacts in a way I have never been able to do by hand. Combining my writing skills with my curatorial knowledge of art history, I approach image models as a liberating way to unleash my visual creativity.</p>
+
+        <p>Creating art with generative image models is a task much more like sculpting, writing, and curating than it is like painting, drawing, and designing. You are engaged in exploration of a incomprehensibly vast space of possible images, and must iteratively steer the model into areas of images that speak to your own personal aesthetic tastes.</p>
+
+        <p>In my personal generative art practice, I use a palette of existing artists that I have found generative image models have some baseline understanding for aesthetically. These artists are selected based on model comprehension first and foremost, and my personal affinity for their works second. I then produce my natural language prompts and add artist combinations as the fictional authors of the work that I am producing. In this way, I create novel images that exist in the latent spaces between existing well-defined styles that I already love.</p>
+
+        <div class="section-header">
+            <h2>Lunacy</h2>
+            <p>This is my first full series. Designed to highlight my methodology, I have kept the prompts simple- the word "Lunacy" followed by the string "by [list of artists]". I chose the word Lunacy because of its relationship to one of my favorite themes in visual art and literature: the chaotic beauty of insanity. Lunacy itself is a word that originates from the Latin word for moonstruck (lunaticus). The idea encoded in the term being that the moon periodically causes madness. This connection to both the moon and insanity makes Lunacy a prompt term that creates an incredibly coherent image space. I happen to find this particular image space aesthetically beautiful, and one that lets the different artist styles shine.</p>
+            <p style="margin-top: var(--space-3);">Select artists below to explore the collection.</p>
+        </div>
+
+        <div id="artist-selection">
+            <div id="selected-artists"></div>
+            <div id="artist-options"></div>
+        </div>
+
+        <div id="image-display">
+            <div class="generated-image" style="display: none;">
+                <img src="" alt="Generated Image">
+                <div class="combined-info">
+                    <p class="model-name"></p>
+                    <p class="prompt-text"></p>
+                </div>
+            </div>
+            <div id="selected-artists-display"></div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script type="text/javascript">
+    let allGeneratedImages = {{ generated_images | tojson | safe }};
+    let selectedArtists = [];
+    let currentGeneratedImageIndex = 0;
+
+    // Extract unique artist names from generated_images
+    let allArtists = [...new Set(allGeneratedImages.flatMap(img => img.artist_palette))].map(name => {
+        // Find all images for this artist from the artists data
+        let artistImages = {{ artists | tojson | safe }}.filter(a => a.name === name).map(a => a.image);
+        return {
+            name,
+            images: artistImages
+        };
+    });
+
+    function initializeApp() {
+        displayArtistOptions();
+        updateDisplay();
+
+        setInterval(updateGeneratedImageDisplay, 20000); 
+    }
+
+    function displayArtistOptions() {
+        const artistOptions = document.getElementById('artist-options');
+        artistOptions.innerHTML = '';
+
+        const availableArtists = getAvailableArtists();
+
+        availableArtists.forEach(artist => {
+            const artistElement = document.createElement('div');
+            artistElement.classList.add('artist-option');
+            artistElement.textContent = artist.name;
+            artistElement.onclick = () => selectArtist(artist);
+            artistOptions.appendChild(artistElement);
+        });
+    }
+
+    function getAvailableArtists() {
+        if (selectedArtists.length === 0) {
+            return allArtists;
+        }
+
+        const validCombinations = new Set();
+        allGeneratedImages.forEach(image => {
+            if (selectedArtists.every(selected => image.artist_palette.includes(selected.name))) {
+                image.artist_palette.forEach(artist => validCombinations.add(artist));
+            }
+        });
+
+        return allArtists.filter(artist => 
+            validCombinations.has(artist.name) && !selectedArtists.some(selected => selected.name === artist.name)
+        );
+    }
+
+    function selectArtist(artist) {
+        if (selectedArtists.length < 5 && !selectedArtists.some(selected => selected.name === artist.name)) {
+            selectedArtists.push(artist);
+            updateSelectedArtistsDisplay();
+            displayArtistOptions();
+            updateDisplay();
+            updateGeneratedImageDisplay();
+        }
+    }
+
+    function updateSelectedArtistsDisplay() {
+        const selectedArtistsElement = document.getElementById('selected-artists');
+        selectedArtistsElement.innerHTML = '';
+
+        selectedArtists.forEach((artist, index) => {
+            const artistElement = document.createElement('span');
+            artistElement.classList.add('selected-artist');
+            artistElement.innerHTML = `${artist.name} <span class="remove" onclick="removeArtist(${index})">×</span>`;
+            selectedArtistsElement.appendChild(artistElement);
+        });
+    }
+
+    function removeArtist(index) {
+        selectedArtists.splice(index, 1);
+        updateSelectedArtistsDisplay();
+        displayArtistOptions();
+        updateDisplay();
+        updateGeneratedImageDisplay();
+        currentGeneratedImageIndex = 0;
+    }
+
+    function isValidAspectRatio(img) {
+        return new Promise((resolve) => {
+            img.onload = function() {
+                const aspectRatio = this.width / this.height;
+                resolve(aspectRatio >= 0.95 && aspectRatio <= 1.75);
+            };
+            img.onerror = () => resolve(false);
+        });
+    }
+
+    function updateDisplay() {
+        const selectedArtistsDisplay = document.getElementById('selected-artists-display');
+        selectedArtistsDisplay.innerHTML = '';
+
+        selectedArtists.forEach((artist) => {
+            const artistElement = document.createElement('div');
+            artistElement.classList.add('artist');
+            artistElement.innerHTML = `
+                <div class="artist-image-container">
+                    <img src="" alt="${artist.name}" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg';">
+                </div>
+                <div class="artist-info">
+                    <h3 class="artist-name">${artist.name}</h3>
+                    <p class="piece-name"></p>
+                </div>
+            `;
+            selectedArtistsDisplay.appendChild(artistElement);
+
+            cycleArtistImages(artist, artistElement);
+        });
+
+        updateGeneratedImageDisplay();
+    }
+
+    async function cycleArtistImages(artist, artistElement) {
+        const imgElement = artistElement.querySelector('img');
+        const pieceNameElement = artistElement.querySelector('.piece-name');
+        let currentIndex = 0;
+        const validImages = [];
+
+        for (const imageSrc of artist.images) {
+            const img = new Image();
+            img.src = imageSrc;
+            if (await isValidAspectRatio(img)) {
+                validImages.push(imageSrc);
+            }
+        }
+
+        if (validImages.length === 0) {
+            imgElement.src = 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg';
+            pieceNameElement.textContent = 'No valid images found';
+            return;
+        }
+
+        function updateImage() {
+            imgElement.src = validImages[currentIndex];
+            const fileName = validImages[currentIndex].split('/').pop();
+            const decodedFileName = decodeURIComponent(fileName.replace(/\+/g, ' '));
+            pieceNameElement.textContent = decodedFileName.replace(/\.[^/.]+$/, '');
+            currentIndex = (currentIndex + 1) % validImages.length;
+        }
+
+        updateImage();
+        setInterval(updateImage, 5000); // Change image every 5 seconds
+    }
+
+    function updateGeneratedImageDisplay() {
+        const generatedImageContainer = document.querySelector('.generated-image');
+        const generatedImageElement = document.querySelector('.generated-image img');
+        const promptText = document.querySelector('.prompt-text');
+        const modelText = document.querySelector('.model-name');
+
+        if (selectedArtists.length > 0) {
+            console.log(selectedArtists)
+            const relevantImages = allGeneratedImages.filter(image => 
+                image.artist_palette.length === selectedArtists.length &&
+                selectedArtists.every(artist => image.artist_palette.includes(artist.name))
+            );
+
+            if (relevantImages.length > 0) {
+                if (currentGeneratedImageIndex >= relevantImages.length) {
+                    currentGeneratedImageIndex = 0; // Reset index if out of bounds
+                }
+                const image = relevantImages[currentGeneratedImageIndex];
+                generatedImageElement.src = `/static/images/creating/lunacy/${image.file_name}`;
+                promptText.textContent = `Prompt: ${image.prompt}`;
+                modelText.textContent = `${image.model} v${image.model_version}`;
+                generatedImageContainer.style.display = 'block';
+
+                // Update the index for the next cycle
+                currentGeneratedImageIndex = (currentGeneratedImageIndex + 1) % relevantImages.length;
+            } else {
+                clearGeneratedImageDisplay();
+            }
+        } else {
+            clearGeneratedImageDisplay();
+        }
+    }
+
+    function clearGeneratedImageDisplay() {
+        const generatedImageContainer = document.querySelector('.generated-image');
+        const generatedImageElement = document.querySelector('.generated-image img');
+        const promptText = document.querySelector('.prompt-text');
+        const modelText = document.querySelector('.model-name');
+
+        generatedImageElement.src = "";
+        promptText.textContent = "";
+        modelText.textContent = "";
+        generatedImageContainer.style.display = 'none';
+    }
+
+    initializeApp();
+</script>
+{% endblock %}
+
+
+
+
+    <!-- <div class="gen-header">
+        <h2>Generative Art</h2>
+        <p>As a visual artist my hand is a pathetic tool. I cannot draw, paint, or sculpt-- the things I create never match what is in my mind's eye. The emergence of generative image models offered a unique artistic outlet for me. Steering visual output with words directly appealed to me, as I had resigned myself to writing being my only marginally competent artistic medium. Being able to create visual output from language input was immediately captivating. And my archivist/librarian instincts turned my knowledge of hundreds of niche artists into a prompt palette. My artistic practice with generative image models involves exploration of the artist profiles that models recognize and combining the aesthetics of distinct creators from history to produce new sensible intermediary points between them in latent space. </p>
+    </div>
+    <div class="section-header">
+        <h4>Lunacy</h4>
+        <p>I have always been drawn to the word Lunacy. It sounds beautiful, and its connection to the Moon and Insanity resonates with me. My first real series of generative pieces took my artist palette approach and applied it to this word. Below are some highlights from this series. The specific images I chose for each artist have nothing explicit to do with the output image below them, they were just selected to be representative of the aesthetic profile for each artist learned by the model.</p>
+    </div>
+    <div class="combo-container">
+        <div class="artist-left">
+            <div class="artist">
+                <img src="{{ url_for('static', filename='images/creating/lunacy/Wasily Kandinsky_Composition 8.jpg') }}" alt="Composition 8 by Wasily Kandinsky">
+                <div class="artist-info">
+                    <p class="piece-name">Composition 8 (1923)</p>
+                    <h3>Wasily Kandinsky (1866-1944)</h3>
+                    <p class="artist-bio">Wassily Kandinsky was a Russian painter and art theorist, known for his pivotal role in the development of abstract art. Associated with the Blue Rider and Bauhaus movements, Kandinsky's art is characterized by vibrant colors, geometric shapes, and spiritual symbolism. His innovative use of abstract forms aimed to evoke emotions and spiritual experiences, influencing generations of artists and shaping the course of modern art.</p>
+                </div>
+            </div>
+        </div>
+        <div class="artist-right">
+            <div class="artist">
+                <img src="{{ url_for('static', filename='images/creating/lunacy/Jacob August Riis_Home of an Italian Ragpicker.jpg') }}" alt="Home of an Italian Ragpicker by Jacob August Riis">
+                <div class="artist-info">
+                    <p class="piece-name">Home of an Italian Ragpicker (1894)</p>
+                    <h3>Jacob August Riis (1849-1914)</h3>
+                    <p class="artist-bio">Jacob August Riis was a Danish-American social reformer and photojournalist, renowned for his pioneering work in documentary photography. Based in New York City, Riis documented the living conditions of immigrants and the urban poor in the late 19th century. His photograph series', such as "How the Other Half Lives," exposed the harsh realities of tenement life, prompting social reforms and raising awareness about poverty and inequality. Riis' impactful visual storytelling continues to inspire documentary photographers and advocates for social change.</p>
+                </div>
+            </div>
+        </div>
+        <div class="generated-image">
+            <div class="artist">
+                <img src="{{ url_for('static', filename='images/creating/lunacy/Lunacy_Kandinsky+Riis.png') }}" alt="Lunacy by Wassily Kandinsky and Jacob August Riis">
+                <div class="combined-info">
+                    <h3>Model: Midjourney v6</h3>
+                    <p class="prompt-text">Prompt: Lunacy by Wassily Kandinsky and Jacob August Riis</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr style="border: none; border-top: 2px dotted black" />
+    <div class="combo-container">
+        <div class="artist-left">
+            <div class="artist">
+                <img src="{{ url_for('static', filename='images/creating/lunacy/Un soir sur la Loire_Felix Vallotton.jpg') }}" alt="Un soir sur la Loire by Felix Vallotton">
+                <div class="artist-info">
+                    <p class="piece-name">Un soir sur la Loire (1923)</p>
+                    <h3>Félix Vallotton (1865-1925)</h3>
+                    <p class="artist-bio">Félix Vallotton was a Swiss-French painter and printmaker associated with the Les Nabis group. Known for his distinctive use of flat colors and bold compositions, Vallotton's art often explored themes of introspection, psychological tension, and everyday life. His sharp contrasts and simplified forms influenced the development of modern graphic art and contributed to the rise of woodcut as a fine art medium. Vallotton's work continues to be celebrated for its innovative approach and lasting impact on early 20th-century art.</p>
+                </div>
+            </div>
+        </div>
+        <div class="artist-right">
+            <div class="artist">
+                <img src="{{ url_for('static', filename='images/creating/lunacy/Somber and Hard_Oscar Bluemner.jpg') }}" alt="Somber and Hard by Oscar Bluemner">
+                <div class="artist-info">
+                    <p class="piece-name">Somber and Hard (1927)</p>
+                    <h3>Oscar Bluemner (1867-1938)</h3>
+                    <p class="artist-bio">Oscar Bluemner (1867-1938) was a German-American painter and architect best known for his vibrant and geometrically structured landscapes. Bluemner's art fused elements of Cubism and Expressionism, using bold colors and dynamic compositions to capture the essence of American landscapes and urban scenes. His architectural background informed his distinctive use of space and form, creating compositions that explored the interplay between man-made structures and natural environments. Bluemner's innovative approach to color and form influenced later American modernist painters and continues to be admired for its unique visual language.</p>
+                </div>
+            </div>
+        </div>
+        <div class="generated-image">
+            <div class="artist">
+                <img src="{{ url_for('static', filename='images/creating/lunacy/Lunacy_Félix Vallotton+Oscar Bluemner.png') }}" alt="Lunacy by Félix Vallotton and Oscar Bluemner">
+                <div class="combined-info">
+                    <h3>Model: Midjourney v6</h3>
+                    <p class="prompt-text">Prompt: Lunacy by Félix Vallotton and Oscar Bluemner</p>
+                </div>
+            </div>
+        </div> 
+    </div> -->

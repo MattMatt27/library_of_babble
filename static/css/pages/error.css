@@ -1,0 +1,146 @@
+/**
+ * Error Pages Styles (404, 500)
+ */
+
+/* Remove default padding from error pages */
+.error-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Background container for generative art */
+.error-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.error-background img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transition: opacity 1.5s ease-in-out;
+}
+
+.error-background img.active {
+  opacity: 1;
+}
+
+/* Error message container */
+.error-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 1;
+  width: 90%;
+  max-width: 600px;
+}
+
+.error-card {
+  background: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.error-code {
+  font-size: 6rem;
+  font-weight: var(--font-bold);
+  color: var(--accent-blue);
+  margin: 0 0 var(--space-4) 0;
+  line-height: 1;
+  text-shadow: 0 4px 20px rgba(88, 166, 255, 0.3);
+}
+
+.error-title {
+  font-size: var(--font-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.error-message {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-6) 0;
+  line-height: var(--leading-relaxed);
+}
+
+.error-action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  background: var(--accent-blue);
+  border: none;
+  border-radius: var(--radius-base);
+  color: white;
+  font-size: var(--font-base);
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.error-action::before {
+  content: '←';
+  font-size: var(--font-lg);
+}
+
+.error-action:hover {
+  background: var(--accent-blue-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(88, 166, 255, 0.3);
+  text-decoration: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .error-code {
+    font-size: 4rem;
+  }
+
+  .error-title {
+    font-size: var(--font-xl);
+  }
+
+  .error-card {
+    padding: var(--space-6);
+  }
+}
+
+@media (max-width: 640px) {
+  .error-code {
+    font-size: 3rem;
+  }
+
+  .error-title {
+    font-size: var(--font-lg);
+  }
+
+  .error-message {
+    font-size: var(--font-sm);
+  }
+
+  .error-card {
+    padding: var(--space-5);
+  }
+}

@@ -84,12 +84,26 @@ def register_error_handlers(app):
 
     @app.errorhandler(404)
     def not_found_error(error):
-        return render_template('404.html'), 404
+        # Get list of generative art images for background
+        lunacy_path = os.path.join(app.static_folder, 'images/creating/lunacy')
+        images = []
+        if os.path.exists(lunacy_path):
+            images = [f for f in os.listdir(lunacy_path)
+                     if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
+                     and not f.startswith('.')]
+        return render_template('404.html', images=images), 404
 
     @app.errorhandler(500)
     def internal_error(error):
         db.session.rollback()
-        return render_template('500.html'), 500
+        # Get list of generative art images for background
+        lunacy_path = os.path.join(app.static_folder, 'images/creating/lunacy')
+        images = []
+        if os.path.exists(lunacy_path):
+            images = [f for f in os.listdir(lunacy_path)
+                     if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
+                     and not f.startswith('.')]
+        return render_template('500.html', images=images), 500
 
 
 def register_context_processors(app):

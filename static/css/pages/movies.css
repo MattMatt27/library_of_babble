@@ -31,6 +31,27 @@
   margin: 0;
 }
 
+.see-all-btn {
+  display: inline-block;
+  padding: var(--space-2) var(--space-4);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-base);
+  color: var(--accent-blue);
+  font-size: var(--font-sm);
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.see-all-btn:hover {
+  background: var(--accent-blue);
+  color: var(--text-inverse);
+  border-color: var(--accent-blue);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
 /* Movie/Show grid */
 .movies-grid {
   display: grid;

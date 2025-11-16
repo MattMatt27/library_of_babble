@@ -62,7 +62,7 @@ def register_blueprints(app):
     from app.auth import auth_bp
     from app.books import books_bp
     from app.movies import movies_bp
-    from app.shows import shows_bp
+    from app.shows import watching_bp
     from app.music import music_bp
     from app.artworks import artworks_bp
     from app.collections import collections_bp
@@ -73,7 +73,7 @@ def register_blueprints(app):
     app.register_blueprint(auth_bp)
     app.register_blueprint(books_bp, url_prefix='/books')
     app.register_blueprint(movies_bp, url_prefix='/movies')
-    app.register_blueprint(shows_bp, url_prefix='/shows')
+    app.register_blueprint(watching_bp, url_prefix='/watching')
     app.register_blueprint(music_bp, url_prefix='/listening')
     app.register_blueprint(artworks_bp, url_prefix='/artworks')
     app.register_blueprint(collections_bp, url_prefix='/collecting')

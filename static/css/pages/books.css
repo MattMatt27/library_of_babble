@@ -115,30 +115,24 @@
 
 /* See all button */
 .see-all-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
+  display: inline-block;
   padding: var(--space-2) var(--space-4);
-  background: var(--accent-blue);
-  color: #ffffff;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-base);
+  color: var(--accent-blue);
   font-size: var(--font-sm);
-  font-weight: var(--font-medium);
+  font-weight: var(--font-semibold);
   text-decoration: none;
   transition: all var(--transition-fast);
-  box-shadow: var(--shadow-sm);
 }
 
 .see-all-btn:hover {
-  background: var(--accent-blue-hover);
-  color: #ffffff;
-  box-shadow: var(--shadow-md);
+  background: var(--accent-blue);
+  color: var(--text-inverse);
+  border-color: var(--accent-blue);
   transform: translateY(-1px);
   text-decoration: none;
-}
-
-.see-all-btn::after {
-  content: '→';
 }
 
 /* Responsive adjustments */

@@ -31,15 +31,19 @@ data/staging/wait/
 static/images/artists/
 
 # ============================================================================
-# Deprecated Templates
+# Database
 # ============================================================================
-templates/music-dep.html
-templates/books-dep.html
-templates/book-db.html
-templates/matt_ranking-dep.html
-playlist.html
+instance/*.db
+instance/*.db-journal
 
 # ============================================================================
-# Internal Documentation
+# Flask Migrations
+# ============================================================================
+migrations/versions/*.pyc
+
+# ============================================================================
+# Internal Documentation & Archive
 # ============================================================================
 ARCHITECTURE.md
+docs/ignore/
+archive/

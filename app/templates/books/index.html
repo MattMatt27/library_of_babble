@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block title %}📙 Recently Read{% endblock %}
+
+{% set active_page = 'reading' %}
+
+{% block extra_styles %}
+<style type="text/css">
+    body {
+        background-color: #C1DFF0; 
+        color: #121212; 
+        font-family: Garamond, sans-serif;
+        font-size: 18px;
+        margin: 0;
+        padding: 0; 
+    }
+
+    header {
+        background-color: #121212;
+    }
+
+    table {
+        background-color: #093249;
+        color: #fff;
+        border-collapse: collapse;
+        margin: 10px auto;
+        width: 98%;
+    }
+    th, td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    th {
+        background-color: #121212;
+        color: #fff;
+    }
+    .center-header {
+        text-align: center;
+    }
+    .image-column {
+        width: 150px; /* Fixed width for image column */
+    }
+    .details-column {
+        width: 200px;
+    }
+    .date-column {
+        width: 75px;
+    }
+    .rating-column {
+        width: 120px;
+        text-align: center;
+        padding-right: 15px;
+    }
+    .image-column a {
+        display: inline-block;  /* Make the anchor wrap around the image tightly */
+    }
+    img {
+        max-height: 250px; /* Limit image height */
+        max-width: 100%; /* Ensure image fits within its container */
+        display: block; /* Ensure proper sizing */
+        margin: auto; /* Center the image horizontally */
+    }
+    form {
+        margin-right: 10px;
+    }
+    textarea {
+        width: 100%;
+        min-width: 100%; 
+        max-width: 100%; 
+        resize: vertical;
+        padding: 8px; 
+        box-sizing: border-box; 
+        background-color: #C1DFF0;
+        font-family: Garamond, sans-serif;
+        border-radius: 5px;
+    }
+    .save-button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin-top: 5px;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .save-button:hover {
+        background-color: #0056b3;
+    }
+    .header-text {
+        padding-left: 20px;
+        text-align: center;
+    }
+    .header-container {
+        display: flex; /* Use flexbox for layout */
+        align-items: center; /* Center vertically */
+        
+    }
+    .back-button {
+        background-color: #007bff; /* Blue background color for button */
+        color: #ffffff; /* White text color */
+        padding: 10px 20px; /* Add padding */
+        margin-left: 20px;
+        border-radius: 5px; /* Rounded corners */
+        text-decoration: none; /* Remove underline from button */
+        transition: background-color 0.3s; /* Smooth transition for background color */
+        display: flex; /* Use flexbox for layout */
+        align-items: center; /* Center vertically */
+    }
+    .back-button:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+    }
+
+    @media screen and (max-width: 900px) {
+        body {
+            background-color: #093249;
+        }
+        table, tbody, tr {
+            display: block;
+            width: 100%;
+            margin-top: 0px;
+            padding-top: 10px;
+        }
+
+        thead {
+            display: none; /* Hide the table header on mobile */
+        }
+
+        tr {
+            margin-bottom: 30px;
+            background-color: #093249;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        td {
+            display: block;
+            border: none;
+            position: relative;
+            padding: 10px 15px;
+            text-align: center;
+        }
+
+        /* Remove the pseudo-elements that were adding column names */
+        td:before {
+            content: none;
+        }
+
+        .image-column {
+            width: 95%;
+            text-align: center;
+        }
+
+        .image-column img {
+            max-height: 350px; /* Limit image height */
+            width: auto; /* Maintain aspect ratio */
+            max-width: 100%; /* Ensure image fits within its container */
+        }
+
+        .details-column, .rating-column {
+            width: auto;
+        }
+
+        .movie-title {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .rating-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #C1DFF0; 
+            color: #121212; 
+            border-radius: 5px 5px 0 0;
+            margin: 10px;
+            margin-bottom: 0px;
+        }
+
+        .rating-column > * {
+            margin: 0;
+        }
+
+        .stars-image {
+            padding-top: 5px;
+            height: 20px; /* Adjust star image size */
+        }
+
+        .rating-handling {
+            padding-top: 0;
+            background-color: #C1DFF0; 
+            color: #121212; 
+            border-radius: 0 0 5px 5px;
+            margin: 10px;
+            margin-top: 0;
+        }
+
+        blockquote {
+            margin: 0;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .preserve-newlines {
+            font-size: 16px;
+        }
+    }
+
+    /* Additional optimization for very small screens */
+    @media screen and (max-width: 480px) {
+        body {
+            font-size: 16px;
+        }
+
+        .movie-title {
+            font-size: 18px;
+        }
+
+        .image-column img {
+            max-height: 250px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+ <div class="header-container">
+    <!-- <p><a href="/library" class="back-button">←Back</a></p> -->
+    <!-- <h1 class="header-text">Recently Read Books</h1> -->
+</div>
+<table>
+    <thead>
+        <tr>
+            <th class="center-header">Cover</th>
+            <th>Details</th>
+            <th>Date Finished + My Rating</th>
+            <th>My Review</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for book in books %}
+            <tr>
+                <td class="image-column">
+                    <a href="{{ url_for('books.detail', book_id=book.id) }}">
+                        <img src="{{ book['cover_image_url'] }}" alt="{{ book['title'] }}">
+                    </a>
+                </td>
+                <td class="details-column">
+                    <div><strong>{{ book['title'] }}</strong></div>
+                    <div>{{ book['author'] }}</div>
+                    <div>
+                        {% if book['publication_year'] is not none %}
+                            {% if book['publication_year'] < 0 %}
+                                {{ -book['publication_year'] }} BC
+                            {% else %}
+                                {{ book['publication_year'] }}
+                            {% endif %}
+                        {% else %}
+                            Unknown
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="rating-column">
+                    {{ book['date_read']}}<br>
+                    <img class="stars-image" src="{{ url_for('static', filename='images/assets/stars/' + book['my_rating'] + '.png') }}" alt="{{ book['my_rating'] }} Stars">
+                </td>
+                <td class="rating-handling">
+                    <form action="/update_review/{{ book.id }}" method="POST">
+                        <textarea name="my_review" rows="5" {% if not current_user.is_authenticated or current_user.role != 'admin' %} readonly {% endif %}>{{ book['my_review'] }}</textarea>
+                        <br>
+                        {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                            <input type="submit" value="Save" class="save-button">
+                        {% endif %}
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function autoResizeTextarea(textarea) {
+        textarea.style.height = 'auto';  // Reset height to calculate scrollHeight
+        textarea.style.height = (textarea.scrollHeight + 5) + 'px';  // Set to new height
+    }
+
+    window.onload = function() {
+        document.querySelectorAll('textarea').forEach(autoResizeTextarea);  // For pre-filled content
+    };
+</script>
+{% endblock %}

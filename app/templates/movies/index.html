@@ -5,261 +5,315 @@
 {% set active_page = 'watching' %}
 
 {% block extra_styles %}
-<style type="text/css">
-    body {
-        background-color: #C1DFF0; 
-        color: #121212; 
-        font-family: Garamond, sans-serif;
-        font-size: 18px;
-        margin: 0;
-        padding: 0; 
-    }
-    header {
-        background-color: #121212;
-    }
-    table {
-        background-color: #093249;
-        color: #fff;
-        border-collapse: collapse;
-        margin: 10px auto;
-        width: 98%;
-    }
-    th, td {
-        padding: 8px;
-        padding-bottom: 16px;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
-    }
-    th {
-        background-color: #121212;
-        color: #fff;
-    }
-    .center-header {
-        text-align: center;
-    }
-    .image-column {
-        width: 150px; /* Fixed width for image column */
-    }
-    .details-column {
-        width: 225px;
-    }
-    .movie-title {
-        font-size: 22px;
-    }
-    .date-column {
-        width: 75px;
-    }
-    .rating-column {
-        width: 120px;
-        text-align: center;
-        padding-right: 15px;
-    }
-    .stars-image {
-        padding-top: 7px;
-    }
-    img {
-        max-height: 300px; /* Limit image height */
-        max-width: 100%; /* Ensure image fits within its container */
-        display: block; /* Ensure proper sizing */
-        margin: auto; /* Center the image horizontally */
-    }
-    .header-text {
-        padding-left: 20px;
-        text-align: center;
-    }
-    .header-container {
-        display: flex; /* Use flexbox for layout */
-        align-items: center; /* Center vertically */
-        
-    }
-    .back-button {
-        background-color: #007bff; /* Blue background color for button */
-        color: #ffffff; /* White text color */
-        padding: 10px 20px; /* Add padding */
-        margin-left: 20px;
-        border-radius: 5px; /* Rounded corners */
-        text-decoration: none; /* Remove underline from button */
-        transition: background-color 0.3s; /* Smooth transition for background color */
-        display: flex; /* Use flexbox for layout */
-        align-items: center; /* Center vertically */
-    }
-    .back-button:hover {
-        background-color: #0056b3; /* Darker blue on hover */
-    }
-    blockquote {
-        background-color: #444; /* Dark grey background color for quotes */
-        color: #fff; /* White text color */
-        padding: 20px; /* Add padding around the quote */
-        margin-bottom: 20px; /* Add space between quotes */
-        border-left: 5px solid #007bff; /* Blue border on the left */
-        margin-left: 5px;
-    }
-    .preserve-newlines {
-        white-space: pre-line;
-    }
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/movies.css') }}">
+<style>
+/* Page-specific table styles */
+.movies-table-section {
+  margin-top: var(--space-4);
+}
 
+.movies-table {
+  width: 100%;
+}
 
+.movies-table .image-column {
+  width: 200px;
+  text-align: center;
+}
 
-    @media screen and (max-width: 900px) {
-        body {
-            background-color: #093249;
-        }
-        table, tbody, tr {
-            display: block;
-            width: 100%;
-            margin-top: 0px;
-        }
+.movies-table .image-column img {
+  max-height: 350px;
+  width: auto;
+  max-width: 100%;
+  border-radius: var(--radius-md);
+}
 
-        thead {
-            display: none; /* Hide the table header on mobile */
-        }
+.movies-table .details-rating-column {
+  width: 350px;
+}
 
-        tr {
-            margin-bottom: 30px;
-            background-color: #093249;
-            border-radius: 8px;
-            overflow: hidden;
-        }
+.movies-table .movie-info-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
 
-        td {
-            display: block;
-            border: none;
-            position: relative;
-            padding: 10px 15px;
-            text-align: center;
-        }
+.movies-table .movie-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
 
-        /* Remove the pseudo-elements that were adding column names */
-        td:before {
-            content: none;
-        }
+.movies-table .movie-rating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-secondary);
+}
 
-        .image-column {
-            width: 95%;
-            text-align: center;
-        }
+.movies-table .review-column {
+  min-width: 300px;
+}
 
-        .image-column img {
-            max-height: 350px; /* Limit image height */
-            width: auto; /* Maintain aspect ratio */
-            max-width: 100%; /* Ensure image fits within its container */
-        }
+.movies-table .stars-image {
+  height: 24px;
+  width: auto;
+}
 
-        .details-column, .rating-column {
-            width: auto;
-        }
+/* Review tabs (GitHub-style) */
+.review-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-primary);
+}
 
-        .movie-title {
-            font-size: 20px;
-            margin-bottom: 5px;
-        }
+.review-tab {
+  background: transparent;
+  border: none;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition-fast);
+  margin-bottom: -1px;
+  font-family: var(--font-primary);
+}
 
-        .rating-column {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background-color: #C1DFF0; 
-            color: #121212; 
-            border-radius: 5px 5px 0 0;
-            margin: 5px;
-            margin-bottom: 0px;
-        }
+.review-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
 
-        .rating-column > * {
-            margin: 0;
-        }
+.review-tab.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--accent-blue);
+}
 
-        .stars-image {
-            padding-top: 5px;
-            height: 20px; /* Adjust star image size */
-        }
+.review-preview {
+  padding: var(--space-3);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-base);
+  min-height: 100px;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
 
-        .rating-handling {
-            padding-top: 0;
-            background-color: #C1DFF0; 
-            color: #121212; 
-            border-radius: 0 0 5px 5px;
-            margin: 5px;
-            margin-top: 0;
-        }
+.review-preview blockquote {
+  margin: var(--space-3) 0;
+  padding-left: var(--space-4);
+  border-left: 3px solid var(--border-primary);
+  color: var(--text-secondary);
+  font-style: italic;
+}
 
-        blockquote {
-            margin: 0;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
+.review-preview i {
+  font-style: italic;
+}
 
-        .preserve-newlines {
-            font-size: 16px;
-        }
-    }
+.review-preview br {
+  display: block;
+  content: "";
+  margin-top: var(--space-2);
+}
 
-    /* Additional optimization for very small screens */
-    @media screen and (max-width: 480px) {
-        body {
-            font-size: 16px;
-        }
+.review-textarea {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', 'Droid Sans Mono', 'Source Code Pro', monospace;
+  font-size: var(--font-sm);
+}
 
-        .movie-title {
-            font-size: 18px;
-        }
+/* Mobile responsive */
+@media screen and (max-width: 900px) {
+  .movies-table-section {
+    margin-top: var(--space-3);
+  }
 
-        .image-column img {
-            max-height: 250px;
-        }
-    }
+  .table-container {
+    border: none;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+  }
+
+  .movies-table,
+  .movies-table tbody,
+  .movies-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .movies-table thead {
+    display: none;
+  }
+
+  .movies-table tr {
+    margin-bottom: var(--space-6);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .movies-table td {
+    display: block;
+    border: none;
+    text-align: center;
+    padding: var(--space-4);
+    border-bottom: none !important;
+  }
+
+  .movies-table .image-column {
+    width: 100%;
+    padding-bottom: var(--space-3);
+  }
+
+  .movies-table .image-column a {
+    display: block;
+  }
+
+  .movies-table .image-column img {
+    max-height: 400px;
+    margin: 0 auto;
+  }
+
+  .movies-table .details-rating-column {
+    width: 100%;
+    padding-top: 0;
+    padding-bottom: var(--space-4);
+  }
+
+  .movies-table .movie-info-wrapper {
+    gap: var(--space-3);
+  }
+
+  .movies-table .movie-rating {
+    justify-content: center;
+  }
+
+  .movies-table .review-column {
+    width: 100%;
+    background: var(--bg-primary);
+    min-width: auto;
+    padding: var(--space-4);
+  }
+
+  .movies-table .review-column .form-textarea {
+    font-size: var(--font-sm);
+    min-height: 100px;
+  }
+
+  .movies-table tbody tr:hover {
+    background: var(--bg-secondary);
+  }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="header-container">
-    <!-- <p><a href="/watching" class="back-button">←Back</a></p>
-    <h1 class="header-text">Recently Watched</h1> -->
-</div>
-<table>
-    <thead>
-        <tr>
-            <th class="center-header">Cover</th>
-            <th>Details</th>
-            <th>Date Watched + My Rating</th>
-            <th>My Review</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for movie in movies %}
-            <tr>
-                <td class="image-column"><img src="{{ movie['cover_image_url'] }}" alt="{{ movie['title'] }}"></td>
-                <td class="details-column">
-                    <strong class="movie-title">{{ movie['title'] }}</strong><br>
-                    {{ movie['director'] }}<br>
-                    {{ movie['year'] }}
-                </td>
-                <td class="rating-column">
-                    {{ movie['date_watched'] }}<br>
-                    <img class="stars-image" src="{{ url_for('static', filename='images/assets/stars/' + movie['my_rating'] + '.png') }}" alt="{{ movie['my_rating'] }} Stars">
-                </td>
-                <td class="rating-handling">
-                    {% set parts = movie['my_review'].split('<blockquote>') %}
-                    <span class="preserve-newlines">{{ parts[0]|trim|safe }}</span>
-                    {% if parts|length > 1 %}
-                        <blockquote>
-                            {% for part in parts[1:] %}
-                                {% set blockquote_content = part.split('</blockquote>', 1) %}
-                                {{ blockquote_content[0]|safe }}
-                                {% if not loop.last %}
-                                    <br><br>
+<div class="container movies-table-section">
+    <div class="table-container">
+        <table class="table movies-table">
+            <thead>
+                <tr>
+                    <th class="text-center">Cover</th>
+                    <th>Movie Details</th>
+                    <th>My Review</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for movie in movies %}
+                    <tr>
+                        <td class="image-column">
+                            <img src="{{ movie['cover_image_url'] }}" alt="{{ movie['title'] }}">
+                        </td>
+                        <td class="details-rating-column">
+                            <div class="movie-info-wrapper">
+                                <div class="movie-details">
+                                    <div class="font-semibold text-primary mb-2">{{ movie['title'] }}</div>
+                                    <div class="text-secondary mb-1">{{ movie['director'] }}</div>
+                                    <div class="text-tertiary text-sm">{{ movie['year'] }}</div>
+                                </div>
+                                <div class="movie-rating">
+                                    <div class="text-secondary text-sm">{{ movie['date_watched'] }}</div>
+                                    <img class="stars-image" src="{{ url_for('static', filename='images/assets/stars/' + movie['my_rating'] + '.png') }}" alt="{{ movie['my_rating'] }} Stars">
+                                </div>
+                            </div>
+                        </td>
+                        <td class="review-column">
+                            <form action="{{ url_for('movies.update_review', movie_id=movie.id) }}" method="POST" class="form-group mb-0">
+                                {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                    <div class="review-tabs">
+                                        <button type="button" class="review-tab active" data-tab="preview" data-movie-id="{{ movie.id }}">Preview</button>
+                                        <button type="button" class="review-tab" data-tab="write" data-movie-id="{{ movie.id }}">Write</button>
+                                    </div>
                                 {% endif %}
-                            {% endfor %}
-                        </blockquote>
-                        {% set last_part = parts[-1].split('</blockquote>', 1) %}
-                        {% if last_part|length > 1 %}
-                            <span class="preserve-newlines">{{ last_part[1]|trim|safe }}</span>
-                        {% endif %}
-                    {% endif %}
-                </td>
-            </tr>
-        {% endfor %}
-    </tbody>
-</table>
+
+                                <div class="review-preview" id="preview-{{ movie.id }}">
+                                    {{ movie['my_review']|safe }}
+                                </div>
+
+                                {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                <input type="hidden" name="date_watched" value="{{ movie['date_watched'] }}">
+                                <textarea name="my_review"
+                                          id="textarea-{{ movie.id }}"
+                                          class="form-textarea review-textarea"
+                                          rows="5"
+                                          style="display: none;">{{ movie['my_review'] }}</textarea>
+                                {% endif %}
+
+                                {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                    <button type="submit" class="btn btn-primary btn-sm mt-3">Save</button>
+                                {% endif %}
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function autoResizeTextarea(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight + 5) + 'px';
+    }
+
+    // Handle review tab switching
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-resize all textareas on load
+        document.querySelectorAll('textarea').forEach(autoResizeTextarea);
+
+        // Add click handlers to all review tabs
+        document.querySelectorAll('.review-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const movieId = this.dataset.movieId;
+                const tabType = this.dataset.tab;
+                const preview = document.getElementById(`preview-${movieId}`);
+                const textarea = document.getElementById(`textarea-${movieId}`);
+                const tabs = this.parentElement.querySelectorAll('.review-tab');
+
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                // Toggle preview/write view
+                if (tabType === 'preview') {
+                    preview.style.display = 'block';
+                    textarea.style.display = 'none';
+                } else {
+                    preview.style.display = 'none';
+                    textarea.style.display = 'block';
+                    autoResizeTextarea(textarea);
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

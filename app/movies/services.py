@@ -50,6 +50,8 @@ def read_movies_from_db():
         )
     ).filter(
         Reviews.date_reviewed.isnot(None)
+    ).order_by(
+        Reviews.date_reviewed.desc()
     ).all()
 
     for movie, review in query:

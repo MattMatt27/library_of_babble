@@ -4,6 +4,108 @@
  * Reusable component classes for buttons, cards, forms, tables, navigation, etc.
  */
 
+/* ============================================================================
+   Star Rating Component
+   ============================================================================ */
+
+.star-rating {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.star-rating.small {
+  font-size: 20px;
+}
+
+.star-rating.large {
+  font-size: 32px;
+}
+
+/* Individual star container */
+.star {
+  position: relative;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  cursor: default;
+}
+
+/* Interactive stars for admin */
+.star-rating.interactive .star {
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.star-rating.interactive .star:hover {
+  transform: scale(1.15);
+}
+
+/* Star SVG - empty star (outline) */
+.star-empty,
+.star-filled {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  fill: var(--border-primary);
+  transition: fill var(--transition-fast);
+}
+
+/* Filled star */
+.star-filled {
+  fill: #fbbf24;
+  clip-path: inset(0 50% 0 0);
+}
+
+.star.full .star-filled {
+  clip-path: inset(0 0 0 0);
+}
+
+.star.half .star-filled {
+  clip-path: inset(0 50% 0 0);
+}
+
+.star.empty .star-filled {
+  clip-path: inset(0 100% 0 0);
+}
+
+/* Hover effects for interactive stars */
+.star-rating.interactive:hover .star-empty {
+  fill: var(--border-primary);
+}
+
+.star-rating.interactive .star:hover .star-empty,
+.star-rating.interactive .star.hover .star-empty {
+  fill: var(--bg-tertiary);
+}
+
+.star-rating.interactive .star:hover .star-filled,
+.star-rating.interactive .star.hover .star-filled {
+  fill: #fbbf24;
+}
+
+/* Half-star click zones */
+.star-half-left,
+.star-half-right {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  z-index: 10;
+}
+
+.star-half-left {
+  left: 0;
+}
+
+.star-half-right {
+  right: 0;
+}
+
 /* ============================================
    NAVIGATION BAR
    ============================================ */

@@ -369,7 +369,7 @@ def load_letterboxd_export(letterboxd_folder=None):
                 if existing_review:
                     # Only update empty fields
                     if not existing_review.rating and my_rating:
-                        existing_review.rating = int(float(my_rating)) if my_rating else None
+                        existing_review.rating = float(my_rating) if my_rating else None
                     if not existing_review.review_text and my_review:
                         existing_review.review_text = my_review
                 else:
@@ -377,7 +377,7 @@ def load_letterboxd_export(letterboxd_folder=None):
                     review = Reviews(
                         item_type='Movie',
                         item_id=existing_movie.tmdb_id,
-                        rating=int(float(my_rating)) if my_rating else None,
+                        rating=float(my_rating) if my_rating else None,
                         review_text=my_review,
                         date_reviewed=date_watched.strftime('%Y-%m-%d')
                     )

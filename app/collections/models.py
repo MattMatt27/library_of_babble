@@ -17,7 +17,7 @@ class Reviews(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     item_type = db.Column(db.String(20), nullable=False)  # 'Book', 'Movie', 'TVShow'
     item_id = db.Column(db.String(50), nullable=False)
-    rating = db.Column(db.Integer)
+    rating = db.Column(db.Float)
     review_text = db.Column(db.Text)
     date_reviewed = db.Column(db.String(20))
 

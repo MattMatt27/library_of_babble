@@ -4,6 +4,7 @@
 
 {% block extra_styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/books.css') }}">
+<script src="{{ url_for('static', filename='js/star-rating.js') }}" defer></script>
 <style>
 /* Book detail page styles */
 .book-detail-container {
@@ -379,8 +380,16 @@
                             <div class="review-date">Finished on {{ review.date_read }}</div>
                             {% if review.my_rating and review.my_rating != '0' %}
                                 <div class="review-stars">
-                                    <img src="{{ url_for('static', filename='images/assets/stars/' + review.my_rating + '.png') }}"
-                                         alt="{{ review.my_rating }} Stars">
+                                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                        <div data-star-rating="{{ review.my_rating or 0 }}"
+                                             data-interactive
+                                             data-item-type="book"
+                                             data-item-id="{{ book.id }}"
+                                             data-size="small"></div>
+                                    {% else %}
+                                        <div data-star-rating="{{ review.my_rating or 0 }}"
+                                             data-size="small"></div>
+                                    {% endif %}
                                 </div>
                             {% endif %}
                         </div>

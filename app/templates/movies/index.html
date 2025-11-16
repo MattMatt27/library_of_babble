@@ -6,6 +6,7 @@
 
 {% block extra_styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/movies.css') }}">
+<script src="{{ url_for('static', filename='js/star-rating.js') }}" defer></script>
 <style>
 /* Page-specific table styles */
 .movies-table-section {
@@ -239,7 +240,16 @@
                                 </div>
                                 <div class="movie-rating">
                                     <div class="text-secondary text-sm">{{ movie['date_watched'] }}</div>
-                                    <img class="stars-image" src="{{ url_for('static', filename='images/assets/stars/' + (movie['my_rating']|string) + '.png') }}" alt="{{ movie['my_rating'] }} Stars">
+                                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                        <div data-star-rating="{{ movie['my_rating'] or 0 }}"
+                                             data-interactive
+                                             data-item-type="movie"
+                                             data-item-id="{{ movie.id }}"
+                                             data-size="small"></div>
+                                    {% else %}
+                                        <div data-star-rating="{{ movie['my_rating'] or 0 }}"
+                                             data-size="small"></div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </td>

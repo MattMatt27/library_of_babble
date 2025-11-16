@@ -6,379 +6,86 @@
 
 {% block extra_styles %}
 <link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
-<style>
-   body {
-        background-color: #121212;
-        color: #ffffff;
-        font-family: Garamond, sans-serif;
-        margin: 0;
-        font-size: 20px;
-    }
-
-    header {
-        background-color: #333;
-        color: #fff;
-        text-align: center;
-        width: 100%;
-    }
-
-    .artwork-grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-        justify-content: center;
-        padding: 20px;
-        padding-top: 5px;
-    }
-    .content-item {
-        background-color: #C1DFF0;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        transition: transform 0.3s ease;
-        display: inline-block;
-        text-align: left;
-    }
-    .content-item:hover {
-        transform: translateY(-5px);
-    }
-    .image-container {
-        height: 350px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-    }
-    .content-item img {
-        max-height: 100%;
-        width: auto;
-        object-fit: contain;
-        border-radius: 0px;
-        cursor: pointer;
-    }
-    .content-details {
-        padding: 15px;
-        box-sizing: border-box;
-        max-width: calc(150% + 20px);
-    }
-    .content-item h3 {
-        font-size: 16px;
-        margin: 0 0 5px 0;
-        color: #121212;
-        flex-direction: column;
-        align-items: flex-start;
-        word-wrap: break-word;
-        hyphens: auto;
-    }
-    .content-item p {
-        font-size: 14px;
-        margin: 0 0 5px 0;
-        color: #333;
-        flex-direction: column;
-        align-items: flex-start;
-        word-wrap: break-word;
-        hyphens: auto;
-        max-width: calc(150% + 20px);
-    }
-
-    .controls {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 20px;
-        padding-left: 50px;
-        padding-right: 50px;
-    }
-
-    .control-item {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-    }
-
-    #artist-search {
-        width: 200px;
-    }
-
-    .selected-artists {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-items: center;
-        padding-left: 50px;
-        padding-right: 50px;
-    }
-
-    .artist-tag {
-        background-color: #C1DFF0;
-        color: #121212;
-        padding: 5px 10px;
-        border-radius: 15px;
-        font-size: 14px;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    .artist-tag button {
-        background: none;
-        border: none;
-        color: #121212;
-        font-size: 14px;
-        cursor: pointer;
-        margin-left: 5px;
-    }
-
-    .pagination {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: 20px 0;
-        gap: 10px;
-    }
-
-    .pagination button {
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-        border: none;
-        border-radius: 5px;
-        background-color: #C1DFF0;
-        color: #121212;
-    }
-
-    .pagination button:disabled {
-        background-color: #777;
-        cursor: not-allowed;
-    }
-
-    .pagination span {
-        font-size: 18px;
-    }
-
-    .image-viewer {
-        display: none; /* Hidden by default */
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.9);
-        z-index: 1000;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-    }
-
-    .image-viewer-content {
-        position: relative;
-        text-align: center;
-        max-width: 90%;
-        max-height: 90%;
-    }
-
-    .image-viewer img {
-        max-width: 100%;
-        max-height: 70vh;
-        margin-bottom: 20px;
-    }
-
-    .image-details {
-        color: #fff;
-        text-align: center;
-    }
-
-    .image-details h2 {
-        margin: 0;
-        font-size: 24px;
-        font-weight: bold;
-    }
-
-    .image-details p {
-        margin: 5px 0;
-        font-size: 16px;
-    }
-
-    .close-viewer {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: none;
-        border: none;
-        font-size: 30px;
-        color: white;
-        cursor: pointer;
-        z-index: 1001;
-    }
-
-    .nav-arrow {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        color: white;
-        font-size: 40px;
-        cursor: pointer;
-        z-index: 1001;
-    }
-
-    .nav-arrow:hover {
-        color: #ccc;
-    }
-
-    .prev-arrow {
-        left: 20px;
-    }
-
-    .next-arrow {
-        right: 20px;
-    }
-
-    .close-viewer:hover {
-        color: #ccc;
-    }
-
-    .like-button {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 30px;
-        color: white;
-    }
-
-    .heart-icon {
-        width: 34px;
-        height: 34px;
-        transition: transform 0.2s ease;
-        margin-bottom: 0;
-    }
-
-    .like-button:hover .heart-icon {
-        transform: scale(1.2);
-        color: #ccc;
-    }
-
-    .button-container {
-        margin-top: 15px;
-    }
-
-    .full-text-button {
-        background-color: #C1DFF0; 
-        color: #093249; 
-        font-size: 17px;
-        padding: 10px 20px; 
-        border-radius: 5px; 
-        border: none;
-        text-decoration: none; 
-        transition: background-color 0.3s; 
-        align-items: center;
-        cursor: pointer;
-    }
-    .full-text-button::after {
-        content: ' →';
-    }
-
-    .full-text-button:hover {
-        background-color: #093249; 
-        color: #C1DFF0;
-        border: solid white 1px;
-        text-decoration: none;
-    }
-
-</style>
-<link rel="stylesheet" href="https://unpkg.com/photoswipe/dist/photoswipe.css">
-<link rel="stylesheet" href="https://unpkg.com/photoswipe/dist/default-skin/default-skin.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/pondering.css') }}">
 {% endblock %}
 
 {% block content %}
-<div class="controls">
-    <div class="control-item">
-        <label for="artist-search">Search Artist:</label>
-        <input type="text" id="artist-search" placeholder="Start typing an artist name..." style="width: 180px; padding: 5px;">
+<div class="pondering-page">
+    <div class="pondering-controls">
+        <div class="controls-row">
+            <div class="control-item">
+                <label for="artist-search">Search Artist:</label>
+                <input type="text" id="artist-search" placeholder="Start typing an artist name...">
+            </div>
+            <div class="control-item">
+                <label for="sort-year">Sort by Year:</label>
+                <select id="sort-year">
+                    <option value="random" {% if request.args.get('sort_order') == 'random' %}selected{% endif %}>Random</option>
+                    <option value="asc" {% if request.args.get('sort_order') == 'asc' %}selected{% endif %}>Ascending</option>
+                    <option value="desc" {% if request.args.get('sort_order') == 'desc' %}selected{% endif %}>Descending</option>
+                </select>
+            </div>
+            <a href="/artworks/galleries" class="view-collections-btn">View Collections</a>
+        </div>
+        <div class="selected-artists" id="selected-artists">
+            {% for artist in selected_artists %}
+            <div class="artist-tag" data-artist="{{ artist }}">
+                {{ artist }}
+                <button class="remove-artist" data-artist="{{ artist }}">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
     </div>
-    <div class="selected-artists" id="selected-artists">
-        {% for artist in selected_artists %}
-        <div class="artist-tag" data-artist="{{ artist }}">
-            {{ artist }}
-            <button class="remove-artist" data-artist="{{ artist }}">&times;</button>
+    <div class="artwork-grid">
+        {% for artwork in approved_artworks %}
+        <div class="artwork-item">
+            <div class="artwork-image-container">
+                <img src="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
+                     alt="{{ artwork.title }}"
+                     data-img-id="{{ artwork.id }}"
+                     data-full-img="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
+                     data-title="{{ artwork.title }}"
+                     data-artist="{{ artwork.artist }}"
+                     data-year="{{ artwork.year }}"
+                     data-location="{{ artwork.location }}"
+                     data-medium="{{ artwork.medium }}"
+                     data-description="{{ artwork.description }}">
+            </div>
+            <div class="artwork-details">
+                <h3 class="artwork-title">{{ artwork.title }}</h3>
+                <a href="#" class="filter-artist artwork-artist" data-artist="{{ artwork.artist }}">{{ artwork.artist }}</a>
+                <p class="artwork-meta">🎨 {{ artwork.medium if artwork.medium else "Unknown" }}</p>
+                <p class="artwork-meta">📍 {{ artwork.location }}</p>
+            </div>
         </div>
         {% endfor %}
     </div>
-    <div class="control-item">
-        <label for="sort-year">Sort by Year:</label>
-        <select id="sort-year">
-            <option value="random" {% if request.args.get('sort_order') == 'random' %}selected{% endif %}>Random</option>
-            <option value="asc" {% if request.args.get('sort_order') == 'asc' %}selected{% endif %}>Ascending</option>
-            <option value="desc" {% if request.args.get('sort_order') == 'desc' %}selected{% endif %}>Descending</option>
-        </select>
-    </div>
-    <p class="button-container"><a href="/galleries" class="full-text-button">View Collections</a></p>
-    <!-- <div class="control-item">
-        <label>Date Range:</label>
-        <div class="date-pickers">
-            <input type="text" id="start-date" placeholder="1000" value="{{ request.args.get('start_date', '') }}">
-            <input type="text" id="end-date" placeholder="2024" value="{{ request.args.get('end_date', '') }}">
-        </div>
-    </div> -->
-</div>
-<div class="artwork-grid">
-    {% for artwork in approved_artworks %}
-    <div class="content-item">
-        <div class="image-container">
-            <img src="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}" 
-                 alt="{{ artwork.title }}" 
-                 data-img-id="{{ artwork.id }}"
-                 data-full-img="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
-                 data-title="{{ artwork.title }}"
-                 data-artist="{{ artwork.artist }}"
-                 data-year="{{ artwork.year }}"
-                 data-location="{{ artwork.location }}"
-                 data-medium="{{ artwork.medium }}"
-                 data-description="{{ artwork.description }}">
-        </div>
-        <div class="content-details">
-            <h3>{{ artwork.title }}</h3>
-            <!-- <p class="artist-name"><strong>{{ artwork.artist }}</strong></p> -->
-            <p class="artist-name"><strong><a href="#" class="filter-artist" data-artist="{{ artwork.artist }}">{{ artwork.artist }}</a></strong></p>
-            <p>🎨 {{ artwork.medium if artwork.medium else "Unknown" }}</p>
-            <p>📍 {{ artwork.location }}</p>
-        </div>
-    </div>
-    {% endfor %}
-</div>
 
-<!-- Pagination Controls -->
-<div class="pagination">
-    <button id="prev-page" {% if current_page == 1 %}disabled{% endif %}>&lt; Prev</button>
-    <span id="current-page">Page {{ current_page }} of {{ total_pages }}</span>
-    <button id="next-page" {% if current_page == total_pages %}disabled{% endif %}>Next &gt;</button>
+    <!-- Pagination Controls -->
+    <div class="pagination">
+        <button id="prev-page" {% if current_page == 1 %}disabled{% endif %}>&lt; Prev</button>
+        <span id="current-page">Page {{ current_page }} of {{ total_pages }}</span>
+        <button id="next-page" {% if current_page == total_pages %}disabled{% endif %}>Next &gt;</button>
+    </div>
 </div>
-
 
 <div id="image-viewer" class="image-viewer">
+    <button id="close-viewer" class="close-viewer">&times;</button>
+    <button class="like-button" data-artwork-id="">
+        <img src="{{ url_for('static', filename='images/assets/hearts/heart_outline.png') }}" alt="Heart Icon" class="heart-icon">
+    </button>
+    <button id="prev-image" class="nav-arrow prev-arrow">&lt;</button>
+    <button id="next-image" class="nav-arrow next-arrow">&gt;</button>
     <div class="image-viewer-content">
-        <button id="close-viewer" class="close-viewer">&times;</button>
-        <button class="like-button" data-artwork-id="">
-            <img src="{{ url_for('static', filename='images/assets/hearts/heart_outline.png') }}" alt="Heart Icon" class="heart-icon">
-        </button>
-        <button id="prev-image" class="nav-arrow prev-arrow">&lt;</button>
-        <img id="viewer-image" src="" alt="Artwork">
-        <div class="image-details">
+        <div class="viewer-image-container">
+            <img id="viewer-image" src="" alt="Artwork">
+        </div>
+        <div class="viewer-details">
             <h2 id="viewer-title"></h2>
             <p class="artist-name"><strong>Artist:</strong> <span id="viewer-artist"></span></p>
             <p><strong>Medium:</strong> <span id="viewer-medium"></span></p>
             <p><strong>Location:</strong> <span id="viewer-location"></span></p>
         </div>
-        <button id="next-image" class="nav-arrow next-arrow">&gt;</button>
     </div>
 </div>
 {% endblock %}
@@ -386,9 +93,6 @@
 {% block extra_scripts %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://unpkg.com/photoswipe/dist/photoswipe.min.js"></script>
-<script src="https://unpkg.com/photoswipe/dist/photoswipe-ui-default.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const artistSearch = $('#artist-search');
@@ -480,7 +184,7 @@
         const likeButton = viewer.querySelector('.like-button');
         const heartIcon = likeButton.querySelector('.heart-icon');
 
-        const images = Array.from(document.querySelectorAll('.content-item img')); // Collect all images
+        const images = Array.from(document.querySelectorAll('.artwork-item img')); // Collect all images
         let currentIndex = 0; // Track the current image index
         let currentArtworkId = null;
 
@@ -528,13 +232,13 @@
         }
 
         function updateLikeButtonState(artworkId) {
-            fetch(`/is_liked?artwork_id=${artworkId}`, { method: 'GET' })
+            fetch(`/artworks/is_liked?artwork_id=${artworkId}`, { method: 'GET' })
                 .then(response => response.json())
                 .then(data => {
                     if (data.liked) {
-                        heartIcon.src = '/static/images/assets/hearts/heart_filled.png'; 
+                        heartIcon.src = '/static/images/assets/hearts/heart_filled.png';
                     } else {
-                        heartIcon.src = '/static/images/assets/hearts/heart_outline.png'; 
+                        heartIcon.src = '/static/images/assets/hearts/heart_outline.png';
                     }
                 })
                 .catch(error => console.error('Error fetching like state:', error));
@@ -543,7 +247,7 @@
         likeButton.addEventListener('click', function () {
             if (!currentArtworkId) return;
 
-            fetch('/like_artwork', {
+            fetch('/artworks/like_artwork', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -555,7 +259,7 @@
                     if (data.liked) {
                         heartIcon.src = '/static/images/assets/hearts/heart_filled.png';
                     } else {
-                        heartIcon.src = '/static/images/assets/hearts/heart_outline.png'; 
+                        heartIcon.src = '/static/images/assets/hearts/heart_outline.png';
                     }
                 })
                 .catch(error => console.error('Error toggling like state:', error));

@@ -5,11 +5,9 @@ import numpy
 import os
 import sqlite3
 from datetime import datetime, timedelta
-from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyClientCredentials
 
-load_dotenv('ids.env')
-
+# Environment variables are loaded by library_of_babble.py
 SPOTIPY_CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
 SPOTIPY_CLIENT_SECRET = os.getenv('SPOTIPY_CLIENT_SECRET') 
 

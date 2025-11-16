@@ -4,6 +4,9 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 
+# Load environment variables before importing application modules
+load_dotenv('.env')
+
 from books import get_recently_read_books, read_books_from_csv, truncate_title, read_books_from_db, get_books_from_bookshelf
 from music import music_test, generate_monthly_playlists_df, select_playlist, get_tracks_artists, get_site_approved_playlists
 from movies import get_recently_watched_movies, read_movies_from_db, get_movies_from_collection
@@ -23,8 +26,6 @@ import sqlite3
 import re
 import os
 import random
-
-load_dotenv('ids.env')
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')

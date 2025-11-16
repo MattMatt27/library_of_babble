@@ -1,21 +1,45 @@
-# Broken/Outdated files
+# ============================================================================
+# Environment & Secrets
+# ============================================================================
+.env
+ids.env
+
+# ============================================================================
+# Python
+# ============================================================================
+__pycache__/
+.venv/
+.cache*
+
+# ============================================================================
+# Operating System
+# ============================================================================
+.DS_Store
+data/desktop.ini
+
+# ============================================================================
+# Data & Assets
+# ============================================================================
+# CSV imports
+Boredom Killer - Movies.csv
+
+# Data processing directories
+data/loaded/
+data/staging/wait/
+
+# Large asset directories
+static/images/artists/
+
+# ============================================================================
+# Deprecated Templates
+# ============================================================================
 templates/music-dep.html
 templates/books-dep.html
 templates/book-db.html
 templates/matt_ranking-dep.html
 playlist.html
 
-# Temproary files
-.cache*
-__pycache__/
-Boredom Killer - Movies.csv
-data/desktop.ini
-data/loaded
-data/staging/wait/
-
-# Large directories
-static/images/artists/
-
-# Local Only
-ids.env
-.venv/
+# ============================================================================
+# Internal Documentation
+# ============================================================================
+ARCHITECTURE.md

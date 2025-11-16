@@ -5,12 +5,12 @@ import os
 from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyClientCredentials
 
-load_dotenv('ids.env')
+load_dotenv('.env')
 
-# Matt's IDs and Configuration
-cid = os.getenv('SPOTIPY_PLAYLIST_PARSE_CID')
-secret = os.getenv('SPOTIPY_PLAYLIST_PARSE_SECRET') 
-username = os.getenv('SPOTIPY_PLAYLIST_PARSE_USERNAME')
+# Spotify Configuration
+cid = os.getenv('SPOTIPY_CLIENT_ID')
+secret = os.getenv('SPOTIPY_CLIENT_SECRET')
+username = os.getenv('SPOTIPY_USERNAME')
 scope = 'playlist-read-private'
 redirect_uri = 'http://localhost:8888/callback'
 

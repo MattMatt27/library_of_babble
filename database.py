@@ -4,10 +4,12 @@ import requests as tmdb
 from urllib.parse import quote
 import json
 import psycopg2
+import os
 
+# Environment variables are loaded by library_of_babble.py
 headers = {
     "accept": "application/json",
-    "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIwNzFiYjA1MjIxZTdjYTgzZDE0NzJlOGY2YmYwODJhMSIsInN1YiI6IjVjYTY4ZTUzYzNhMzY4M2IxZGFhNWZhMCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.POFEGXZ3PU_3WjxTxJZ7bVpqqHutbVwTtnD5fF1cUsM"
+    "Authorization": f"Bearer {os.getenv('TMDB_API_BEARER_TOKEN')}"
 }
 
 def connect_to_database():

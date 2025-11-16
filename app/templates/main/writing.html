@@ -5,266 +5,243 @@
 {% set active_page = 'writing' %}
 
 {% block extra_styles %}
-<style type="text/css">
-    body {
-        background-color: #121212; /* Dark background color */
-        color: #ffffff; /* White text color */
-        font-family: Garamond, sans-serif; /* Use a common sans-serif font */
-        margin: 0px;
-        font-size: 20px;
-    }
-
-    header {
-        background-color: #121212;
-    }
-
-    section {
-        padding-left: 50px;
-        padding-right: 50px;
-    }
-
-    h2 {
-        margin-top: 10px;
-        margin-bottom: 10px;
-        font-size: 30px;
-    }
-
-    a {
-        text-decoration: none;
-    }
-
-    .piece {
-        background-color: #333;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        margin-bottom: 10px;
-        padding: 10px;
-        cursor: pointer; /* Eventually want to make it so the title is only clickable part */
-        font-size: 20px;
-    }
-
-    .piece:hover {
-        background-color: #444;
-    }
-
-    .piece-content {
-        display: none; /* Hide content div by default */
-        position: absolute;
-        background-color: #fff;
-        border: 1px solid #ccc;
-        padding: 10px;
-    }
-
-    .piece-content:target {
-        display: block; /* Show content div when targeted (clicked) */
-    }
-
-    .piece-title {
-        padding-left: 5px;
-        color: #fff;
-    }
-
-    .piece-description {
-        padding-left: 15px;
-    }
-
-    .description-text {
-        color: #fff;
-        margin-bottom: 0;
-    }
-
-    #research {
-        background-color: #093249;
-        padding: 50px;
-        padding-bottom: 25px;
-    }
-
-    #fiction {
-        background-color: #C1DFF0;
-        padding: 50px;
-        padding-top: 25px;
-        color: #121212;
-    }
-
-    #blog {
-        background-color: #093249;
-        padding: 50px;
-    }
-
-    .hidden {
-         display:none;
-    }
-
-    .button-container {
-        margin-top: 5px;
-    }
-
-    .full-text-button {
-        background-color: #C1DFF0; /* Blue background color for button */
-        color: #093249; /* White text color */
-        font-size: 17px;
-        padding: 10px 20px; /* Add padding */
-        border-radius: 5px; /* Rounded corners */
-        border: none;
-        text-decoration: none; /* Remove underline from button */
-        transition: background-color 0.3s; /* Smooth transition for background color */
-        align-items: center;
-        cursor: pointer;
-    }
-    .full-text-button::after {
-        content: ' →';
-    }
-
-    .full-text-button:hover {
-        background-color: #093249; /* Blue background color for button */
-        color: #C1DFF0;
-    }
-
-    h4 {
-        margin-bottom: 0px;
-        margin-top: 0px;
-    }
-
-    ul {
-        margin-top: 0px;
-    }
-
-    li {
-        padding-top: 5px;
-        padding-bottom: 5px;
-    }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/writing.css') }}">
 {% endblock %}
 
 {% block content %}
-<!-- Research Section -->
-<section id="research">
-    <h2>Academic</h2>
-    <h4>Journal Articles</h4>
-    <ul>
-        <li><strong>Flathers M</strong>, Smith G, Wagner E, Fisher CE, Torous J. AI depictions of psychiatric diagnoses: a preliminary study of generative image outputs in Midjourney V.6 and DALL-E 3. BMJ Ment Health. 2024 Dec 4;27(1):e301298. <a href="https://mentalhealth.bmj.com/content/27/1/e301298" style="color: #C1DFF0;">[Link]</a>. doi: 10.1136/bmjment-2024-301298. PMID: 39632121.</li>
-        <li>Burns J, Chen K, <strong>Flathers M</strong>, Currey D, Macrynikola N, Vaidyam A, Langholm C, Barnett I, Byun A, Lane E, Torous J. (August 2024). Transforming Digital Phenotyping Raw Data Into Actionable Biomarkers, Quality Metrics, and Data Visualizations Using Cortex Software Package: Tutorial. J Med Internet Res 2024;26:e58502. <a href="https://www.jmir.org/2024/1/e58502" style="color: #C1DFF0;">[Link]</a>. DOI: 10.2196/58502</li>
-        <li>Dwyer B, <strong>Flathers M</strong>, Dwyer B, Flathers M, Burns J, Mikkelson J, Perlmutter E, Chen K, Ram N, Torous J. (May 2024). Assessing Digital Phenotyping for App Recommendations and Sustained Engagement: Cohort Study. JMIR Form Res 2024;8:e62725. <a href="https://formative.jmir.org/2024/1/e62725" style="color: #C1DFF0;">[Link]</a> DOI: 10.2196/62725 </li>
-        <li>Byun A, Lane E, Langholm C, <strong>Flathers M</strong>, Hall M, Torous J. (In Review) Towards Clinical Subtypes in Schizophrenia: Integrating Cognitive, Functional, and Digital Phenotyping Assessments. <a href="https://www.researchsquare.com/article/rs-4258332/v1" style="color: #C1DFF0;">[Preprint]</a> DOI: 10.21203/rs.3.rs-4258332/v1</li> 
-    </ul>
-    <h4>Conference Talks</h4>
-    <ul>
-        <li>Sarcone K, Laferriere A, Spatz J, and <strong>Flathers M</strong>. (September 2018). Inclusive Design Panel: Beyond Accessibility & Across Industries. DesignxRI Design Week 2018. Providence, Rhode Island <a href="https://www.krystalsarcone.com/designxri" style="color: #C1DFF0;">[Event]</a></li>
-        <li>Britto V, <strong>Flathers M</strong>, Swinski O, and Ellis J. (January 2019). Student Panel. Rhode Island Higher Education Summit on Mental Health. Providence, Rhode Island. <a href="https://www.providencejournal.com/story/news/education/campus/2019/01/07/summit-tackles-mental-health-crisis-on-ri-campuses/6353875007/" style="color: #C1DFF0;">[Press]</a></li>
-        <li>Hawes M, <strong>Flathers M</strong>. (July 2018). Ableism on Campus: Supporting College Students with Psychiatric Diagnoses and Neurodivergence. Alternatives Conference. Washington D.C. 
-    </ul>
-    <h4>Editor</h4>
-    <ul>
-    	<li>Witte M. Health/Disease Distinction: Normative Uses. Brown Journal of Politics Philosophy and Economics. Fall 2018. <a href="https://www.brownjppe.com/margot-s-witte" style="color: #C1DFF0;">[Link]</a></li>
-    	<li>Gunn S. Moral Manipulation: A Kantian Take on Advertising and Campaigning. Brown Journal of Politics Philosophy and Economics. Fall 2018. <a href="https://www.brownjppe.com/sylvia-gunn" style="color: #C1DFF0;">[Link]</a></li>
-    </ul>
-    <!-- <div class="piece-list" id="research-list">
-        <div class="piece" data-category="fiction" data-title="The Aesthetics of Psychiatric Diagnosis" onclick="toggleDescription(this);">
-            <h3 class="piece-title">The Aesthetics of Psychiatric Diagnosis</h3>
-            <div class="piece-description hidden">
-                <p class="description-text">Coming Soon.</p><br>
-                <p class="button-container"><a href="psychiatric-aesthetics" class="full-text-button">View Full Text </a></p>
+<div class="container">
+    <!-- Academic Section -->
+    <section class="writing-section">
+        <div class="writing-section-header">
+            <h2>Academic</h2>
+        </div>
+
+        <h3 class="subsection-header">Journal Articles</h3>
+        <div class="publication-list">
+            <a href="https://mentalhealth.bmj.com/content/27/1/e301298" target="_blank" class="publication-card linkable">
+                <div class="publication-card-content">
+                    <div class="publication-card-main">
+                        <div class="publication-title">AI depictions of psychiatric diagnoses: a preliminary study of generative image outputs in Midjourney V.6 and DALL-E 3</div>
+                        <div class="publication-authors"><strong>Flathers M</strong>, Smith G, Wagner E, Fisher CE, Torous J</div>
+                        <div class="publication-venue">BMJ Mental Health, December 2024</div>
+                        <div class="publication-meta">
+                            <span>27(1):e301298</span>
+                            <span class="publication-doi">doi: 10.1136/bmjment-2024-301298</span>
+                            <span>PMID: 39632121</span>
+                        </div>
+                    </div>
+                    <div class="publication-icon">↗</div>
+                </div>
+            </a>
+
+            <a href="https://www.nature.com/articles/s44277-025-00049-6" target="_blank" class="publication-card linkable">
+                <div class="publication-card-content">
+                    <div class="publication-card-main">
+                        <div class="publication-title">Mindbench.ai: an actionable platform to evaluate the profile and performance of large language models in a mental healthcare context</div>
+                        <div class="publication-authors">Dwyer B, <strong>Flathers M</strong>, Sano A, Dempsey A, Cipriani A, Gazi AH, Hill B, Gorban C, Rodriguez CI, Stromeyer IV C, King D, Rozenblit E, Strudwick G, Linardon J, Cheong J, Firth J, Herpertz J, Schwarz J, Truong K, Emerson M, Paulus MP, Patriquin M, Hua Y, Choudhary S, Siddals S, Ospina Pinillos L, Bantjes J, Scheuller S, Xu X, Duckworth K, Gillison DH, Wood M, Torous J</div>
+                        <div class="publication-venue">NPP—Digital Psychiatry and Neuroscience, 2025</div>
+                        <div class="publication-meta">
+                            <span class="publication-doi">doi: 10.1038/s44277-025-00049-6</span>
+                        </div>
+                    </div>
+                    <div class="publication-icon">↗</div>
+                </div>
+            </a>
+
+            <a href="https://mental.jmir.org/2025/1/e80739" target="_blank" class="publication-card linkable">
+                <div class="publication-card-content">
+                    <div class="publication-card-main">
+                        <div class="publication-title">Governing AI in Mental Health: 50-State Legislative Review</div>
+                        <div class="publication-authors">Shumate JN, Rozenblit E, <strong>Flathers M</strong>, Larrauri CA, Hau C, Xia W, Torous EN, Torous J</div>
+                        <div class="publication-venue">JMIR Mental Health, 2025</div>
+                        <div class="publication-meta">
+                            <span>12:e80739</span>
+                            <span class="publication-doi">DOI: 10.2196/80739</span>
+                        </div>
+                    </div>
+                    <div class="publication-icon">↗</div>
+                </div>
+            </a>
+
+            <a href="https://mentalhealth.bmj.com/content/28/1/e301817" target="_blank" class="publication-card linkable">
+                <div class="publication-card-content">
+                    <div class="publication-card-main">
+                        <div class="publication-title">Interpreting psychiatric digital phenotyping data with large language models: a preliminary analysis</div>
+                        <div class="publication-authors"><strong>Flathers M</strong>, Xia W, Hau C, Nelson BW, Cheong J, Burns J, Torous J</div>
+                        <div class="publication-venue">BMJ Mental Health, 2025</div>
+                        <div class="publication-meta">
+                            <span>28(1):e301817</span>
+                            <span class="publication-doi">doi: 10.1136/bmjment-2025-301817</span>
+                        </div>
+                    </div>
+                    <div class="publication-icon">↗</div>
+                </div>
+            </a>
+
+            <a href="https://onlinelibrary.wiley.com/doi/full/10.1002/wps.21352" target="_blank" class="publication-card linkable">
+                <div class="publication-card-content">
+                    <div class="publication-card-main">
+                        <div class="publication-title">Charting the evolution of artificial intelligence mental health chatbots from rule-based systems to large language models: a systematic review</div>
+                        <div class="publication-authors">Hua Y, Siddals S, Ma Z, Galatzer-Levy I, Xia W, Hau C, Na H, <strong>Flathers M</strong>, Linardon J, Ayubcha C, Torous J</div>
+                        <div class="publication-venue">World Psychiatry, September 2025</div>
+                        <div class="publication-meta">
+                            <span class="publication-doi">DOI: 10.1002/wps.21352</span>
+                        </div>
+                    </div>
+                    <div class="publication-icon">↗</div>
+                </div>
+            </a>
+
+            <a href="https://www.nature.com/articles/s41746-025-01985-5" target="_blank" class="publication-card linkable">
+                <div class="publication-card-content">
+                    <div class="publication-card-main">
+                        <div class="publication-title">Evaluating the performance of general purpose large language models in identifying human facial emotions</div>
+                        <div class="publication-authors">Nelson BW, Winbush A, Siddals S, <strong>Flathers M</strong>, Nguyen DKT, Ram N, Torous J</div>
+                        <div class="publication-venue">npj Digital Medicine, 2025</div>
+                        <div class="publication-meta">
+                            <span>8:615</span>
+                            <span class="publication-doi">doi: 10.1038/s41746-025-01985-5</span>
+                        </div>
+                    </div>
+                    <div class="publication-icon">↗</div>
+                </div>
+            </a>
+
+            <a href="https://www.jmir.org/2024/1/e58502" target="_blank" class="publication-card linkable">
+                <div class="publication-card-content">
+                    <div class="publication-card-main">
+                        <div class="publication-title">Transforming Digital Phenotyping Raw Data Into Actionable Biomarkers, Quality Metrics, and Data Visualizations Using Cortex Software Package: Tutorial</div>
+                        <div class="publication-authors">Burns J, Chen K, <strong>Flathers M</strong>, Currey D, Macrynikola N, Vaidyam A, Langholm C, Barnett I, Byun A, Lane E, Torous J</div>
+                        <div class="publication-venue">Journal of Medical Internet Research, August 2024</div>
+                        <div class="publication-meta">
+                            <span>26:e58502</span>
+                            <span class="publication-doi">DOI: 10.2196/58502</span>
+                        </div>
+                    </div>
+                    <div class="publication-icon">↗</div>
+                </div>
+            </a>
+
+            <a href="https://formative.jmir.org/2024/1/e62725" target="_blank" class="publication-card linkable">
+                <div class="publication-card-content">
+                    <div class="publication-card-main">
+                        <div class="publication-title">Assessing Digital Phenotyping for App Recommendations and Sustained Engagement: Cohort Study</div>
+                        <div class="publication-authors">Dwyer B, <strong>Flathers M</strong>, Burns J, Mikkelson J, Perlmutter E, Chen K, Ram N, Torous J</div>
+                        <div class="publication-venue">JMIR Formative Research, May 2024</div>
+                        <div class="publication-meta">
+                            <span>8:e62725</span>
+                            <span class="publication-doi">DOI: 10.2196/62725</span>
+                        </div>
+                    </div>
+                    <div class="publication-icon">↗</div>
+                </div>
+            </a>
+
+            <a href="https://www.researchsquare.com/article/rs-4258332/v1" target="_blank" class="publication-card linkable">
+                <div class="publication-card-content">
+                    <div class="publication-card-main">
+                        <div class="publication-title">Towards Clinical Subtypes in Schizophrenia: Integrating Cognitive, Functional, and Digital Phenotyping Assessments</div>
+                        <div class="publication-authors">Byun A, Lane E, Langholm C, <strong>Flathers M</strong>, Hall M, Torous J</div>
+                        <div class="publication-venue">Preprint, In Review</div>
+                        <div class="publication-meta">
+                            <span class="publication-doi">DOI: 10.21203/rs.3.rs-4258332/v1</span>
+                        </div>
+                    </div>
+                    <div class="publication-icon">↗</div>
+                </div>
+            </a>
+        </div>
+
+        <h3 class="subsection-header">Conference Talks</h3>
+        <div class="publication-list">
+            <a href="https://www.krystalsarcone.com/designxri" target="_blank" class="publication-card linkable">
+                <div class="publication-card-content">
+                    <div class="publication-card-main">
+                        <div class="publication-title">Inclusive Design Panel: Beyond Accessibility & Across Industries</div>
+                        <div class="publication-authors">Sarcone K, Laferriere A, Spatz J, and <strong>Flathers M</strong></div>
+                        <div class="publication-venue">DesignxRI Design Week 2018, Providence, Rhode Island</div>
+                        <div class="publication-meta">
+                            <span>September 2018</span>
+                        </div>
+                    </div>
+                    <div class="publication-icon">↗</div>
+                </div>
+            </a>
+
+            <a href="https://www.providencejournal.com/story/news/education/campus/2019/01/07/summit-tackles-mental-health-crisis-on-ri-campuses/6353875007/" target="_blank" class="publication-card linkable">
+                <div class="publication-card-content">
+                    <div class="publication-card-main">
+                        <div class="publication-title">Student Panel</div>
+                        <div class="publication-authors">Britto V, <strong>Flathers M</strong>, Swinski O, and Ellis J</div>
+                        <div class="publication-venue">Rhode Island Higher Education Summit on Mental Health, Providence, Rhode Island</div>
+                        <div class="publication-meta">
+                            <span>January 2019</span>
+                        </div>
+                    </div>
+                    <div class="publication-icon">↗</div>
+                </div>
+            </a>
+
+            <div class="publication-card">
+                <div class="publication-card-content">
+                    <div class="publication-card-main">
+                        <div class="publication-title">Ableism on Campus: Supporting College Students with Psychiatric Diagnoses and Neurodivergence</div>
+                        <div class="publication-authors">Hawes M, <strong>Flathers M</strong></div>
+                        <div class="publication-venue">Alternatives Conference, Washington D.C.</div>
+                        <div class="publication-meta">
+                            <span>July 2018</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="piece" data-category="fiction" data-title="Diagnosis in Containment" onclick="toggleDescription(this);">
-            <h3 class="piece-title">Diagnosis in Containment</h3>
-            <div class="piece-description hidden">
-                <p class="description-text">Coming Soon.</p><br>
-                <p class="button-container"><a href="diagnosis-in-containment" class="full-text-button">View Full Text </a></p>
-            </div>
-        </div> -->
-    </div>
-</section>
+        <h3 class="subsection-header">Editor</h3>
+        <div class="publication-list">
+            <a href="https://www.brownjppe.com/margot-s-witte" target="_blank" class="publication-card linkable">
+                <div class="publication-card-content">
+                    <div class="publication-card-main">
+                        <div class="publication-title">Health/Disease Distinction: Normative Uses</div>
+                        <div class="publication-authors">Witte M</div>
+                        <div class="publication-venue">Brown Journal of Politics Philosophy and Economics, Fall 2018</div>
+                    </div>
+                    <div class="publication-icon">↗</div>
+                </div>
+            </a>
 
-<!-- Fiction Section -->
-<section id="fiction">
-    <h2>Creative</h2>
-    <p>I am a psychiatry researcher and data engineer from Malden, Massachusetts. Outside of work, I enjoy hanging out with my cat, scavenging library used book sales, and making spreadsheets I don't need. My writing focuses on neurodivergence, generative AI, and American history/politics. Distilled further, it orbits one central theme: miscommunication.
-    <br><br>
-    To see what I have been reading lately, check out the <a href="reading" style="color: #093249;">Reading</a> section of my website. 
-    <h4>Fiction</h4>
-    <ul>
-    	<li><strong>Ungebundenheit</strong>: 2025 Kurt Vonnegut Speculative Fiction Prize Finalist, <i>North American Review</i></li>
-    </ul>
-    <!-- <h4>Poetry</h4>
-    <ul>
-    	<li><strong>Trust Me It's Worth The Wait</strong>: Clerestory Journal of Arts, Fall 2017, v57</li>
-    	<li><strong>What Google Knows</strong>: Clerestory Journal of Arts, Fall 2017, v57</li>
-    </ul> -->
-
-
-
-    
-    <!-- <div class="piece-list" id="fiction-list">
-        <div class="piece" data-category="fiction" data-title="For Your Own Good" onclick="toggleDescription(this);">
-            <h3 class="piece-title">For Your Own Good</h3>
-            <div class="piece-description hidden">
-                <p class="description-text">An exploration of technology, family, English, paternalism, politics, and Massachusetts.<br><br> This is my first attempt at short story writing high quality enough for me to feel comfortable sharing it with others. It is written in the format of a 2116 academic article in the <i>Journal of Hypothetical Situations with Ambiguous Implications</i>.</p><br>
-                <p class="button-container"><a href="fyog" class="full-text-button">View Full Text </a></p>
-            </div>
+            <a href="https://www.brownjppe.com/sylvia-gunn" target="_blank" class="publication-card linkable">
+                <div class="publication-card-content">
+                    <div class="publication-card-main">
+                        <div class="publication-title">Moral Manipulation: A Kantian Take on Advertising and Campaigning</div>
+                        <div class="publication-authors">Gunn S</div>
+                        <div class="publication-venue">Brown Journal of Politics Philosophy and Economics, Fall 2018</div>
+                    </div>
+                    <div class="publication-icon">↗</div>
+                </div>
+            </a>
         </div>
-        <div class="piece" data-category="fiction" data-title="Xylothar's Exlie" onclick="toggleDescription(this);">
-            <h3 class="piece-title">Xylothar's Exile</h3>
-            <div class="piece-description hidden">
-                <p class="description-text">Coming Soon.</p><br>
-                <p class="button-container"><a href="xylothars-exile" class="full-text-button">View Full Text </a></p>
-            </div>
+    </section>
+
+    <!-- Creative Section -->
+    <section class="writing-section">
+        <div class="writing-section-header">
+            <h2>Creative</h2>
+            <p>I am a psychiatry researcher and data engineer living in Malden, MA. Outside of work, I enjoy hanging out with my cat Salad Dressing, scouring library used book sales, and making unnecessary spreadsheets. My writing explores neurodivergence, generative AI, and American history/politics. Distilled further, my writing orbits the central theme: miscommunication.</p>
+            <p style="margin-top: var(--space-3);">To see what I have been reading lately, check out the <a href="{{ url_for('books.reading') }}" style="color: var(--accent-blue);">Reading</a> section of my website.</p>
         </div>
 
-        <div class="piece" data-category="fiction" data-title="A Chip Off The Old Block" onclick="toggleDescription(this);">
-            <h3 class="piece-title">A Chip Off The Old Block</h3>
-            <div class="piece-description hidden">
-                <p class="description-text">Coming Soon.</p><br>
-                <p class="button-container"><a href="chip-off-the-old-block" class="full-text-button">View Full Text </a></p>
+        <h3 class="subsection-header">Fiction</h3>
+        <div class="publication-list">
+            <div class="publication-card">
+                <div class="publication-card-content">
+                    <div class="publication-card-main">
+                        <div class="publication-title">Ungebundenheit</div>
+                        <div class="publication-venue">North American Review</div>
+                        <div class="publication-badge">2025 Kurt Vonnegut Speculative Fiction Prize Finalist</div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div> -->
-</section>
-
-<!-- Blog Section -->
-<!-- <section id="blog">
-    <h2>Blog</h2>
-    <p>I have been running a small meme page and blog since the beginning of the 2020 American presidential election as a way to vent my political thoughts without driving my friends and family crazy. <br><br>
-
-    A New Generation of Memes, like many of the things I sink way too much time into, started as a bad habit. I grew up as the internet grew up, getting my first flip phone going into high school and my first smartphone on my way into college. I watched firsthand as people realized comment sections could become battlefields, and joined the crowds of people who lost their minds in that clash. All of a sudden you could feel like you were 'making a difference' by going to the New York Times Facebook page and yelling at someone from all the way across the country. Things got so out of hand that cable news now spends an exorbitant amount of time covering political drama that happens on Twitter, in the middle of the single greatest technological revolution humans have ever witnessed.<br><br>
-
-    I created my Instagram page <a href="https://www.instagram.com/anewgenerationofmemes/" style="color:deepskyblue;">@anewgenerationofmemes</a> and the associated <a href="https://anewgenerationofmemes.substack.com/" style="color: deepskyblue;">Substack page</a> as a small corner of the internet where I could share content based on my nearly 10 years spent addicted to talking to people about politics on social media. Unlike my research, these posts are more experimental-- often utilizing state of the art language models, sharing only partially developed ideas, and haphazardly venturing into the realm of the controversial. My guiding light is what I call new generation thinking-- in contrast to next generation thinking-- that places human beings above the systems and apparatus we create. In my content I try my best to stubbornly march to the beat of my own dysfunctional drum in the hopes of shocking people out of their dogmatic beliefs through a blend of humor and rhetoric.
-
-    All the pieces I have written for my blog can be found at the Substack link above. Below I have transcribed a few of my favorite pieces that I have written over the years, including the one further detailing what I mean when I say 'New Generation' thinking.
-    <div class="piece-list" id="blog-list">
-       <div class="piece" data-category="blog" data-title="New Generation Thinking" onclick="toggleDescription(this);">
-            <h3 class="piece-title">New Generation Thinking</h3>
-            <div class="piece-description hidden">
-                <p class="description-text">A brief intro to my goals through an exploration of my page’s name.<br><br> An essay that attempts to explain further what I mean when I say 'New Generation' thinking. Through back and forth OpenAI's GPT-4 Large Language Model and by contrasting usages of the phrases 'New Generation' and 'Next Gerneration' in literature, I try to circle in on exactly what it is I am getting at with all my yapping.</p><br>
-                <p class="button-container"><a href="new-generation-thinking" class="full-text-button">View Full Text </a></p>
-            </div>
-        </div>
-    </div>
-
-    <div class="piece" data-category="fiction" data-title="Post History" onclick="toggleDescription(this);">
-        <h3 class="piece-title">Post History</h3>
-        <div class="piece-description hidden">
-            <p class="description-text">Coming Soon.</p><br>
-            <p class="button-container"><a href="post-history" class="full-text-button">View Full Text </a></p>
-        </div>
-    </div>
-
-    <div class="piece" data-category="fiction" data-title="President's Day" onclick="toggleDescription(this);">
-        <h3 class="piece-title">Presidents Day</h3>
-        <div class="piece-description hidden">
-            <p class="description-text">Coming Soon.</p> <br>
-            <p class="button-container"><a href="presidents-day" class="full-text-button">View Full Text </a></p>
-        </div>
-    </div>
-</section> -->
-{% endblock %}
-
-{% block extra_scripts %}
-<script>
-    function toggleDescription(element) {
-        const description = element.querySelector('.piece-description');
-        description.classList.toggle('hidden');
-    }
-</script>
+    </section>
+</div>
 {% endblock %}

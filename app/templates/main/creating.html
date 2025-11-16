@@ -5,351 +5,58 @@
 {% set active_page = 'creating' %}
 
 {% block extra_styles %}
-<style type="text/css">
-    body {
-        background-color: #121212;
-        color: #ffffff; 
-        font-family: Garamond, sans-serif; 
-        margin: 0px;
-        font-size: 20px;
-    }   
-
-    header {
-        background-color: #121212;
-    }
-
-    section {
-        padding-left: 50px;
-        padding-right: 50px;
-    }
-
-    h2 {
-        margin-top: 0px;
-        margin-bottom: 10px;
-        font-size: 30px;
-    }
-
-    h4 {
-        margin-top: 10px;
-        margin-bottom: 5px;
-    }
-
-    #books-on-tape {
-        background-color: #093249;
-        padding: 20px;
-    }
-
-    #generative-art {
-        background-color: #C1DFF0;
-        padding: 50px;
-        color: #121212;
-    }
-
-    .combo-container {
-        display: grid;
-        grid-template-columns: 0.9fr 0.9fr;
-        grid-template-rows: auto auto;
-        gap: 10px 30px;
-        align-items: flex-end;
-        max-width: 100%;
-        width: 100%;
-        box-sizing: border-box;
-        margin-top: 25px;
-    }
-
-    .artist-left {
-        grid-column: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        align-items: center;
-        flex-grow: 1;
-        min-width: 0;
-    }
-
-    .artist-right {
-        grid-column: 2;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        align-items: center;
-        flex-grow: 1;
-        min-width: 0;
-    }
-
-    .generated-image {
-        grid-column: span 2;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 25px;
-    }
-
-    .artist {
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .artist {
-        text-align: center;
-        margin: 0 10px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        width: 100%;
-        background-color: #fff;
-        color: #121212;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        padding: 10px;
-    }
-
-    .section-header {
-        background-color: #fff;
-        color: #121212;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        padding: 20px;
-        padding-top: 10px;
-    }
-
-    .section-header p{
-        margin: 0;
-    }
-
-    .section-header h4{
-        margin-bottom: 10px;
-    }
-
-    .artist img {
-        width: 100%;
-        max-width: 100%;
-        height: auto;
-        display: block;
-        border-radius: 10px;
-        object-fit: cover;
-    }
-
-    .plus-sign {
-        font-size: 2rem;
-        color: #333;
-        margin: 0 10px;
-    }
-
-    .artist-info, .combined-info {
-        margin-top: 5px;
-    }
-
-    .artist-info h3, .combined-info h3 {
-        margin: 5px;
-    }
-
-    .artist-bio, .prompt-text {
-        margin: 0;
-        font-size: 15px;
-    }
-
-    .piece-name {
-        margin: 2px;
-        font-size: 17px;
-    }
-
-    #books-on-tape .image-container {
-        display: flex;
-        justify-content: space-between;
-    }
-
-    #books-on-tape .image-container img {
-        width: 32%;
-        height: auto;
-        display: block;
-    }
-
-
-
-    #artist-selection {
-        margin-top: 15px;
-    }
-
-    #artist-options {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 10px;
-        margin-bottom: 10px;
-    }
-
-    .artist-option {
-        padding: 5px 10px;
-        background-color: #f0f0f0;
-        border-radius: 5px;
-        cursor: pointer;
-        color: #121212;
-    }
-
-    #selected-artists {
-        margin-bottom: 10px;
-    }
-
-    .selected-artist {
-        display: inline-block;
-        padding: 5px 10px;
-        background-color: #007bff;
-        color: white;
-        border-radius: 5px;
-        margin-right: 5px;
-        margin-bottom: 5px;
-    }
-
-    .selected-artist .remove {
-        margin-left: 5px;
-        cursor: pointer;
-    }
-
-    #selected-artists-display {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-        margin-bottom: 20px;
-    }
-
-    .artist {
-        background-color: #fff;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        height: auto;
-        width: max-content;
-        text-align: center;
-    }
-
-    .artist img {
-        width: 100%;
-        height: 350px;
-        object-fit: contain;
-        border-radius: 0 0 0 0;
-        margin-bottom: 0;
-    }
-
-    .artist-info {
-        padding: 0;
-        width: 100%;
-        text-align: center;
-    }
-
-    .artist-name {
-        margin: 0 0 5px 0;
-        font-size: 1.2em;
-    }
-
-    .piece-name {
-        margin: 0;
-        font-size: 0.9em;
-        color: #666;
-    }
-
-    .generated-image {
-        grid-column: 1 / -1; /* Span all columns */
-        text-align: center;
-        margin-top: 20px;
-        background-color: #fff;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-        padding-bottom: 10px;
-    }
-
-    .generated-image img {
-        max-width: 100%;
-        height: auto;
-        border-radius: 10px;
-        margin-bottom: 0;
-    }
-
-    .combined-info {
-        margin-top: 0;
-    }
-
-    .prompt-text {
-        color: #666;
-    }
-
-    .model-name {
-        font-weight: bold;
-        margin-top: 2px;
-        margin-bottom: 5px;
-        font-size: 24px;
-    }
-
-
-    /* Media query for smaller screens */
-    @media (max-width: 1000px) {
-        #selected-artists-display {
-            grid-template-columns: 1fr; /* Single column on small screens */
-        }
-
-        .artist {
-            width: max-content;
-            max-width: 1fr;
-        }
-
-        .artist img {
-            max-width: 100%; /* Allow images to expand to full width on small screens */
-        }
-    }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/creating.css') }}">
 {% endblock %}
 
 {% block content %}
-<!-- Books on Tape Section -->
-<section id="books-on-tape">
-    <h2>Books on Tape</h2>
-    <p>Coming Soon</p>
-    <div class="image-container">
-        <img src="{{ url_for('static', filename='images/creating/books-on-tape/Origins.jpg') }}">
-        <img src="{{ url_for('static', filename='images/creating/books-on-tape/Books.jpg') }}">
-        <img src="{{ url_for('static', filename='images/creating/books-on-tape/Sample_stack.jpg') }}">
-    </div>
-</section>
-
-<!-- The Dinkster Section -->
-
-
-
-<!-- Lunacy Section -->
-<section id="generative-art">
-    <h2>Generative Art</h2>
-    <p>I have always been drawn to the practice of curation, loving to sort, classify, and organize objects. Consequently, my primary engagement with art has been curatorial in nature- learning about art movements, specific influential figures, and the collections of famous museums and institutions. <br><br>
-
-    Sadly, I have never been very effective as a visual artist in most manual mediums. Even when I have an idea in my mind, I fail to execute it on the page in front of me. As such, the production of visual art always seemed out of reach for me. <br><br>
-
-    It was in this artistic malaise that I discovered generative AI, which has offered me a unique medium to produce visual artifacts in a way I have never been able to do by hand. Combining my writing skills with my curatorial knowledge of art history, I approach image models as a liberating way to unleash my visual creativity. <br><br>
-
-    Creating art with generative image models is a task much more like sculpting, writing, and curating than it is like painting, drawing, and designing. You are engaged in exploration of a incomprehensibly vast space of possible images, and must iteratively steer the model into areas of images that speak to your own personal aesthetic tastes. <br><br>
-     
-    In my personal generative art practice, I use a palette of existing artists that I have found generative image models have some baseline understanding for aesthetically. These artists are selected based on model comprehension first and foremost, and my personal affinity for their works second. I then produce my natural language prompts and add artist combinations as the fictional authors of the work that I am producing. In this way, I create novel images that exist in the latent spaces between existing well-defined styles that I already love.</p>
-    <div class="section-header">
-        <h2>Lunacy</h2>
-        <p> This is my first full series. Designed to highlight my methodology, I have kept the prompts simple- the word "Lunacy" followed by the string "by [list of artists]". I chose the word Lunacy because of its relationship to one of my favorite themes in visual art and literature: the chaotic beauty of insanity. Lunacy itself is a word that originates from the Latin word for moonstruck (lunaticus). The idea encoded in the term being that the moon periodically causes madness. This connection to both the moon and insanity makes Lunacy a prompt term that creates an incredibly coherent image space. I happen to find this particular image space aesthetically beautiful, and one that lets the different artist styles shine. <br><br> Select artists below to explore the collection.</p>
-    </div>
-    <div id="artist-selection">
-        <div id="selected-artists"></div>
-        <div id="artist-options"></div>
-    </div>
-    <div id="image-display">
-        <div class="generated-image">
-            <img src="" alt="Generated Image">
-            <div class="combined-info">
-                <p class="model-name"></p>
-                <p class="prompt-text"></p>
-            </div>
+<div class="container">
+    <!-- Books on Tape Section -->
+    <section class="creating-section">
+        <h2>Books on Tape</h2>
+        <p>Coming Soon</p>
+        <div class="image-container">
+            <img src="{{ url_for('static', filename='images/creating/books-on-tape/Origins.jpg') }}" alt="Books on Tape - Origins">
+            <img src="{{ url_for('static', filename='images/creating/books-on-tape/Books.jpg') }}" alt="Books on Tape - Books">
+            <img src="{{ url_for('static', filename='images/creating/books-on-tape/Sample_stack.jpg') }}" alt="Books on Tape - Sample Stack">
         </div>
-        <div id="selected-artists-display"></div>
-    </div>
-</section>
+    </section>
+
+    <!-- Generative Art Section -->
+    <section class="creating-section">
+        <h2>Generative Art</h2>
+        <p>I have always been drawn to the practice of curation, loving to sort, classify, and organize objects. Consequently, my primary engagement with art has been curatorial in nature- learning about art movements, specific influential figures, and the collections of famous museums and institutions.</p>
+
+        <p>Sadly, I have never been very effective as a visual artist in most manual mediums. Even when I have an idea in my mind, I fail to execute it on the page in front of me. As such, the production of visual art always seemed out of reach for me.</p>
+
+        <p>It was in this artistic malaise that I discovered generative AI, which has offered me a unique medium to produce visual artifacts in a way I have never been able to do by hand. Combining my writing skills with my curatorial knowledge of art history, I approach image models as a liberating way to unleash my visual creativity.</p>
+
+        <p>Creating art with generative image models is a task much more like sculpting, writing, and curating than it is like painting, drawing, and designing. You are engaged in exploration of a incomprehensibly vast space of possible images, and must iteratively steer the model into areas of images that speak to your own personal aesthetic tastes.</p>
+
+        <p>In my personal generative art practice, I use a palette of existing artists that I have found generative image models have some baseline understanding for aesthetically. These artists are selected based on model comprehension first and foremost, and my personal affinity for their works second. I then produce my natural language prompts and add artist combinations as the fictional authors of the work that I am producing. In this way, I create novel images that exist in the latent spaces between existing well-defined styles that I already love.</p>
+
+        <div class="section-header">
+            <h2>Lunacy</h2>
+            <p>This is my first full series. Designed to highlight my methodology, I have kept the prompts simple- the word "Lunacy" followed by the string "by [list of artists]". I chose the word Lunacy because of its relationship to one of my favorite themes in visual art and literature: the chaotic beauty of insanity. Lunacy itself is a word that originates from the Latin word for moonstruck (lunaticus). The idea encoded in the term being that the moon periodically causes madness. This connection to both the moon and insanity makes Lunacy a prompt term that creates an incredibly coherent image space. I happen to find this particular image space aesthetically beautiful, and one that lets the different artist styles shine.</p>
+            <p style="margin-top: var(--space-3);">Select artists below to explore the collection.</p>
+        </div>
+
+        <div id="artist-selection">
+            <div id="selected-artists"></div>
+            <div id="artist-options"></div>
+        </div>
+
+        <div id="image-display">
+            <div class="generated-image" style="display: none;">
+                <img src="" alt="Generated Image">
+                <div class="combined-info">
+                    <p class="model-name"></p>
+                    <p class="prompt-text"></p>
+                </div>
+            </div>
+            <div id="selected-artists-display"></div>
+        </div>
+    </section>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}

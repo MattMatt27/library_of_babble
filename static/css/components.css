@@ -2,10 +2,187 @@
  * Component Styles
  *
  * Reusable component classes for buttons, cards, forms, tables, navigation, etc.
- * Components will be added incrementally in Phase 2 and 3.
  */
 
 /* ============================================
-   PLACEHOLDER
-   Component styles will be added in Phase 2 & 3
+   NAVIGATION BAR
    ============================================ */
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--bg-navbar);
+  border-bottom: 1px solid var(--border-primary);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  height: 60px;
+}
+
+.desktop-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.navbar a {
+  display: inline-block;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: var(--space-3) var(--space-4);
+  text-decoration: none;
+  font-size: var(--font-base);
+  font-weight: var(--font-medium);
+  transition: color var(--transition-fast);
+  position: relative;
+  border-radius: var(--radius-base);
+}
+
+.navbar a:hover {
+  color: var(--text-primary);
+  text-decoration: none;
+  background-color: var(--bg-tertiary);
+}
+
+.navbar a.active {
+  color: var(--accent-blue);
+  background-color: var(--bg-tertiary);
+}
+
+.navbar a.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: var(--space-4);
+  right: var(--space-4);
+  height: 2px;
+  background-color: var(--accent-blue);
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+}
+
+/* Login/Logout Button */
+.login-button {
+  background-color: var(--accent-blue);
+  color: #ffffff;
+  border: none;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: var(--font-sm);
+  font-weight: var(--font-medium);
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+  border-radius: var(--radius-base);
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.login-button:hover {
+  background-color: var(--accent-blue-hover);
+  box-shadow: var(--shadow-md);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* Mobile Menu Icon */
+.menu-icon {
+  display: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--text-primary);
+  padding: var(--space-2);
+  border-radius: var(--radius-base);
+  transition: background-color var(--transition-fast);
+}
+
+.menu-icon:hover {
+  background-color: var(--bg-tertiary);
+}
+
+/* Side Menu (Mobile) */
+.side-menu {
+  height: 100%;
+  width: 0;
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  background-color: var(--bg-secondary);
+  overflow-x: hidden;
+  transition: width var(--transition-slow);
+  padding-top: 60px;
+  border-right: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-lg);
+}
+
+.side-menu a {
+  padding: var(--space-4) var(--space-6);
+  text-decoration: none;
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  display: block;
+  transition: all var(--transition-fast);
+  border-left: 3px solid transparent;
+}
+
+.side-menu a:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-tertiary);
+  border-left-color: var(--accent-blue);
+}
+
+.side-menu a.active {
+  color: var(--accent-blue);
+  background-color: var(--bg-tertiary);
+  border-left-color: var(--accent-blue);
+}
+
+.side-menu .closebtn {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-6);
+  font-size: 36px;
+  color: var(--text-secondary);
+  padding: 0;
+  border: none;
+}
+
+.side-menu .closebtn:hover {
+  color: var(--text-primary);
+  background: none;
+  border: none;
+}
+
+.side-menu-login {
+  position: absolute;
+  bottom: var(--space-6);
+  left: var(--space-6);
+  right: var(--space-6);
+}
+
+.side-menu-login .login-button {
+  width: 100%;
+  text-align: center;
+}
+
+/* Mobile Styles */
+@media screen and (max-width: 900px) {
+  .menu-icon {
+    display: block;
+  }
+
+  .desktop-nav {
+    display: none;
+  }
+
+  .navbar {
+    padding: var(--space-3) var(--space-4);
+  }
+}

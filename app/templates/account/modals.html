@@ -407,16 +407,218 @@
 </div>
 
 <div class="modal-overlay" id="manageUsersModal">
-    <div class="modal">
+    <div class="modal modal-large">
         <div class="modal-header">
             <h3>Manage Users</h3>
             <button class="modal-close" onclick="closeModal('manageUsersModal')">&times;</button>
         </div>
         <div class="modal-body">
-            <p>User management coming soon...</p>
+            <div class="review-tabs">
+                <button class="review-tab active" data-tab="usersList" onclick="switchUserTab('usersList')">All Users</button>
+                <button class="review-tab" data-tab="createUser" onclick="switchUserTab('createUser')">Create User</button>
+            </div>
+
+            <!-- Users List Tab -->
+            <div id="usersListTab" class="tab-content active">
+                <div class="table-container">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            {% for user in all_users %}
+                            <tr>
+                                <td>
+                                    {{ user.username }}
+                                    {% if user.id == current_user.id %}
+                                    <span class="current-user-badge">(You)</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="role-badge role-{{ user.role }}">{{ user.role }}</span>
+                                </td>
+                                <td>
+                                    <div class="actions-cell">
+                                        <button type="button" class="btn-icon btn-role" onclick="openChangeRoleModal({{ user.id }}, '{{ user.username }}', '{{ user.role }}')" title="Change Role">
+                                            ✎
+                                        </button>
+                                        <button type="button" class="btn-icon btn-password" onclick="openChangePasswordModal({{ user.id }}, '{{ user.username }}')" title="Change Password">
+                                            ⚿
+                                        </button>
+                                        {% if user.id != current_user.id %}
+                                        <button type="button" class="btn-icon btn-delete" onclick="openDeleteUserModal({{ user.id }}, '{{ user.username }}')" title="Delete User">
+                                            ×
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Create User Tab -->
+            <div id="createUserTab" class="tab-content" style="display: none;">
+                <form method="POST" action="{{ url_for('auth.create_user') }}" id="createUserForm">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" class="form-input" required autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" class="form-input" required autocomplete="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="role">Role</label>
+                        <select id="role" name="role" class="form-input" required>
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                            <option value="viewer">Viewer</option>
+                        </select>
+                    </div>
+                    <div id="createUserStatus"></div>
+                </form>
+            </div>
         </div>
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeModal('manageUsersModal')">Close</button>
+            <button class="btn btn-primary" id="createUserBtn" onclick="submitCreateUser()" style="display: none;">Create User</button>
         </div>
     </div>
 </div>
+
+<!-- Change Password Modal -->
+<div class="modal-overlay" id="changePasswordModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Change Password</h3>
+            <button class="modal-close" onclick="closeModal('changePasswordModal')">&times;</button>
+        </div>
+        <form method="POST" id="changePasswordForm">
+            <div class="modal-body">
+                <p class="modal-description">
+                    Change password for <strong id="passwordUsername"></strong>
+                </p>
+                <div class="form-group">
+                    <label for="new_password">New Password</label>
+                    <input type="password" id="new_password" name="new_password" class="form-input" required autocomplete="new-password">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('changePasswordModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Change Password</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Change Role Modal -->
+<div class="modal-overlay" id="changeRoleModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Change User Role</h3>
+            <button class="modal-close" onclick="closeModal('changeRoleModal')">&times;</button>
+        </div>
+        <form method="POST" id="changeRoleForm">
+            <div class="modal-body">
+                <p class="modal-description">
+                    Change role for <strong id="roleUsername"></strong>
+                </p>
+                <div class="form-group">
+                    <label for="new_role">Role</label>
+                    <select id="new_role" name="role" class="form-input" required>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                        <option value="viewer">Viewer</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('changeRoleModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Change Role</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete User Modal -->
+<div class="modal-overlay" id="deleteUserModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Delete User</h3>
+            <button class="modal-close" onclick="closeModal('deleteUserModal')">&times;</button>
+        </div>
+        <form method="POST" id="deleteUserForm" action="">
+            <div class="modal-body">
+                <p class="modal-description warning">
+                    Are you sure you want to delete user <strong id="deleteUsername"></strong>?
+                    This action cannot be undone.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('deleteUserModal')">Cancel</button>
+                <button type="submit" class="btn btn-danger">Delete User</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function switchUserTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('#manageUsersModal .tab-content').forEach(tab => {
+        tab.style.display = 'none';
+    });
+
+    // Remove active from all tab buttons
+    document.querySelectorAll('#manageUsersModal .review-tab').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Show selected tab
+    if (tabName === 'usersList') {
+        document.getElementById('usersListTab').style.display = 'block';
+        document.getElementById('createUserBtn').style.display = 'none';
+        document.querySelector('[data-tab="usersList"]').classList.add('active');
+    } else {
+        document.getElementById('createUserTab').style.display = 'block';
+        document.getElementById('createUserBtn').style.display = 'inline-flex';
+        document.querySelector('[data-tab="createUser"]').classList.add('active');
+    }
+}
+
+function openChangePasswordModal(userId, username) {
+    document.getElementById('passwordUsername').textContent = username;
+    document.getElementById('changePasswordForm').action = `/users/${userId}/change_password`;
+    closeModal('manageUsersModal');
+    openModal('changePasswordModal');
+}
+
+function openChangeRoleModal(userId, username, currentRole) {
+    document.getElementById('roleUsername').textContent = username;
+    document.getElementById('new_role').value = currentRole;
+    document.getElementById('changeRoleForm').action = `/users/${userId}/change_role`;
+    closeModal('manageUsersModal');
+    openModal('changeRoleModal');
+}
+
+function openDeleteUserModal(userId, username) {
+    console.log('Opening delete modal for user:', userId, username);
+    document.getElementById('deleteUsername').textContent = username;
+    const form = document.getElementById('deleteUserForm');
+    form.action = `/users/${userId}/delete`;
+    console.log('Form action set to:', form.action);
+    console.log('Form method:', form.method);
+    openModal('deleteUserModal');
+}
+
+function submitCreateUser() {
+    document.getElementById('createUserForm').submit();
+}
+</script>

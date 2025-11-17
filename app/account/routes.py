@@ -112,6 +112,7 @@ def index():
 
     # Get database statistics for admins
     stats = {}
+    all_users = []
     if current_user.is_admin:
         from app.books.models import Books
         from app.movies.models import Movies
@@ -127,10 +128,14 @@ def index():
             'users': User.query.count()
         }
 
+        # Get all users for the Manage Users modal
+        all_users = User.query.order_by(User.username).all()
+
     return render_template('account/index.html',
                          liked_artworks=liked_artworks,
                          liked_count=liked_count,
-                         stats=stats)
+                         stats=stats,
+                         all_users=all_users)
 
 
 @account_bp.route('/account/liked-artworks')

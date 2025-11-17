@@ -671,6 +671,125 @@
   display: block;
 }
 
+/* Users Table Styles */
+.table-container {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-top: var(--space-4);
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.users-table thead {
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.users-table th {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-weight: var(--font-semibold);
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.users-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-secondary);
+  color: var(--text-primary);
+  font-size: var(--font-sm);
+}
+
+.users-table tr:last-child td {
+  border-bottom: none;
+}
+
+.users-table tbody tr:hover {
+  background: var(--bg-tertiary);
+}
+
+.current-user-badge {
+  font-size: var(--font-xs);
+  color: var(--accent-blue);
+  font-weight: var(--font-medium);
+  margin-left: var(--space-2);
+}
+
+.role-badge {
+  display: inline-block;
+  font-size: var(--font-xs);
+  font-weight: var(--font-medium);
+  text-transform: capitalize;
+  color: var(--text-secondary);
+}
+
+.role-admin {
+  color: var(--accent-purple);
+}
+
+.role-user {
+  color: var(--accent-blue);
+}
+
+.role-viewer {
+  color: var(--text-tertiary);
+}
+
+.actions-cell {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  padding: var(--space-1);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+  font-size: var(--font-xl);
+  color: var(--text-tertiary);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon.btn-role:hover {
+  color: var(--accent-blue);
+}
+
+.btn-icon.btn-password:hover {
+  color: var(--accent-orange);
+}
+
+.btn-icon.btn-delete {
+  font-size: var(--font-2xl);
+}
+
+.btn-icon.btn-delete:hover {
+  color: var(--danger);
+}
+
+.modal-description {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+  line-height: var(--leading-relaxed);
+}
+
+.modal-description.warning {
+  color: var(--danger);
+  font-weight: var(--font-medium);
+}
+
 /* Publication Management Items */
 .pub-management-item {
   display: flex;

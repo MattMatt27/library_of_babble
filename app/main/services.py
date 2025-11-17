@@ -28,5 +28,8 @@ def get_user_nav_items():
             return nav_items
         elif current_user.role == 'viewer':
             return [item for item in nav_items if item['name'] not in ['Pondering', 'Collecting']]
+        else:
+            # Regular user role - same as unauthenticated
+            return [item for item in nav_items if item['name'] in ['Home', 'Reading', 'Writing', 'Creating']]
     else:
         return [item for item in nav_items if item['name'] in ['Home', 'Reading', 'Writing', 'Creating']]

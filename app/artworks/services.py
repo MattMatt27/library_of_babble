@@ -61,6 +61,10 @@ def get_approved_artworks_from_db(page=1, per_page=100, sort_order='asc',
     # Apply sorting
     if sort_order == "random":
         query = query.order_by(func.random())
+    elif sort_order == "date_added_desc":
+        query = query.order_by(Artworks.created_at.desc())
+    elif sort_order == "date_added_asc":
+        query = query.order_by(Artworks.created_at.asc())
     elif sort_order == "desc":
         query = query.order_by(Artworks.year.desc())
     else:  # asc

@@ -52,6 +52,10 @@
   transition: all var(--transition-fast);
 }
 
+.artist-search-input {
+  min-width: 300px;
+}
+
 .control-item input[type="text"]:focus,
 .control-item select:focus {
   outline: none;

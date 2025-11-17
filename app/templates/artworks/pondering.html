@@ -14,15 +14,17 @@
     <div class="pondering-controls">
         <div class="controls-row">
             <div class="control-item">
-                <label for="artist-search">Search Artist:</label>
-                <input type="text" id="artist-search" placeholder="Start typing an artist name...">
+                <label for="artist-search">Artists:</label>
+                <input type="text" id="artist-search" placeholder="Start typing an artist name..." class="artist-search-input">
             </div>
             <div class="control-item">
-                <label for="sort-year">Sort by Year:</label>
+                <label for="sort-year">Sort:</label>
                 <select id="sort-year">
                     <option value="random" {% if request.args.get('sort_order') == 'random' %}selected{% endif %}>Random</option>
-                    <option value="asc" {% if request.args.get('sort_order') == 'asc' %}selected{% endif %}>Ascending</option>
-                    <option value="desc" {% if request.args.get('sort_order') == 'desc' %}selected{% endif %}>Descending</option>
+                    <option value="date_added_desc" {% if request.args.get('sort_order') == 'date_added_desc' %}selected{% endif %}>Date Added (Newest)</option>
+                    <option value="date_added_asc" {% if request.args.get('sort_order') == 'date_added_asc' %}selected{% endif %}>Date Added (Oldest)</option>
+                    <option value="asc" {% if request.args.get('sort_order') == 'asc' %}selected{% endif %}>Year (Ascending)</option>
+                    <option value="desc" {% if request.args.get('sort_order') == 'desc' %}selected{% endif %}>Year (Descending)</option>
                 </select>
             </div>
             <a href="/artworks/galleries" class="view-collections-btn">View Collections</a>

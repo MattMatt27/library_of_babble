@@ -14,7 +14,7 @@ def get_user_nav_items():
     """
     nav_items = [
         {'name': 'Home', 'url': url_for('main.home'), 'active_page': 'home'},
-        {'name': 'Writing', 'url': url_for('main.writing'), 'active_page': 'writing'},
+        {'name': 'Writing', 'url': url_for('writing.index'), 'active_page': 'writing'},
         {'name': 'Creating', 'url': url_for('main.creating'), 'active_page': 'creating'},
         {'name': 'Reading', 'url': url_for('books.reading'), 'active_page': 'reading'},
         {'name': 'Watching', 'url': url_for('watching.index'), 'active_page': 'watching'},

@@ -322,6 +322,11 @@
   font-weight: var(--font-normal);
 }
 
+.tool-icon[data-type="writing"]::before {
+  content: '✎';
+  font-size: var(--font-xl);
+}
+
 .tool-button:hover .tool-icon[data-type]::before {
   color: var(--accent-blue);
 }
@@ -587,4 +592,156 @@
   .artworks-preview-grid {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   }
+}
+
+/* Authors List Management */
+.authors-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-height: 50px;
+  padding: var(--space-2);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-base);
+}
+
+.authors-list:empty::before {
+  content: 'No authors added yet';
+  color: var(--text-tertiary);
+  font-size: var(--font-sm);
+}
+
+.author-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-base);
+  cursor: move;
+}
+
+.author-item:hover {
+  border-color: var(--accent-blue);
+}
+
+.author-drag-handle {
+  color: var(--text-tertiary);
+  cursor: grab;
+  user-select: none;
+}
+
+.author-drag-handle:active {
+  cursor: grabbing;
+}
+
+.author-name {
+  flex: 1;
+  font-size: var(--font-sm);
+}
+
+.author-badge {
+  font-size: var(--font-xs);
+  padding: 2px 8px;
+  background: var(--accent-blue);
+  color: white;
+  border-radius: 12px;
+}
+
+.author-remove {
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: var(--font-lg);
+  padding: 0 var(--space-1);
+}
+
+.author-remove:hover {
+  color: #ef4444;
+}
+
+/* Tab Content (for modal tabs) */
+.tab-content {
+  display: none;
+  margin-top: var(--space-4);
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Publication Management Items */
+.pub-management-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  margin-bottom: var(--space-2);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-base);
+  cursor: move;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.pub-management-item:hover {
+  border-color: var(--accent-blue);
+}
+
+.pub-drag-handle {
+  color: var(--text-tertiary);
+  font-size: var(--font-lg);
+  cursor: grab;
+  user-select: none;
+  line-height: 1;
+}
+
+.pub-drag-handle:active {
+  cursor: grabbing;
+}
+
+.pub-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pub-title {
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pub-meta {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pub-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.pub-actions .btn-icon {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: var(--font-lg);
+  padding: var(--space-1);
+  transition: color var(--transition-fast);
+}
+
+.pub-actions .btn-icon:hover {
+  color: var(--accent-blue);
+}
+
+.pub-actions .btn-icon:last-child:hover {
+  color: #ef4444;
 }

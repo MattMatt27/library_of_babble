@@ -312,6 +312,123 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="managePublicationsModal">
+    <div class="modal modal-large">
+        <div class="modal-header">
+            <h3>Manage Publications</h3>
+            <button class="modal-close" onclick="closeModal('managePublicationsModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="review-tabs">
+                <button class="review-tab active" data-tab="addPublication" onclick="switchPublicationTab('addPublication')">Add Publication</button>
+                <button class="review-tab" data-tab="viewPublications" onclick="switchPublicationTab('viewPublications')">View All</button>
+            </div>
+
+            <!-- Add Publication Tab -->
+            <div id="addPublicationTab" class="tab-content active">
+                <form id="publicationForm">
+                    <input type="hidden" id="publicationId">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="publicationSection">Section *</label>
+                            <select id="publicationSection" class="form-input" required>
+                                <option value="academic">Academic</option>
+                                <option value="creative">Creative</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="publicationCategory">Category *</label>
+                            <select id="publicationCategory" class="form-input" required>
+                                <option value="">Select category...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="publicationTitle">Title *</label>
+                        <input type="text" id="publicationTitle" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Authors * <small style="color: var(--text-secondary); font-weight: normal;">(in order)</small></label>
+                        <div id="authorsList" class="authors-list">
+                            <!-- Authors will be added here dynamically -->
+                        </div>
+                        <div style="display: flex; gap: var(--space-2); margin-top: var(--space-2);">
+                            <input type="text" id="newAuthorName" class="form-input" placeholder="Enter author name" style="flex: 1;">
+                            <label style="display: flex; align-items: center; gap: var(--space-1); cursor: pointer; white-space: nowrap;">
+                                <input type="checkbox" id="newAuthorIsYou">
+                                <span style="font-size: var(--font-sm);">This is me</span>
+                            </label>
+                            <button type="button" class="btn btn-secondary" onclick="addAuthor()" style="white-space: nowrap;">+ Add</button>
+                        </div>
+                        <small class="form-help">Authors marked as "me" will be bolded on the site. Use drag handles to reorder.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="publicationVenue">Venue *</label>
+                        <input type="text" id="publicationVenue" class="form-input"
+                               placeholder="Journal name or conference location" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="publicationDate">Publication Date *</label>
+                        <input type="text" id="publicationDate" class="form-input"
+                               placeholder="e.g., December 2024 or September 2018" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="publicationUrl">URL</label>
+                        <input type="url" id="publicationUrl" class="form-input"
+                               placeholder="https://...">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="publicationDoi">DOI</label>
+                            <input type="text" id="publicationDoi" class="form-input"
+                                   placeholder="10.1136/...">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="publicationPmid">PMID</label>
+                            <input type="text" id="publicationPmid" class="form-input"
+                                   placeholder="39632121">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="publicationVolumeIssue">Volume/Issue</label>
+                        <input type="text" id="publicationVolumeIssue" class="form-input"
+                               placeholder="e.g., 27(1):e301298">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="publicationBadge">Award/Badge</label>
+                        <input type="text" id="publicationBadge" class="form-input"
+                               placeholder="e.g., 2025 Prize Finalist">
+                    </div>
+
+                    <div id="publicationStatus"></div>
+                </form>
+            </div>
+
+            <!-- View Publications Tab -->
+            <div id="viewPublicationsTab" class="tab-content">
+                <div id="publicationsList">
+                    <p>Loading publications...</p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('managePublicationsModal')">Close</button>
+            <button class="btn btn-primary" id="savePublicationBtn" onclick="savePublication()">Save Publication</button>
+        </div>
+    </div>
+</div>
+
 <div class="modal-overlay" id="manageUsersModal">
     <div class="modal">
         <div class="modal-header">

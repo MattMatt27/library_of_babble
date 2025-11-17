@@ -20,9 +20,9 @@ def home():
 
 @main_bp.route('/writing')
 def writing():
-    """Writing projects page"""
-    nav_items = get_user_nav_items()
-    return render_template('main/writing.html', nav_items=nav_items)
+    """Redirect to new writing blueprint"""
+    from flask import redirect
+    return redirect(url_for('writing.index'))
 
 
 @main_bp.route('/fyog')

@@ -158,30 +158,7 @@
     </div>
 </div>
 
-<div class="modal-overlay" id="showsModal">
-    <div class="modal">
-        <div class="modal-header">
-            <h3>Import TV Shows</h3>
-            <button class="modal-close" onclick="closeModal('showsModal')">&times;</button>
-        </div>
-        <div class="modal-body">
-            <p style="color: var(--text-secondary); margin-bottom: var(--space-4);">
-                Upload your TV Shows CSV file. The system will add new shows and report any conflicts with existing data.
-            </p>
-            <form id="showsForm" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="showsFile">TV Shows CSV File</label>
-                    <input type="file" id="showsFile" name="file" accept=".csv" required>
-                </div>
-                <div id="showsStatus"></div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeModal('showsModal')">Cancel</button>
-            <button class="btn btn-primary" onclick="submitShowsImport()">Import</button>
-        </div>
-    </div>
-</div>
+<!-- Legacy TV Shows modal removed - functionality replaced by Boredom Killer import -->
 
 <div class="modal-overlay" id="spotifyModal">
     <div class="modal">

@@ -1,8 +1,9 @@
 """
-Watching Routes (Movies and TV Shows)
+Watching Routes
+Aggregates movies and TV shows for the watching page
 """
 from flask import render_template
-from app.shows import watching_bp
+from app.watching import watching_bp
 from app.shows.services import get_shows_from_collection
 from app.movies.services import get_recently_watched_movies, get_movies_from_collection
 
@@ -18,7 +19,7 @@ def index():
     recommended_shows = get_shows_from_collection('matts-recommended')
 
     return render_template(
-        'shows/index.html',
+        'watching/index.html',
         recently_watched_movies=recently_watched_movies,
         recommended_movies=recommended_movies,
         recommended_shows=recommended_shows

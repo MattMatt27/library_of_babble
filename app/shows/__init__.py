@@ -1,8 +1,7 @@
 """
-Watching Blueprint (Movies and TV Shows)
+Shows Module
+Contains TV shows models and services
+Note: The watching page has been moved to app/watching/
 """
-from flask import Blueprint
-
-watching_bp = Blueprint('watching', __name__)
-
-from app.shows import routes  # noqa: E402, F401
+# This module now only contains models and services for TV shows
+# No blueprint is needed here anymore

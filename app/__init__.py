@@ -62,7 +62,7 @@ def register_blueprints(app):
     from app.auth import auth_bp
     from app.books import books_bp
     from app.movies import movies_bp
-    from app.shows import watching_bp
+    from app.watching import watching_bp
     from app.music import music_bp
     from app.artworks import artworks_bp
     from app.collections import collections_bp
@@ -127,7 +127,7 @@ def register_context_processors(app):
             active_page = 'writing'
         elif path.startswith('/books'):
             active_page = 'reading'
-        elif path.startswith('/shows'):
+        elif path.startswith('/watching'):
             active_page = 'watching'
         elif path.startswith('/creating'):
             active_page = 'creating'

@@ -50,6 +50,9 @@ def login():
 def logout():
     """User logout"""
     logout_user()
+    # Clear any flash messages from the session
+    from flask import session
+    session.pop('_flashes', None)
     return redirect(url_for('main.home'))
 
 

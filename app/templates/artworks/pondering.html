@@ -14,29 +14,87 @@
     <div class="pondering-controls">
         <div class="controls-row">
             <div class="control-item">
+                <label for="sort-filter">Sort:</label>
+                <select id="sort-filter" class="sort-select">
+                    <option value="">Sort By</option>
+                </select>
+                <div class="custom-dropdown" id="sort-filter-dropdown">
+                    <label class="dropdown-option">
+                        <input type="radio" name="sort" value="random" {% if request.args.get('sort_order') == 'random' %}checked{% endif %}>
+                        <span>Random</span>
+                    </label>
+                    <label class="dropdown-option">
+                        <input type="radio" name="sort" value="date_added_desc" {% if request.args.get('sort_order') == 'date_added_desc' %}checked{% endif %}>
+                        <span>Date Added (Newest)</span>
+                    </label>
+                    <label class="dropdown-option">
+                        <input type="radio" name="sort" value="date_added_asc" {% if request.args.get('sort_order') == 'date_added_asc' %}checked{% endif %}>
+                        <span>Date Added (Oldest)</span>
+                    </label>
+                    <label class="dropdown-option">
+                        <input type="radio" name="sort" value="asc" {% if request.args.get('sort_order') == 'asc' %}checked{% endif %}>
+                        <span>Year (Ascending)</span>
+                    </label>
+                    <label class="dropdown-option">
+                        <input type="radio" name="sort" value="desc" {% if request.args.get('sort_order') == 'desc' %}checked{% endif %}>
+                        <span>Year (Descending)</span>
+                    </label>
+                </div>
+            </div>
+            <div class="control-item">
                 <label for="artist-search">Artists:</label>
                 <input type="text" id="artist-search" placeholder="Start typing an artist name..." class="artist-search-input">
             </div>
             <div class="control-item">
-                <label for="sort-year">Sort:</label>
-                <select id="sort-year">
-                    <option value="random" {% if request.args.get('sort_order') == 'random' %}selected{% endif %}>Random</option>
-                    <option value="date_added_desc" {% if request.args.get('sort_order') == 'date_added_desc' %}selected{% endif %}>Date Added (Newest)</option>
-                    <option value="date_added_asc" {% if request.args.get('sort_order') == 'date_added_asc' %}selected{% endif %}>Date Added (Oldest)</option>
-                    <option value="asc" {% if request.args.get('sort_order') == 'asc' %}selected{% endif %}>Year (Ascending)</option>
-                    <option value="desc" {% if request.args.get('sort_order') == 'desc' %}selected{% endif %}>Year (Descending)</option>
+                <label for="collection-filter">Collections:</label>
+                <select id="collection-filter" class="collection-select">
+                    <option value="">Select Collections</option>
                 </select>
+                <div class="custom-dropdown multiselect-dropdown" id="collection-filter-dropdown">
+                    <label class="dropdown-option multiselect-option">
+                        <input type="checkbox" value="my_likes" {% if 'my_likes' in selected_collections %}checked{% endif %}>
+                        <span>My Likes</span>
+                    </label>
+                    {% for gallery in all_galleries %}
+                    <label class="dropdown-option multiselect-option">
+                        <input type="checkbox" value="{{ gallery.id }}" {% if gallery.id in selected_collections %}checked{% endif %}>
+                        <span>{{ gallery.name }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
             </div>
             <a href="/artworks/galleries" class="view-collections-btn">View Collections</a>
         </div>
-        <div class="selected-artists" id="selected-artists">
-            {% for artist in selected_artists %}
-            <div class="artist-tag" data-artist="{{ artist }}">
-                {{ artist }}
-                <button class="remove-artist" data-artist="{{ artist }}">&times;</button>
+        {% if selected_artists or selected_collections %}
+        <div class="selected-filters">
+            <div id="selected-artists">
+                {% for artist in selected_artists %}
+                <div class="artist-tag" data-artist="{{ artist }}">
+                    {{ artist }}
+                    <button class="remove-artist" data-artist="{{ artist }}">&times;</button>
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
+            <div id="selected-collections">
+                {% for collection_id in selected_collections %}
+                {% if collection_id == 'my_likes' %}
+                <div class="collection-tag" data-collection="my_likes">
+                    My Likes
+                    <button class="remove-collection" data-collection="my_likes">&times;</button>
+                </div>
+                {% else %}
+                {% set collection = all_galleries|selectattr('id', 'equalto', collection_id)|first %}
+                {% if collection %}
+                <div class="collection-tag" data-collection="{{ collection.id }}">
+                    {{ collection.name }}
+                    <button class="remove-collection" data-collection="{{ collection.id }}">&times;</button>
+                </div>
+                {% endif %}
+                {% endif %}
+                {% endfor %}
+            </div>
         </div>
+        {% endif %}
     </div>
     <div class="artwork-grid">
         {% for artwork in approved_artworks %}
@@ -56,6 +114,7 @@
             <div class="artwork-details">
                 <h3 class="artwork-title">{{ artwork.title }}</h3>
                 <a href="#" class="filter-artist artwork-artist" data-artist="{{ artwork.artist }}">{{ artwork.artist }}</a>
+                <p class="artwork-meta">{{ artwork.year }}</p>
                 <p class="artwork-meta">🎨 {{ artwork.medium if artwork.medium else "Unknown" }}</p>
                 <p class="artwork-meta">📍 {{ artwork.location }}</p>
             </div>
@@ -85,6 +144,7 @@
         <div class="viewer-details">
             <h2 id="viewer-title"></h2>
             <p class="artist-name"><strong>Artist:</strong> <span id="viewer-artist"></span></p>
+            <p><strong>Year:</strong> <span id="viewer-year"></span></p>
             <p><strong>Medium:</strong> <span id="viewer-medium"></span></p>
             <p><strong>Location:</strong> <span id="viewer-location"></span></p>
         </div>
@@ -98,8 +158,9 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const artistSearch = $('#artist-search');
-        const selectedArtists = new Set({{ selected_artists|tojson|safe }}); // Prepopulate selected artists from backend
-        const allArtists = {{ all_artists|tojson|safe }}; // Pass all artists from the backend as JSON
+        const selectedArtists = new Set({{ selected_artists|tojson|safe }});
+        const selectedCollections = new Set({{ selected_collections|tojson|safe }});
+        const allArtists = {{ all_artists|tojson|safe }};
 
         // Autocomplete for artist search
         artistSearch.autocomplete({
@@ -108,11 +169,74 @@
                 const selectedArtist = ui.item.value;
                 if (!selectedArtists.has(selectedArtist)) {
                     selectedArtists.add(selectedArtist);
-                    updatePageWithSelectedArtists(); // Trigger page update
+                    updatePageWithFilters();
                 }
-                artistSearch.val(''); // Clear the search box
+                artistSearch.val('');
                 return false;
             }
+        });
+
+        // Custom dropdown handling
+        const sortSelect = $('#sort-filter');
+        const sortDropdown = $('#sort-filter-dropdown');
+        const collectionSelect = $('#collection-filter');
+        const collectionDropdown = $('#collection-filter-dropdown');
+
+        // Function to update sort select display text
+        function updateSortDisplay() {
+            const checkedRadio = sortDropdown.find('input[type="radio"]:checked');
+            if (checkedRadio.length > 0) {
+                const selectedText = checkedRadio.next('span').text();
+                sortSelect.find('option').text(selectedText);
+            }
+        }
+
+        // Initialize sort display on page load
+        updateSortDisplay();
+
+        // Toggle sort dropdown on select click
+        sortSelect.on('mousedown', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            collectionDropdown.hide(); // Close other dropdown
+            sortDropdown.toggle();
+        });
+
+        // Toggle collection dropdown on select click
+        collectionSelect.on('mousedown', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            sortDropdown.hide(); // Close other dropdown
+            collectionDropdown.toggle();
+        });
+
+        // Prevent clicks inside collection dropdown from closing it (multiselect behavior)
+        collectionDropdown.on('click', function(e) {
+            e.stopPropagation();
+        });
+
+        // Close dropdowns when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.control-item').length) {
+                sortDropdown.hide();
+                collectionDropdown.hide();
+            }
+        });
+
+        // Handle sort radio button changes (close dropdown after selection)
+        sortDropdown.on('change', 'input[type="radio"]', function() {
+            updateSortDisplay();
+            sortDropdown.hide();
+            updatePageWithFilters();
+        });
+
+        // Handle collection checkbox changes (keep dropdown open)
+        collectionDropdown.on('change', 'input[type="checkbox"]', function() {
+            selectedCollections.clear();
+            collectionDropdown.find('input[type="checkbox"]:checked').each(function() {
+                selectedCollections.add($(this).val());
+            });
+            updatePageWithFilters();
         });
 
         // Function to update artist tags UI
@@ -133,24 +257,30 @@
         $('#selected-artists').on('click', '.remove-artist', function () {
             const artist = $(this).data('artist');
             selectedArtists.delete(artist);
-            updatePageWithSelectedArtists(); // Trigger page update
+            updatePageWithFilters();
         });
 
-        // Update the page with the selected artists and current filters
-        function updatePageWithSelectedArtists() {
+        // Remove collection from the selection
+        $('#selected-collections').on('click', '.remove-collection', function () {
+            const collection = $(this).data('collection');
+            selectedCollections.delete(collection);
+            // Also update the checkbox
+            $(`#collection-filter-dropdown input[value="${collection}"]`).prop('checked', false);
+            updatePageWithFilters();
+        });
+
+        // Update the page with all filters
+        function updatePageWithFilters() {
             const params = new URLSearchParams();
-            params.set('page', 1); // Reset to the first page
-            params.set('sort_order', $('#sort-year').val());
-            params.set('start_date', $('#start-date').val());
-            params.set('end_date', $('#end-date').val());
+            params.set('page', 1);
+            const sortValue = $('input[name="sort"]:checked').val();
+            if (sortValue) {
+                params.set('sort_order', sortValue);
+            }
             selectedArtists.forEach(artist => params.append('artist', artist));
+            selectedCollections.forEach(collection => params.append('collection', collection));
             window.location.href = `${window.location.pathname}?${params.toString()}`;
         }
-
-        // Persist selected artists and other filters on filter change
-        $('#sort-year, #start-date, #end-date').on('change', () => {
-            updatePageWithSelectedArtists();
-        });
 
         $('#prev-page').on('click', () => {
             if ({{ current_page }} > 1) {
@@ -178,6 +308,7 @@
         const viewerImage = document.getElementById('viewer-image');
         const viewerTitle = document.getElementById('viewer-title');
         const viewerArtist = document.getElementById('viewer-artist');
+        const viewerYear = document.getElementById('viewer-year');
         const viewerMedium = document.getElementById('viewer-medium');
         const viewerLocation = document.getElementById('viewer-location');
         const closeViewerButton = document.getElementById('close-viewer');
@@ -199,12 +330,14 @@
             const imgId = imgElement.getAttribute('data-img-id');
             const title = imgElement.getAttribute('data-title');
             const artist = imgElement.getAttribute('data-artist');
+            const year = imgElement.getAttribute('data-year');
             const medium = imgElement.getAttribute('data-medium');
             const location = imgElement.getAttribute('data-location');
 
             viewerImage.src = fullImgSrc;
             viewerTitle.textContent = title || "Unknown Title";
             viewerArtist.textContent = artist || "Unknown Artist";
+            viewerYear.textContent = year || "Unknown";
             viewerMedium.textContent = medium || "Unknown Medium";
             viewerLocation.textContent = location || "Unknown Location";
 

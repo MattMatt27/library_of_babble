@@ -15,13 +15,16 @@
         <p>Explore artworks grouped by location, medium, and personal favorites. Click any artwork to view it in full size.</p>
     </div>
 
-    {% if display_liked_artworks %}
+    {% for collection in collections %}
     <div class="gallery-section">
         <div class="gallery-section-header">
-            <h2>Your Liked Artworks <span class="gallery-count">({{ liked_artworks_count }})</span></h2>
+            <h2>{{ collection.name }} <span class="gallery-count">({{ collection.count }})</span></h2>
+            {% if collection.id != 'liked_artworks' %}
+            <a href="{{ url_for('artworks.pondering', collection=collection.id) }}" class="see-more-btn">See More →</a>
+            {% endif %}
         </div>
         <div class="gallery-row">
-            {% for artwork in display_liked_artworks %}
+            {% for artwork in collection.artworks %}
             <div class="gallery-item">
                 <img
                     src="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
@@ -38,107 +41,7 @@
             {% endfor %}
         </div>
     </div>
-    {% endif %}
-
-    {% if display_at_boston_museums %}
-    <div class="gallery-section">
-        <div class="gallery-section-header">
-            <h2>Boston Museums <span class="gallery-count">({{ at_boston_museums_count }})</span></h2>
-        </div>
-        <div class="gallery-row">
-            {% for artwork in display_at_boston_museums %}
-            <div class="gallery-item">
-                <img
-                    src="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
-                    alt="{{ artwork.title }}"
-                    data-img-id="{{ artwork.id }}"
-                    data-full-img="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
-                    data-title="{{ artwork.title }}"
-                    data-artist="{{ artwork.artist }}"
-                    data-year="{{ artwork.year }}"
-                    data-location="{{ artwork.location }}"
-                    data-medium="{{ artwork.medium }}"
-                    data-description="{{ artwork.description }}">
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
-    {% if display_worcester_artworks %}
-    <div class="gallery-section">
-        <div class="gallery-section-header">
-            <h2>Worcester Art Museum <span class="gallery-count">({{ worcester_artworks_count }})</span></h2>
-        </div>
-        <div class="gallery-row">
-            {% for artwork in display_worcester_artworks %}
-            <div class="gallery-item">
-                <img
-                    src="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
-                    alt="{{ artwork.title }}"
-                    data-img-id="{{ artwork.id }}"
-                    data-full-img="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
-                    data-title="{{ artwork.title }}"
-                    data-artist="{{ artwork.artist }}"
-                    data-year="{{ artwork.year }}"
-                    data-location="{{ artwork.location }}"
-                    data-medium="{{ artwork.medium }}"
-                    data-description="{{ artwork.description }}">
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
-    {% if display_oil_on_canvas_artworks %}
-    <div class="gallery-section">
-        <div class="gallery-section-header">
-            <h2>Oil on Canvas <span class="gallery-count">({{ oil_on_canvas_artworks_count }})</span></h2>
-        </div>
-        <div class="gallery-row">
-            {% for artwork in display_oil_on_canvas_artworks %}
-            <div class="gallery-item">
-                <img
-                    src="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
-                    alt="{{ artwork.title }}"
-                    data-img-id="{{ artwork.id }}"
-                    data-full-img="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
-                    data-title="{{ artwork.title }}"
-                    data-artist="{{ artwork.artist }}"
-                    data-year="{{ artwork.year }}"
-                    data-location="{{ artwork.location }}"
-                    data-medium="{{ artwork.medium }}"
-                    data-description="{{ artwork.description }}">
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
-    {% if display_watercolor_artworks %}
-    <div class="gallery-section">
-        <div class="gallery-section-header">
-            <h2>Watercolors <span class="gallery-count">({{ watercolor_artworks_count }})</span></h2>
-        </div>
-        <div class="gallery-row">
-            {% for artwork in display_watercolor_artworks %}
-            <div class="gallery-item">
-                <img
-                    src="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
-                    alt="{{ artwork.title }}"
-                    data-img-id="{{ artwork.id }}"
-                    data-full-img="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
-                    data-title="{{ artwork.title }}"
-                    data-artist="{{ artwork.artist }}"
-                    data-year="{{ artwork.year }}"
-                    data-location="{{ artwork.location }}"
-                    data-medium="{{ artwork.medium }}"
-                    data-description="{{ artwork.description }}">
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
+    {% endfor %}
 </div>
 
 <div id="image-viewer" class="image-viewer">
@@ -155,6 +58,7 @@
         <div class="viewer-details">
             <h2 id="viewer-title"></h2>
             <p class="artist-name"><strong>Artist:</strong> <span id="viewer-artist"></span></p>
+            <p><strong>Year:</strong> <span id="viewer-year"></span></p>
             <p><strong>Medium:</strong> <span id="viewer-medium"></span></p>
             <p><strong>Location:</strong> <span id="viewer-location"></span></p>
         </div>
@@ -169,6 +73,7 @@
         const viewerImage = document.getElementById('viewer-image');
         const viewerTitle = document.getElementById('viewer-title');
         const viewerArtist = document.getElementById('viewer-artist');
+        const viewerYear = document.getElementById('viewer-year');
         const viewerMedium = document.getElementById('viewer-medium');
         const viewerLocation = document.getElementById('viewer-location');
         const closeViewerButton = document.getElementById('close-viewer');
@@ -190,12 +95,14 @@
             const imgId = imgElement.getAttribute('data-img-id');
             const title = imgElement.getAttribute('data-title');
             const artist = imgElement.getAttribute('data-artist');
+            const year = imgElement.getAttribute('data-year');
             const medium = imgElement.getAttribute('data-medium');
             const location = imgElement.getAttribute('data-location');
 
             viewerImage.src = fullImgSrc;
             viewerTitle.textContent = title || "Unknown Title";
             viewerArtist.textContent = artist || "Unknown Artist";
+            viewerYear.textContent = year || "Unknown";
             viewerMedium.textContent = medium || "Unknown Medium";
             viewerLocation.textContent = location || "Unknown Location";
 

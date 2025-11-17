@@ -188,35 +188,61 @@ async function loadPublications() {
 
         const pubs = result.publications;
 
-        // Group by section
+        // Define category order and labels
+        const ACADEMIC_CATEGORY_ORDER = ['journal_article', 'conference_talk', 'editor'];
+        const CREATIVE_CATEGORY_ORDER = ['fiction', 'essay', 'poetry'];
+        const CATEGORY_LABELS = {
+            'journal_article': 'Journal Articles',
+            'conference_talk': 'Conference Talks',
+            'editor': 'Editor',
+            'fiction': 'Fiction',
+            'essay': 'Essays',
+            'poetry': 'Poetry'
+        };
+
+        // Group by section and category
         const academic = pubs.filter(p => p.section === 'academic');
         const creative = pubs.filter(p => p.section === 'creative');
 
         let html = '<div style="max-height: 500px; overflow-y: auto; padding: var(--space-2);">';
 
-        // Academic publications
+        // Academic publications - grouped by category
         if (academic.length > 0) {
             html += '<h4 style="margin-bottom: var(--space-3); color: var(--text-secondary);">Academic Publications</h4>';
-            html += '<div class="publications-sortable" data-section="academic">';
-            academic.forEach(pub => {
-                html += renderPublicationItem(pub);
+
+            ACADEMIC_CATEGORY_ORDER.forEach(category => {
+                const categoryPubs = academic.filter(p => p.category === category);
+                if (categoryPubs.length > 0) {
+                    html += `<h5 style="margin-top: var(--space-3); margin-bottom: var(--space-2); color: var(--text-tertiary); font-size: var(--font-sm);">${CATEGORY_LABELS[category]}</h5>`;
+                    html += `<div class="publications-sortable" data-section="academic" data-category="${category}">`;
+                    categoryPubs.forEach(pub => {
+                        html += renderPublicationItem(pub);
+                    });
+                    html += '</div>';
+                }
             });
-            html += '</div>';
         }
 
-        // Creative publications
+        // Creative publications - grouped by category
         if (creative.length > 0) {
             html += '<h4 style="margin-top: var(--space-4); margin-bottom: var(--space-3); color: var(--text-secondary);">Creative Publications</h4>';
-            html += '<div class="publications-sortable" data-section="creative">';
-            creative.forEach(pub => {
-                html += renderPublicationItem(pub);
+
+            CREATIVE_CATEGORY_ORDER.forEach(category => {
+                const categoryPubs = creative.filter(p => p.category === category);
+                if (categoryPubs.length > 0) {
+                    html += `<h5 style="margin-top: var(--space-3); margin-bottom: var(--space-2); color: var(--text-tertiary); font-size: var(--font-sm);">${CATEGORY_LABELS[category]}</h5>`;
+                    html += `<div class="publications-sortable" data-section="creative" data-category="${category}">`;
+                    categoryPubs.forEach(pub => {
+                        html += renderPublicationItem(pub);
+                    });
+                    html += '</div>';
+                }
             });
-            html += '</div>';
         }
 
         html += '</div>';
         html += '<div style="margin-top: var(--space-3); padding: var(--space-3); background: var(--bg-tertiary); border-radius: var(--radius-base); text-align: center;">';
-        html += '<small style="color: var(--text-secondary);">Drag publications to reorder them within their section. Changes save automatically.</small>';
+        html += '<small style="color: var(--text-secondary);">Drag publications to reorder them within their category. Changes save automatically.</small>';
         html += '</div>';
 
         listContainer.innerHTML = html;

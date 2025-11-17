@@ -37,6 +37,10 @@ CATEGORY_NAMES = {
 def index():
     """Writing page with publications"""
 
+    # Define category order
+    ACADEMIC_CATEGORY_ORDER = ['journal_article', 'conference_talk', 'editor']
+    CREATIVE_CATEGORY_ORDER = ['fiction', 'essay', 'poetry']
+
     # Get all publications
     all_pubs = Publication.query.order_by(
         Publication.display_order.asc(),
@@ -54,10 +58,14 @@ def index():
             grouped[pub.section][pub.category] = []
         grouped[pub.section][pub.category].append(pub)
 
+    # Sort categories in the correct order
+    academic_pubs = {cat: grouped['academic'][cat] for cat in ACADEMIC_CATEGORY_ORDER if cat in grouped['academic']}
+    creative_pubs = {cat: grouped['creative'][cat] for cat in CREATIVE_CATEGORY_ORDER if cat in grouped['creative']}
+
     return render_template(
         'writing/index.html',
-        academic_pubs=grouped['academic'],
-        creative_pubs=grouped['creative'],
+        academic_pubs=academic_pubs,
+        creative_pubs=creative_pubs,
         category_names=CATEGORY_NAMES
     )
 

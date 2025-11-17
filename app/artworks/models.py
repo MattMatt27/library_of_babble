@@ -2,6 +2,7 @@
 Artworks Models
 """
 from app.extensions import db
+from datetime import datetime
 
 
 class Artworks(db.Model):
@@ -22,6 +23,15 @@ class Artworks(db.Model):
     medium = db.Column(db.Text)
     collections = db.Column(db.Text)
     site_approved = db.Column(db.Boolean, default=False, nullable=False)
+
+    # Audit/metadata fields
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    source = db.Column(db.String(50), default='manual')  # 'manual', 'csv_import', etc.
+    import_batch_id = db.Column(db.String)
+    notes = db.Column(db.Text)
 
     def __repr__(self):
         return f'<Artwork {self.title} by {self.artist}>'
@@ -50,6 +60,15 @@ class GeneratedImages(db.Model):
     model = db.Column(db.String(255))
     model_version = db.Column(db.Integer)
     prompt = db.Column(db.String(1000))
+
+    # Audit/metadata fields
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    source = db.Column(db.String(50), default='generated')  # 'generated', 'api', etc.
+    import_batch_id = db.Column(db.String)
+    notes = db.Column(db.Text)
 
     def __repr__(self):
         return f'<GeneratedImage {self.file_name}>'

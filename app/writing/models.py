@@ -61,8 +61,15 @@ class Publication(db.Model):
     section = db.Column(db.String(50), nullable=False)  # 'academic' or 'creative'
     category = db.Column(db.String(50), nullable=False)  # 'journal_article', 'fiction', etc.
     display_order = db.Column(db.Integer, default=0)
+
+    # Audit/metadata fields
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'))  # User who created this
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'))  # User who last updated this
+    source = db.Column(db.String(50), default='manual')  # 'manual', 'csv_import', 'api', etc.
+    import_batch_id = db.Column(db.String)  # Links items from same import
+    notes = db.Column(db.Text)  # Internal admin notes
 
     # Relationships
     publication_authors = db.relationship('PublicationAuthor',

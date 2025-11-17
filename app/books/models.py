@@ -2,6 +2,7 @@
 Books Models
 """
 from app.extensions import db
+from datetime import datetime
 
 
 class Books(db.Model):
@@ -29,6 +30,15 @@ class Books(db.Model):
     read_count = db.Column(db.Integer)
     owned_copies = db.Column(db.Integer)
     cover_image_url = db.Column(db.String(500))  # Increased for long URLs
+
+    # Audit/metadata fields
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    source = db.Column(db.String(50), default='manual')  # 'manual', 'goodreads_import', etc.
+    import_batch_id = db.Column(db.String)
+    notes = db.Column(db.Text)  # Internal admin notes (separate from private_notes)
 
     def __repr__(self):
         return f'<Book {self.title} by {self.author}>'

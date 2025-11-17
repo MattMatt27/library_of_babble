@@ -46,3 +46,10 @@ migrations/versions/*.pyc
 ARCHITECTURE.md
 docs/ignore/
 archive/
+
+# ============================================================================
+# Internal Scripts
+# ============================================================================
+backfill_metadata.py
+cleanup_br_tags.py
+cleanup_br_tags.sql

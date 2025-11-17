@@ -6,6 +6,7 @@
 
 {% block extra_styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/movies.css') }}">
+<script src="{{ url_for('static', filename='js/star-rating.js') }}" defer></script>
 {% endblock %}
 
 {% block content %}
@@ -45,11 +46,17 @@
                         <div class="movie-card-title">{{ movie['title'] }}</div>
                         <div class="movie-card-director">{{ movie['director'] }}</div>
                         <div class="movie-card-year">{{ movie['year'] }}</div>
-                        {% if movie['my_rating'] %}
                         <div class="movie-card-rating">
-                            <img src="{{ url_for('static', filename='images/assets/stars/' + movie['my_rating']|string + '.png') }}" alt="{{ movie['my_rating'] }} Stars">
+                            {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                <div data-star-rating="{{ movie['my_rating'] or 0 }}"
+                                     data-interactive
+                                     data-item-type="movie"
+                                     data-item-id="{{ movie.id }}"
+                                     data-size="small"></div>
+                            {% else %}
+                                <div data-star-rating="{{ movie['my_rating'] or 0 }}" data-size="small"></div>
+                            {% endif %}
                         </div>
-                        {% endif %}
                     </div>
                 </div>
             {% endfor %}

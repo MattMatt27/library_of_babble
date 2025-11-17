@@ -446,33 +446,72 @@
   margin-bottom: var(--space-2);
 }
 
+.form-input,
+.form-textarea,
 .form-group input[type="file"],
 .form-group input[type="text"],
 .form-group input[type="number"],
 .form-group textarea,
 .form-group select {
   width: 100%;
-  background: var(--bg-tertiary);
+  background: var(--bg-primary);
   border: 1px solid var(--border-primary);
-  border-radius: var(--radius-base);
+  border-radius: 6px;
   color: var(--text-primary);
-  padding: var(--space-3);
+  padding: 10px 12px;
   font-size: var(--font-base);
-  font-family: var(--font-primary);
-  transition: all var(--transition-fast);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  transition: all 150ms ease;
 }
 
+.form-textarea,
 .form-group textarea {
   resize: vertical;
   min-height: 100px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
 }
 
+.form-input:focus,
+.form-textarea:focus,
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
   outline: none;
   border-color: var(--accent-blue);
   box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+}
+
+/* Upload mode tabs */
+.review-tabs {
+  display: flex;
+  gap: var(--space-2);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  padding: var(--space-1);
+}
+
+.review-tab {
+  flex: 1;
+  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.review-tab:hover {
+  color: var(--text-primary);
+  background: rgba(88, 166, 255, 0.1);
+}
+
+.review-tab.active {
+  background: var(--accent-blue);
+  color: white;
 }
 
 /* File drop zone */

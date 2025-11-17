@@ -762,3 +762,240 @@ def refresh_spotify():
             'success': False,
             'error': f'Refresh failed: {str(e)}'
         }), 500
+
+
+@account_bp.route('/account/upload_artwork', methods=['POST'])
+@admin_required
+def upload_artwork():
+    """Upload a new artwork with metadata"""
+    import uuid
+    from werkzeug.utils import secure_filename
+
+    # Validate required fields
+    if 'artwork_file' not in request.files:
+        return jsonify({'success': False, 'error': 'No file provided'}), 400
+
+    file = request.files['artwork_file']
+    if file.filename == '':
+        return jsonify({'success': False, 'error': 'No file selected'}), 400
+
+    # Validate image file
+    allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'}
+    file_ext = Path(file.filename).suffix.lower()
+    if file_ext not in allowed_extensions:
+        return jsonify({'success': False, 'error': f'Invalid file type. Allowed: {", ".join(allowed_extensions)}'}), 400
+
+    # Get form data
+    artist = request.form.get('artist', '').strip()
+    title = request.form.get('title', '').strip()
+    year = request.form.get('year', '').strip()
+    medium = request.form.get('medium', '').strip()
+    location = request.form.get('location', '').strip()
+    series = request.form.get('series', '').strip()
+    description = request.form.get('description', '').strip()
+    site_approved = request.form.get('site_approved') == 'true'
+
+    # Validate required fields
+    if not artist:
+        return jsonify({'success': False, 'error': 'Artist name is required'}), 400
+    if not title:
+        return jsonify({'success': False, 'error': 'Artwork title is required'}), 400
+    if not year:
+        return jsonify({'success': False, 'error': 'Year is required'}), 400
+
+    try:
+        # Generate unique ID for artwork
+        artwork_id = str(uuid.uuid4())
+
+        # Get file extension from uploaded file
+        original_filename = secure_filename(file.filename)
+        file_ext = Path(original_filename).suffix
+
+        # Create filename using format: "Title (Year).ext"
+        # Only include characters that are safe for filenames
+        safe_title = "".join(c for c in title if c.isalnum() or c in (' ', '-', '_', ',')).strip()
+        new_filename = f"{safe_title} ({year}){file_ext}"
+
+        # Create artist directory if it doesn't exist
+        artist_dir = Path('static/images/artists') / artist
+        artist_dir.mkdir(parents=True, exist_ok=True)
+
+        # Save the file
+        file_path = artist_dir / new_filename
+
+        # Check if file already exists
+        if file_path.exists():
+            # Add timestamp to make filename unique
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            safe_title_for_timestamp = safe_title.replace(' ', '_')
+            new_filename = f"{safe_title_for_timestamp}_{timestamp}{file_ext}"
+            file_path = artist_dir / new_filename
+
+        file.save(str(file_path))
+
+        # Create artwork database entry
+        artwork = Artworks(
+            id=artwork_id,
+            title=title,
+            artist=artist,
+            year=year,
+            medium=medium or None,
+            location=location or None,
+            series=series or None,
+            description=description or None,
+            file_name=new_filename,
+            site_approved=site_approved
+        )
+
+        db.session.add(artwork)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'artwork_id': artwork_id,
+            'artist': artist,
+            'title': title,
+            'filename': new_filename,
+            'path': str(file_path),
+            'message': 'Artwork uploaded successfully'
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        # Clean up file if it was saved
+        if 'file_path' in locals() and file_path.exists():
+            file_path.unlink()
+        return jsonify({
+            'success': False,
+            'error': f'Upload failed: {str(e)}'
+        }), 500
+
+
+@account_bp.route('/account/import_artworks_csv', methods=['POST'])
+@admin_required
+def import_artworks_csv():
+    """Import artworks from CSV file"""
+    if 'artworks_csv' not in request.files:
+        return jsonify({'success': False, 'error': 'No CSV file provided'}), 400
+
+    file = request.files['artworks_csv']
+    if file.filename == '':
+        return jsonify({'success': False, 'error': 'No file selected'}), 400
+
+    if not file.filename.endswith('.csv'):
+        return jsonify({'success': False, 'error': 'File must be a CSV'}), 400
+
+    temp_file_path = None
+
+    try:
+        # Create database backup before import
+        backup_success, backup_file = create_database_backup()
+        if not backup_success:
+            return jsonify({
+                'success': False,
+                'error': f'Could not create backup: {backup_file}'
+            }), 500
+
+        # Save file temporarily
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.csv')
+        temp_file_path = temp_file.name
+        file.save(temp_file_path)
+        temp_file.close()
+
+        # Read and process CSV
+        imported = 0
+        skipped = 0
+        errors = []
+
+        with open(temp_file_path, 'r', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+
+            # Validate CSV has required columns
+            required_columns = {'artist', 'title', 'year'}
+            if not required_columns.issubset(set(reader.fieldnames or [])):
+                return jsonify({
+                    'success': False,
+                    'error': f'CSV must include columns: {", ".join(required_columns)}'
+                }), 400
+
+            for row_num, row in enumerate(reader, start=2):
+                try:
+                    # Validate required fields
+                    artist = row.get('artist', '').strip()
+                    title = row.get('title', '').strip()
+                    year = row.get('year', '').strip()
+
+                    if not artist or not title or not year:
+                        errors.append(f'Row {row_num}: Missing required field (artist, title, or year)')
+                        skipped += 1
+                        continue
+
+                    # Optional fields
+                    medium = row.get('medium', '').strip() or None
+                    location = row.get('location', '').strip() or None
+                    series = row.get('series', '').strip() or None
+                    description = row.get('description', '').strip() or None
+                    file_name = row.get('file_name', '').strip() or None
+                    site_approved_str = row.get('site_approved', '').strip().lower()
+                    site_approved = site_approved_str in ('true', '1', 'yes', 'y')
+
+                    # Check if artwork already exists (by artist + title)
+                    existing = Artworks.query.filter_by(artist=artist, title=title).first()
+                    if existing:
+                        errors.append(f'Row {row_num}: Artwork "{title}" by {artist} already exists')
+                        skipped += 1
+                        continue
+
+                    # Create new artwork
+                    import uuid
+                    artwork = Artworks(
+                        id=str(uuid.uuid4()),
+                        artist=artist,
+                        title=title,
+                        year=year,
+                        medium=medium,
+                        location=location,
+                        series=series,
+                        description=description,
+                        file_name=file_name,
+                        site_approved=site_approved
+                    )
+
+                    db.session.add(artwork)
+                    imported += 1
+
+                except Exception as e:
+                    errors.append(f'Row {row_num}: {str(e)}')
+                    skipped += 1
+                    continue
+
+        # Commit all changes
+        db.session.commit()
+
+        # Clean up temp file
+        if temp_file_path and os.path.exists(temp_file_path):
+            os.unlink(temp_file_path)
+
+        response_data = {
+            'success': True,
+            'imported': imported,
+            'skipped': skipped,
+            'backup_file': backup_file
+        }
+
+        if errors:
+            response_data['errors'] = errors[:10]  # Limit to first 10 errors
+
+        return jsonify(response_data)
+
+    except Exception as e:
+        db.session.rollback()
+
+        # Clean up temp file
+        if temp_file_path and os.path.exists(temp_file_path):
+            os.unlink(temp_file_path)
+
+        return jsonify({
+            'success': False,
+            'error': f'Import failed: {str(e)}'
+        }), 500

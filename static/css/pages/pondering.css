@@ -106,18 +106,18 @@
   transform: scale(1.2);
 }
 
-/* View Collections button */
+/* View Collections button - matches pagination style */
 .view-collections-btn {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  background: var(--accent-blue);
-  border: none;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-base);
-  color: white;
+  color: var(--text-primary);
   font-size: var(--font-sm);
-  font-weight: var(--font-semibold);
+  font-weight: var(--font-medium);
   text-decoration: none;
   transition: all var(--transition-fast);
   cursor: pointer;
@@ -128,8 +128,9 @@
 }
 
 .view-collections-btn:hover {
-  background: var(--accent-blue-hover);
-  transform: translateY(-1px);
+  background: var(--accent-blue);
+  color: white;
+  border-color: var(--accent-blue);
   text-decoration: none;
 }
 

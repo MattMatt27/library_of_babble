@@ -205,14 +205,109 @@
 <div class="modal-overlay" id="uploadArtworkModal">
     <div class="modal">
         <div class="modal-header">
-            <h3>Upload New Artwork</h3>
+            <h3>Upload Artworks</h3>
             <button class="modal-close" onclick="closeModal('uploadArtworkModal')">&times;</button>
         </div>
         <div class="modal-body">
-            <p>Artwork upload coming soon...</p>
+            <p style="color: var(--text-secondary); margin-bottom: var(--space-4);">
+                Upload artwork metadata from CSV or add a single artwork with image.
+            </p>
+
+            <!-- Upload Mode Tabs -->
+            <div class="review-tabs" style="margin-bottom: var(--space-4);">
+                <button type="button" class="review-tab active" data-upload-mode="csv" onclick="switchUploadMode('csv')">CSV Import</button>
+                <button type="button" class="review-tab" data-upload-mode="individual" onclick="switchUploadMode('individual')">Individual Upload</button>
+            </div>
+
+            <form id="uploadArtworkForm" enctype="multipart/form-data">
+                <!-- CSV Import Section -->
+                <div id="csvUploadSection">
+                    <div class="form-group">
+                        <label for="artworksCsvFile" style="display: block; margin-bottom: var(--space-2);">Artworks CSV File (Required)</label>
+                        <div class="file-drop-zone" onclick="document.getElementById('artworksCsvFile').click()">
+                            <span class="file-drop-text" id="artworksCsvFileName">Click to select CSV file</span>
+                            <input type="file" id="artworksCsvFile" name="artworks_csv" accept=".csv" style="display: none;">
+                        </div>
+                    </div>
+                    <p style="color: var(--text-tertiary); font-size: var(--font-sm); margin-top: var(--space-2);">
+                        CSV should include columns: artist, title, year, and optionally: medium, location, series, description, file_name, site_approved
+                    </p>
+                </div>
+
+                <!-- Individual Upload Section -->
+                <div id="individualUploadSection" style="display: none;">
+                    <!-- Image File Upload -->
+                    <div class="form-group">
+                        <label for="artworkFile" style="display: block; margin-bottom: var(--space-2);">Artwork Image (Required)</label>
+                        <div class="file-drop-zone" onclick="document.getElementById('artworkFile').click()">
+                            <span class="file-drop-text" id="artworkFileName">Click to select image file</span>
+                            <input type="file" id="artworkFile" name="artwork_file" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+
+                    <!-- Artist Name -->
+                    <div class="form-group">
+                        <label for="artworkArtist">Artist Name (Required)</label>
+                        <input type="text" id="artworkArtist" name="artist" class="form-input">
+                    </div>
+
+                    <!-- Artwork Title -->
+                    <div class="form-group">
+                        <label for="artworkTitle">Artwork Title (Required)</label>
+                        <input type="text" id="artworkTitle" name="title" class="form-input">
+                    </div>
+
+                    <!-- Year -->
+                    <div class="form-group">
+                        <label for="artworkYear">Year (Required)</label>
+                        <input type="text" id="artworkYear" name="year" class="form-input" placeholder="e.g., 1890, c. 1900, 1920-1925">
+                    </div>
+
+                    <!-- Medium -->
+                    <div class="form-group">
+                        <label for="artworkMedium">Medium (Optional)</label>
+                        <input type="text" id="artworkMedium" name="medium" class="form-input" placeholder="e.g., Oil on canvas, Watercolor">
+                    </div>
+
+                    <!-- Location -->
+                    <div class="form-group">
+                        <label for="artworkLocation">Location (Optional)</label>
+                        <input type="text" id="artworkLocation" name="location" class="form-input" placeholder="e.g., Museum of Fine Arts, Boston">
+                    </div>
+
+                    <!-- Series -->
+                    <div class="form-group">
+                        <label for="artworkSeries">Series (Optional)</label>
+                        <input type="text" id="artworkSeries" name="series" class="form-input">
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label for="artworkDescription">Description (Optional)</label>
+                        <textarea id="artworkDescription" name="description" class="form-textarea" rows="3"></textarea>
+                    </div>
+
+                    <!-- Site Approved -->
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer;">
+                            <input type="checkbox" id="artworkSiteApproved" name="site_approved" style="width: auto;">
+                            <span>Approve for public display</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="uploadArtworkProgress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="uploadArtworkProgressBar"></div>
+                    </div>
+                    <div class="progress-text" id="uploadArtworkProgressText">Uploading...</div>
+                </div>
+                <div id="uploadArtworkStatus"></div>
+            </form>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeModal('uploadArtworkModal')">Close</button>
+            <button class="btn btn-secondary" id="uploadArtworkCancelBtn" onclick="closeModal('uploadArtworkModal')">Cancel</button>
+            <button class="btn btn-primary" id="uploadArtworkBtn" onclick="submitArtworkUpload()">Upload</button>
         </div>
     </div>
 </div>
@@ -228,21 +323,6 @@
         </div>
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeModal('manageUsersModal')">Close</button>
-        </div>
-    </div>
-</div>
-
-<div class="modal-overlay" id="importArtworksModal">
-    <div class="modal">
-        <div class="modal-header">
-            <h3>Import Artworks CSV</h3>
-            <button class="modal-close" onclick="closeModal('importArtworksModal')">&times;</button>
-        </div>
-        <div class="modal-body">
-            <p>Artworks CSV import coming soon...</p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeModal('importArtworksModal')">Close</button>
         </div>
     </div>
 </div>

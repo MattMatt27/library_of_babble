@@ -2,6 +2,7 @@
 Artworks Business Logic and Helper Functions
 """
 import re
+import random
 from urllib.parse import unquote
 from sqlalchemy import text, func
 from app.extensions import db
@@ -10,27 +11,62 @@ from app.artworks.models import Artworks
 
 def normalize_year(year):
     """
-    Convert century values to the start of the century (e.g., '20th Century' -> 1900).
-    Convert year ranges to the start year (e.g., '720-725' -> 720).
-    Other values are returned as-is.
+    Convert various year formats to a normalized integer for sorting.
+
+    Handles:
+    - Century formats: "19th Century" -> 1800, "1st Century" -> 0
+    - Multi-century: "18-19th century" -> 1700, "5-6th Century" -> 400
+    - Decade formats: "1890s" -> 1890
+    - BCE/CE ranges: "200 BCE-500 CE" -> -200, "664-332 BCE" -> -664
+    - Year ranges: "720-725" -> 720, "200–500" (em dash) -> 200
     """
     if not year:
         return None
 
     year_str = str(year).strip()
 
-    # Handle century format (e.g., "19th Century")
-    century_match = re.match(r"(\d+)(st|nd|rd|th)\s+Century", year_str, re.IGNORECASE)
+    # Handle BCE year ranges (e.g., "664-332 BCE") - must check before general BCE
+    bce_range_match = re.match(r"(\d+)\s*[-–]\s*\d+\s*BCE", year_str, re.IGNORECASE)
+    if bce_range_match:
+        # Use the earlier (more negative) year for BCE ranges
+        return -int(bce_range_match.group(1))
+
+    # Handle BCE/CE year ranges (e.g., "200 BCE-500 CE")
+    bce_ce_match = re.match(r"(\d+)\s*BCE\s*[-–]\s*\d+\s*CE", year_str, re.IGNORECASE)
+    if bce_ce_match:
+        # Use the BCE year (more negative)
+        return -int(bce_ce_match.group(1))
+
+    # Handle single BCE years (e.g., "500 BCE")
+    bce_match = re.match(r"(\d+)\s*BCE", year_str, re.IGNORECASE)
+    if bce_match:
+        return -int(bce_match.group(1))
+
+    # Handle multi-century format (e.g., "18-19th century", "5-6th Century", "19th-20th Century")
+    # This regex needs to match both "5-6th" and "19th-20th" patterns
+    multi_century_match = re.match(r"(\d+)(?:st|nd|rd|th)?-(\d+)(st|nd|rd|th)\s+[Cc]entury", year_str)
+    if multi_century_match:
+        # Use the earlier century
+        century = int(multi_century_match.group(1))
+        return (century - 1) * 100
+
+    # Handle single century format (e.g., "19th Century", "1st Century")
+    century_match = re.match(r"(\d+)(st|nd|rd|th)\s+[Cc]entury", year_str)
     if century_match:
         century = int(century_match.group(1))
         return (century - 1) * 100
 
-    # Handle year ranges (e.g., "720-725")
-    range_match = re.match(r"(\d+)\s*-\s*\d+", year_str)
+    # Handle decade format (e.g., "1890s")
+    decade_match = re.match(r"(\d{3,4})0s", year_str)
+    if decade_match:
+        return int(decade_match.group(1) + "0")
+
+    # Handle year ranges with em dash or en dash (e.g., "200–500", "720-725")
+    range_match = re.match(r"(\d+)\s*[-–]\s*\d+", year_str)
     if range_match:
         return int(range_match.group(1))
 
-    # If it's not a century or range, return the year as an integer
+    # If it's not a special format, try to parse as plain integer
     try:
         return int(year_str)
     except ValueError:
@@ -38,7 +74,7 @@ def normalize_year(year):
 
 
 def get_approved_artworks_from_db(page=1, per_page=100, sort_order='asc',
-                                  start_date=None, end_date=None, artist_filter=None, collection_filter=None):
+                                  start_date=None, end_date=None, artist_filter=None, collection_filter=None, random_seed=None):
     """
     Fetch artworks from the database with pagination, filtering, and sorting.
 
@@ -109,9 +145,25 @@ def get_approved_artworks_from_db(page=1, per_page=100, sort_order='asc',
     # For year-based sorting, we need to normalize years in Python
     # For other sorts, we can do it in SQL
     if sort_order == "random":
-        query = query.order_by(func.random())
+        # Use seeded random for consistent ordering across pagination
+        # We'll fetch all IDs, shuffle them with the seed, then paginate
+        all_ids = [row.id for row in query.with_entities(Artworks.id).all()]
+
+        rng = random.Random(random_seed)
+        rng.shuffle(all_ids)
+
+        # Paginate the shuffled IDs
         offset = (page - 1) * per_page
-        artworks_query = query.limit(per_page).offset(offset).all()
+        page_ids = all_ids[offset:offset + per_page]
+
+        # Fetch the actual artworks in the shuffled order
+        if page_ids:
+            artworks_query = query.filter(Artworks.id.in_(page_ids)).all()
+            # Sort by the order of page_ids
+            id_to_artwork = {artwork.id: artwork for artwork in artworks_query}
+            artworks_query = [id_to_artwork[id] for id in page_ids if id in id_to_artwork]
+        else:
+            artworks_query = []
     elif sort_order == "date_added_desc":
         query = query.order_by(Artworks.created_at.desc())
         offset = (page - 1) * per_page

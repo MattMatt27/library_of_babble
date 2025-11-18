@@ -1,12 +1,13 @@
 """
 Artworks Routes
 """
-from flask import render_template, request, jsonify
+from flask import render_template, request, jsonify, session
 from flask_login import login_required, current_user
 from app.artworks import artworks_bp
 from app.artworks.models import Artworks, LikedArtworks
 from app.artworks.services import get_approved_artworks_from_db, get_all_artworks
 from app.extensions import db
+import time
 
 
 @artworks_bp.route('/pondering')
@@ -25,6 +26,19 @@ def pondering():
     collection_filter = request.args.getlist('collection')
     selected_artists = request.args.getlist('artist')
     selected_collections = request.args.getlist('collection')
+
+    # Generate a random seed for consistent random ordering across pagination
+    # Reset seed when filters change or when explicitly requested
+    filter_key = f"{sort_order}_{','.join(sorted(artist_filter))}_{','.join(sorted(collection_filter))}"
+
+    if sort_order == 'random':
+        # Check if we need a new seed (new filters or no seed exists)
+        if 'random_seed' not in session or session.get('filter_key') != filter_key:
+            session['random_seed'] = int(time.time() * 1000000) % 2147483647  # SQLite RANDOM() seed range
+            session['filter_key'] = filter_key
+        random_seed = session['random_seed']
+    else:
+        random_seed = None
 
     # Get user's liked artworks
     liked_artworks = {
@@ -46,7 +60,8 @@ def pondering():
         start_date=start_date,
         end_date=end_date,
         artist_filter=artist_filter,
-        collection_filter=collection_filter
+        collection_filter=collection_filter,
+        random_seed=random_seed
     )
 
     return render_template(

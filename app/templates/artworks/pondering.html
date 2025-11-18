@@ -136,13 +136,16 @@
     <div class="image-viewer-content">
         <div class="viewer-image-container">
             <img id="viewer-image" src="" alt="Artwork">
+            <button class="viewer-details-toggle" id="viewer-details-toggle" aria-label="Toggle details"></button>
         </div>
         <div class="viewer-details">
-            <h2 id="viewer-title"></h2>
-            <p class="artist-name"><strong>Artist:</strong> <span id="viewer-artist"></span></p>
-            <p><strong>Year:</strong> <span id="viewer-year"></span></p>
-            <p><strong>Medium:</strong> <span id="viewer-medium"></span></p>
-            <p><strong>Location:</strong> <span id="viewer-location"></span></p>
+            <div class="viewer-details-content">
+                <h2 id="viewer-title"></h2>
+                <p class="artist-name"><strong>Artist:</strong> <span id="viewer-artist"></span></p>
+                <p><strong>Year:</strong> <span id="viewer-year"></span></p>
+                <p><strong>Medium:</strong> <span id="viewer-medium"></span></p>
+                <p><strong>Location:</strong> <span id="viewer-location"></span></p>
+            </div>
         </div>
     </div>
 </div>
@@ -448,6 +451,17 @@
             if (e.key === 'ArrowRight') {
                 showNextImage();
             }
+        });
+
+        // Toggle viewer details minimize/maximize
+        const viewerDetailsToggle = document.getElementById('viewer-details-toggle');
+        const viewerDetails = document.querySelector('.viewer-details');
+        const imageViewer = document.getElementById('image-viewer');
+
+        viewerDetailsToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            viewerDetails.classList.toggle('minimized');
+            imageViewer.classList.toggle('details-minimized');
         });
     });
 </script>

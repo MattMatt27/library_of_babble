@@ -28,17 +28,28 @@ def pondering():
     selected_collections = request.args.getlist('collection')
 
     # Generate a random seed for consistent random ordering across pagination
-    # Reset seed when filters change or when explicitly requested
-    filter_key = f"{sort_order}_{','.join(sorted(artist_filter))}_{','.join(sorted(collection_filter))}"
+    # Reset seed when filters change or when switching back to random sort
+    filter_key = f"{','.join(sorted(artist_filter))}_{','.join(sorted(collection_filter))}"
 
     if sort_order == 'random':
-        # Check if we need a new seed (new filters or no seed exists)
-        if 'random_seed' not in session or session.get('filter_key') != filter_key:
+        # Get the previous sort order from session
+        previous_sort_order = session.get('previous_sort_order')
+
+        # Generate new seed if:
+        # 1. No seed exists yet
+        # 2. Filters changed
+        # 3. Switching back to random from a different sort order
+        if ('random_seed' not in session or
+            session.get('filter_key') != filter_key or
+            previous_sort_order != 'random'):
             session['random_seed'] = int(time.time() * 1000000) % 2147483647  # SQLite RANDOM() seed range
             session['filter_key'] = filter_key
         random_seed = session['random_seed']
     else:
         random_seed = None
+
+    # Store current sort order for next request
+    session['previous_sort_order'] = sort_order
 
     # Get user's liked artworks
     liked_artworks = {

@@ -56,6 +56,9 @@ def create_app(config_name=None):
     # Register context processors
     register_context_processors(app)
 
+    # Add security headers
+    register_security_headers(app)
+
     return app
 
 
@@ -165,3 +168,54 @@ def register_context_processors(app):
             'nav_items': get_user_nav_items(),
             'active_page': active_page
         }
+
+
+def register_security_headers(app):
+    """Add security headers to all responses"""
+
+    @app.after_request
+    def add_security_headers(response):
+        """Add security headers to prevent common attacks"""
+
+        # Prevent clickjacking attacks
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+
+        # Prevent MIME type sniffing
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+
+        # Enable XSS protection in browsers
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+
+        # Control referrer information
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+
+        # Content Security Policy - prevents inline scripts and external resources
+        # Note: Adjust this based on your application's needs
+        csp = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self'; "
+            "frame-ancestors 'self'; "
+        )
+        response.headers['Content-Security-Policy'] = csp
+
+        # Permissions Policy - restrict browser features
+        response.headers['Permissions-Policy'] = (
+            'geolocation=(), '
+            'microphone=(), '
+            'camera=(), '
+            'payment=(), '
+            'usb=(), '
+            'magnetometer=(), '
+            'gyroscope=(), '
+            'accelerometer=()'
+        )
+
+        # HSTS - Force HTTPS (only enable in production with HTTPS)
+        if not app.debug:
+            response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+
+        return response

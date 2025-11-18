@@ -9,11 +9,13 @@ from app.account import account_bp
 from app.extensions import db
 from app.artworks.models import Artworks, LikedArtworks
 from app.auth.models import User
+from app.utils.security import run_etl_script, run_pg_dump, sanitize_path
 import json
 import csv
 import tempfile
 import os
 import shutil
+import subprocess
 from pathlib import Path
 from datetime import datetime
 
@@ -64,14 +66,8 @@ def create_database_backup():
         elif db_uri.startswith('postgresql://') or db_uri.startswith('postgres://'):
             backup_file = backup_dir / f"library_backup_{timestamp}.sql"
 
-            # Use pg_dump to create backup
-            import subprocess
-            result = subprocess.run(
-                ['pg_dump', '-Fc', db_uri, '-f', str(backup_file)],
-                capture_output=True,
-                text=True,
-                timeout=60
-            )
+            # Use secure pg_dump function to create backup
+            result = run_pg_dump(db_uri, str(backup_file))
 
             if result.returncode != 0:
                 return False, f"pg_dump failed: {result.stderr}"
@@ -274,13 +270,11 @@ def import_goodreads():
         file.save(temp_file_path)
         temp_file.close()
 
-        # Run the Goodreads ETL script with transaction flag
-        import subprocess
-        result = subprocess.run(
-            ['python', 'scripts/etl/books_etl.py', temp_file_path, '--use-transaction'],
-            capture_output=True,
-            text=True,
-            timeout=600  # 10 minute timeout
+        # Run the Goodreads ETL script with transaction flag using secure function
+        result = run_etl_script(
+            'etl/books_etl.py',
+            temp_file_path,
+            ['--use-transaction']
         )
 
         # Clean up temp file
@@ -378,22 +372,21 @@ def import_letterboxd():
         reviews_file.save(reviews_temp_path)
         reviews_temp.close()
 
-        # Run the Letterboxd ETL script with both files
-        import subprocess
-        cmd = ['python', 'scripts/etl/movies_etl.py',
-               '--letterboxd-ratings', ratings_temp_path,
-               '--letterboxd-reviews', reviews_temp_path,
-               '--use-transaction']
+        # Run the Letterboxd ETL script with both files using secure function
+        extra_args = [
+            '--letterboxd-ratings', ratings_temp_path,
+            '--letterboxd-reviews', reviews_temp_path,
+            '--use-transaction'
+        ]
 
         # Add reset flag if requested
         if reset_data:
-            cmd.append('--reset-letterboxd')
+            extra_args.append('--reset-letterboxd')
 
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=600  # 10 minute timeout
+        result = run_etl_script(
+            'etl/movies_etl.py',
+            None,  # No single file path for this command
+            extra_args
         )
 
         # Clean up temp files
@@ -516,19 +509,14 @@ def import_boredom_killer():
             request.files['docuseries_file'].save(temp.name)
             temp.close()
 
-        import subprocess
-
         movies_added = docs_added = tv_added = docuseries_added = 0
 
-        # Process Movies file
+        # Process Movies file using secure function
         if has_movies:
-            result = subprocess.run(
-                ['python', 'scripts/etl/movies_etl.py',
-                 '--bk-movies', temp_files['movies'],
-                 '--use-transaction'],
-                capture_output=True,
-                text=True,
-                timeout=600
+            result = run_etl_script(
+                'etl/movies_etl.py',
+                None,
+                ['--bk-movies', temp_files['movies'], '--use-transaction']
             )
 
             if result.returncode != 0:
@@ -541,15 +529,12 @@ def import_boredom_killer():
                     except:
                         pass
 
-        # Process Documentaries file (goes to movies table)
+        # Process Documentaries file (goes to movies table) using secure function
         if has_docs:
-            result = subprocess.run(
-                ['python', 'scripts/etl/movies_etl.py',
-                 '--bk-docs', temp_files['docs'],
-                 '--use-transaction'],
-                capture_output=True,
-                text=True,
-                timeout=600
+            result = run_etl_script(
+                'etl/movies_etl.py',
+                None,
+                ['--bk-docs', temp_files['docs'], '--use-transaction']
             )
 
             if result.returncode != 0:
@@ -562,15 +547,12 @@ def import_boredom_killer():
                     except:
                         pass
 
-        # Process TV file
+        # Process TV file using secure function
         if has_tv:
-            result = subprocess.run(
-                ['python', 'scripts/etl/shows_etl.py',
-                 '--bk-tv', temp_files['tv'],
-                 '--use-transaction'],
-                capture_output=True,
-                text=True,
-                timeout=600
+            result = run_etl_script(
+                'etl/shows_etl.py',
+                None,
+                ['--bk-tv', temp_files['tv'], '--use-transaction']
             )
 
             if result.returncode != 0:
@@ -583,15 +565,12 @@ def import_boredom_killer():
                     except:
                         pass
 
-        # Process Docuseries file (goes to shows table)
+        # Process Docuseries file (goes to shows table) using secure function
         if has_docuseries:
-            result = subprocess.run(
-                ['python', 'scripts/etl/shows_etl.py',
-                 '--bk-docuseries', temp_files['docuseries'],
-                 '--use-transaction'],
-                capture_output=True,
-                text=True,
-                timeout=600
+            result = run_etl_script(
+                'etl/shows_etl.py',
+                None,
+                ['--bk-docuseries', temp_files['docuseries'], '--use-transaction']
             )
 
             if result.returncode != 0:
@@ -671,13 +650,10 @@ def import_shows():
         file.save(temp_file.name)
         temp_file.close()
 
-        # Run the TV Shows ETL script
-        import subprocess
-        result = subprocess.run(
-            ['python', 'scripts/etl/shows_etl.py', temp_file.name],
-            capture_output=True,
-            text=True,
-            timeout=300
+        # Run the TV Shows ETL script using secure function
+        result = run_etl_script(
+            'etl/shows_etl.py',
+            temp_file.name
         )
 
         # Clean up temp file
@@ -725,13 +701,9 @@ def import_shows():
 def refresh_spotify():
     """Refresh Spotify playlists"""
     try:
-        # Run the Spotify refresh script
-        import subprocess
-        result = subprocess.run(
-            ['python', 'scripts/refresh_spotify.py'],
-            capture_output=True,
-            text=True,
-            timeout=300
+        # Run the Spotify refresh script using secure function
+        result = run_etl_script(
+            'refresh_spotify.py'
         )
 
         if result.returncode != 0:

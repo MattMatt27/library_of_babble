@@ -2,6 +2,7 @@
 Artworks Business Logic and Helper Functions
 """
 import re
+import random
 from urllib.parse import unquote
 from sqlalchemy import text, func
 from app.extensions import db
@@ -73,7 +74,7 @@ def normalize_year(year):
 
 
 def get_approved_artworks_from_db(page=1, per_page=100, sort_order='asc',
-                                  start_date=None, end_date=None, artist_filter=None, collection_filter=None):
+                                  start_date=None, end_date=None, artist_filter=None, collection_filter=None, random_seed=None):
     """
     Fetch artworks from the database with pagination, filtering, and sorting.
 
@@ -144,9 +145,25 @@ def get_approved_artworks_from_db(page=1, per_page=100, sort_order='asc',
     # For year-based sorting, we need to normalize years in Python
     # For other sorts, we can do it in SQL
     if sort_order == "random":
-        query = query.order_by(func.random())
+        # Use seeded random for consistent ordering across pagination
+        # We'll fetch all IDs, shuffle them with the seed, then paginate
+        all_ids = [row.id for row in query.with_entities(Artworks.id).all()]
+
+        rng = random.Random(random_seed)
+        rng.shuffle(all_ids)
+
+        # Paginate the shuffled IDs
         offset = (page - 1) * per_page
-        artworks_query = query.limit(per_page).offset(offset).all()
+        page_ids = all_ids[offset:offset + per_page]
+
+        # Fetch the actual artworks in the shuffled order
+        if page_ids:
+            artworks_query = query.filter(Artworks.id.in_(page_ids)).all()
+            # Sort by the order of page_ids
+            id_to_artwork = {artwork.id: artwork for artwork in artworks_query}
+            artworks_query = [id_to_artwork[id] for id in page_ids if id in id_to_artwork]
+        else:
+            artworks_query = []
     elif sort_order == "date_added_desc":
         query = query.order_by(Artworks.created_at.desc())
         offset = (page - 1) * per_page

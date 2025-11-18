@@ -66,33 +66,29 @@
             <a href="/artworks/galleries" class="view-collections-btn">View Collections</a>
         </div>
         {% if selected_artists or selected_collections %}
-        <div class="selected-filters">
-            <div id="selected-artists">
-                {% for artist in selected_artists %}
-                <div class="artist-tag" data-artist="{{ artist }}">
-                    {{ artist }}
-                    <button class="remove-artist" data-artist="{{ artist }}">&times;</button>
-                </div>
-                {% endfor %}
+        <div class="selected-filters" id="selected-filters">
+            {% for artist in selected_artists %}
+            <div class="artist-tag" data-artist="{{ artist }}">
+                {{ artist }}
+                <button class="remove-artist" data-artist="{{ artist }}">&times;</button>
             </div>
-            <div id="selected-collections">
-                {% for collection_id in selected_collections %}
-                {% if collection_id == 'my_likes' %}
-                <div class="collection-tag" data-collection="my_likes">
-                    My Likes
-                    <button class="remove-collection" data-collection="my_likes">&times;</button>
-                </div>
-                {% else %}
-                {% set collection = all_galleries|selectattr('id', 'equalto', collection_id)|first %}
-                {% if collection %}
-                <div class="collection-tag" data-collection="{{ collection.id }}">
-                    {{ collection.name }}
-                    <button class="remove-collection" data-collection="{{ collection.id }}">&times;</button>
-                </div>
-                {% endif %}
-                {% endif %}
-                {% endfor %}
+            {% endfor %}
+            {% for collection_id in selected_collections %}
+            {% if collection_id == 'my_likes' %}
+            <div class="collection-tag" data-collection="my_likes">
+                My Likes
+                <button class="remove-collection" data-collection="my_likes">&times;</button>
             </div>
+            {% else %}
+            {% set collection = all_galleries|selectattr('id', 'equalto', collection_id)|first %}
+            {% if collection %}
+            <div class="collection-tag" data-collection="{{ collection.id }}">
+                {{ collection.name }}
+                <button class="remove-collection" data-collection="{{ collection.id }}">&times;</button>
+            </div>
+            {% endif %}
+            {% endif %}
+            {% endfor %}
         </div>
         {% endif %}
     </div>
@@ -239,10 +235,12 @@
             updatePageWithFilters();
         });
 
-        // Function to update artist tags UI
-        function updateArtistsUI() {
-            const container = $('#selected-artists');
+        // Function to update filter tags UI
+        function updateFiltersUI() {
+            const container = $('#selected-filters');
             container.empty();
+
+            // Add artist tags
             selectedArtists.forEach(artist => {
                 container.append(`
                     <div class="artist-tag" data-artist="${artist}">
@@ -251,17 +249,37 @@
                     </div>
                 `);
             });
+
+            // Add collection tags
+            selectedCollections.forEach(collection => {
+                let collectionName = collection;
+                if (collection === 'my_likes') {
+                    collectionName = 'My Likes';
+                } else {
+                    // Find the collection name from the dropdown
+                    const checkbox = $(`#collection-filter-dropdown input[value="${collection}"]`);
+                    if (checkbox.length > 0) {
+                        collectionName = checkbox.next('span').text();
+                    }
+                }
+                container.append(`
+                    <div class="collection-tag" data-collection="${collection}">
+                        ${collectionName}
+                        <button class="remove-collection" data-collection="${collection}">&times;</button>
+                    </div>
+                `);
+            });
         }
 
         // Remove artist from the selection
-        $('#selected-artists').on('click', '.remove-artist', function () {
+        $('#selected-filters').on('click', '.remove-artist', function () {
             const artist = $(this).data('artist');
             selectedArtists.delete(artist);
             updatePageWithFilters();
         });
 
         // Remove collection from the selection
-        $('#selected-collections').on('click', '.remove-collection', function () {
+        $('#selected-filters').on('click', '.remove-collection', function () {
             const collection = $(this).data('collection');
             selectedCollections.delete(collection);
             // Also update the checkbox
@@ -298,8 +316,8 @@
             }
         });
 
-        // Initialize selected artist tags
-        updateArtistsUI();
+        // Initialize selected filter tags
+        updateFiltersUI();
     });
 </script>
 <script>

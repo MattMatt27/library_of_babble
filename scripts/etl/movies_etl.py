@@ -415,8 +415,15 @@ def load_letterboxd_export(letterboxd_folder=None):
 
 def reset_sequence(table_name):
     """Reset the auto-increment sequence for a table to avoid conflicts"""
+    # Whitelist allowed table names to prevent SQL injection
+    ALLOWED_TABLES = {'movies', 'reviews', 'collections'}
+
+    if table_name not in ALLOWED_TABLES:
+        raise ValueError(f"Table {table_name} not in whitelist")
+
     try:
-        # For PostgreSQL
+        # Safe to use f-string now that table_name is validated against whitelist
+        # Note: PostgreSQL doesn't support parameters for table/column names in this context
         db.session.execute(db.text(f"""
             SELECT setval(pg_get_serial_sequence('{table_name}', 'id'),
                          COALESCE((SELECT MAX(id) FROM {table_name}), 1),

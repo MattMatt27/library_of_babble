@@ -9,7 +9,7 @@ from app.account import account_bp
 from app.extensions import db
 from app.artworks.models import Artworks, LikedArtworks
 from app.auth.models import User
-from app.utils.security import run_etl_script, run_pg_dump, sanitize_path
+from app.utils.security import run_etl_script, run_pg_dump, sanitize_path, sanitize_directory_name, validate_file_path
 import json
 import csv
 import tempfile
@@ -788,17 +788,33 @@ def upload_artwork():
         original_filename = secure_filename(file.filename)
         file_ext = Path(original_filename).suffix
 
+        # Sanitize artist name to prevent path traversal
+        safe_artist = sanitize_directory_name(artist)
+        if not safe_artist:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid artist name'
+            }), 400
+
         # Create filename using format: "Title (Year).ext"
         # Only include characters that are safe for filenames
         safe_title = "".join(c for c in title if c.isalnum() or c in (' ', '-', '_', ',')).strip()
         new_filename = f"{safe_title} ({year}){file_ext}"
 
-        # Create artist directory if it doesn't exist
-        artist_dir = Path('static/images/artists') / artist
+        # Create artist directory if it doesn't exist (with sanitized name)
+        base_dir = Path('static/images/artists')
+        artist_dir = base_dir / safe_artist
         artist_dir.mkdir(parents=True, exist_ok=True)
 
         # Save the file
         file_path = artist_dir / new_filename
+
+        # Validate that final path is within allowed directory (defense in depth)
+        if not validate_file_path(base_dir, file_path):
+            return jsonify({
+                'success': False,
+                'error': 'Invalid file path'
+            }), 400
 
         # Check if file already exists
         if file_path.exists():
@@ -810,11 +826,11 @@ def upload_artwork():
 
         file.save(str(file_path))
 
-        # Create artwork database entry
+        # Create artwork database entry (use sanitized artist name)
         artwork = Artworks(
             id=artwork_id,
             title=title,
-            artist=artist,
+            artist=safe_artist,  # Use sanitized artist name
             year=year,
             medium=medium or None,
             location=location or None,
@@ -907,6 +923,13 @@ def import_artworks_csv():
                         skipped += 1
                         continue
 
+                    # Sanitize artist name to prevent path traversal
+                    safe_artist = sanitize_directory_name(artist)
+                    if not safe_artist:
+                        errors.append(f'Row {row_num}: Invalid artist name "{artist}"')
+                        skipped += 1
+                        continue
+
                     # Optional fields
                     medium = row.get('medium', '').strip() or None
                     location = row.get('location', '').strip() or None
@@ -916,18 +939,18 @@ def import_artworks_csv():
                     site_approved_str = row.get('site_approved', '').strip().lower()
                     site_approved = site_approved_str in ('true', '1', 'yes', 'y')
 
-                    # Check if artwork already exists (by artist + title)
-                    existing = Artworks.query.filter_by(artist=artist, title=title).first()
+                    # Check if artwork already exists (by artist + title, using sanitized artist)
+                    existing = Artworks.query.filter_by(artist=safe_artist, title=title).first()
                     if existing:
-                        errors.append(f'Row {row_num}: Artwork "{title}" by {artist} already exists')
+                        errors.append(f'Row {row_num}: Artwork "{title}" by {safe_artist} already exists')
                         skipped += 1
                         continue
 
-                    # Create new artwork
+                    # Create new artwork (use sanitized artist name)
                     import uuid
                     artwork = Artworks(
                         id=str(uuid.uuid4()),
-                        artist=artist,
+                        artist=safe_artist,  # Use sanitized artist name
                         title=title,
                         year=year,
                         medium=medium,

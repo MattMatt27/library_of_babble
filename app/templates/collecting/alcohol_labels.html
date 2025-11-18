@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}📌 Pins{% endblock %}
+{% block title %}🥃 Alcohol Labels{% endblock %}
 
 {% set active_page = 'collecting' %}
 
@@ -39,19 +39,16 @@
         text-align: center;
     }
     .image-column {
-        width: 650px; /* Fixed width for image column */
+        width: 250px; /* Fixed width for image column */
     }
     .details-column {
-        width: 200px;
+        width: 250px;
     }
     .offer-column {
         width: 200px;
-    }
-    .offer-column {
-        padding: 20px;
     }
     img {
-        max-height: 650px; /* Limit image height */
+        max-height: 350px; /* Limit image height */
         max-width: 100%; /* Ensure image fits within its container */
         display: block; /* Ensure proper sizing */
         margin: auto; /* Center the image horizontally */
@@ -110,24 +107,27 @@
         </tr>
     </thead>
     <tbody>
-        {% for pin in pins %}
+        {% for label in labels %}
             <tr>
                 <td class="image-column">
-                    <img src="{{ pin['image_url'] }}" alt="{{ pin['text'] }}">
+                    <a href="/labels/{{ label.id }}">
+                        <img src="{{ url_for('static', filename='images/antiques/alcohol labels/' + label.image_filename) }}" alt="{{ label.text }}">
+                    </a>
                 </td>
                 <td class="details-column">
-                    <strong>ID: </strong>{{ pin['id'] }}<br><br>
-                    <strong>Year:</strong> {{ pin['year'] }}<br><br>
-                    <strong>Type:</strong> {{ pin['type'] }}<br>
+                    <strong>ID: </strong>{{ label.id }}<br><br>
+                    <strong>Year:</strong> {{ label.year if label.year else 'Unknown' }}<br><br>
+                    <strong>Alcohol Type:</strong> {{ label.alcohol_type }}<br><br>
+                    <strong>Location:</strong> {{ label.bottled_by_location }}
                 </td>
-                <td class="notes-column">
-                    <strong>Text:</strong> {{ pin['text'] }}<br><br>
-                    {{ pin['notes'] }}<br><br>
-                    <strong>Number Owned: </strong>{{ pin['owned'] }}<br>
+                <td>
+                    <!-- Placeholder for a Text Field -->
+                    <strong>Dimensions:</strong> {{ label.dimensions }}<br><br>
+                    {{ label.notes }}<br><br>
+                    <strong>Number Owned: </strong>{{ '1' if label.owned else '0' }}<br>
                 </td>
                 <td class="offer-column">
-                    
-                    <a href="mailto:MattFlathers27@gmail.com?subject=Offer For Pin Number {{ pin['id'] }}&body=Hi Matt, I am looking to make an offer for pin number {{ pin['id'] }}. I would pay X for it. Let me know if you are interested in selling. Thank you!" class="offer-button">Make Offer</a>
+                    <a href="mailto:MattFlathers27@gmail.com?subject=Offer For Alcohol Label Number {{ label.id }}&body=Hi Matt, I am looking to make an offer for alcohol label number {{ label.id }}. I would pay X for it. Let me know if you are interested in selling. Thank you!" class="offer-button">Make Offer</a>
                 </td>
                 
             </tr>

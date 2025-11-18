@@ -19,7 +19,7 @@ def get_user_nav_items():
         {'name': 'Reading', 'url': url_for('books.reading'), 'active_page': 'reading'},
         {'name': 'Watching', 'url': url_for('watching.index'), 'active_page': 'watching'},
         {'name': 'Listening', 'url': url_for('music.index'), 'active_page': 'listening'},
-        {'name': 'Collecting', 'url': url_for('collections.index'), 'active_page': 'collecting'},
+        {'name': 'Collecting', 'url': url_for('collecting.index'), 'active_page': 'collecting'},
         {'name': 'Pondering', 'url': url_for('artworks.pondering'), 'active_page': 'pondering'},
     ]
 

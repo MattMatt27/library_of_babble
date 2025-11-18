@@ -54,3 +54,4 @@ backfill_metadata.py
 cleanup_br_tags.py
 cleanup_br_tags.sql
 populate_collections.py
+load_collecting_data.py

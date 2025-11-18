@@ -15,13 +15,13 @@
     <div class="collection-section">
         <div class="collection-header">
             <h2>Recently Added Pins</h2>
-            <a href="/pins" class="see-all-btn">See All</a>
+            <a href="{{ url_for('collecting.pins') }}" class="see-all-btn">See All</a>
         </div>
         <div class="collection-grid">
             {% for pin in recently_added_pins %}
                 <div class="collection-item">
                     <div class="collection-item-image">
-                        <img src="{{ pin['image_url'] }}" alt="{{ pin['text'] }}">
+                        <img src="{{ url_for('static', filename='images/antiques/pins/' + pin.image_filename) }}" alt="{{ pin.text }}">
                     </div>
                 </div>
             {% endfor %}
@@ -31,13 +31,13 @@
     <div class="collection-section">
         <div class="collection-header">
             <h2>Alcohol Labels</h2>
-            <a href="/alcohol-labels" class="see-all-btn">See All</a>
+            <a href="{{ url_for('collecting.alcohol_labels') }}" class="see-all-btn">See All</a>
         </div>
         <div class="collection-grid">
             {% for label in recently_added_labels %}
                 <div class="collection-item">
                     <div class="collection-item-image">
-                        <img src="{{ label['image_url'] }}" alt="{{ label['text'] }}">
+                        <img src="{{ url_for('static', filename='images/antiques/alcohol labels/' + label.image_filename) }}" alt="{{ label.text }}">
                     </div>
                 </div>
             {% endfor %}

@@ -13,6 +13,7 @@ from app.books.services import (
 )
 from app.common.models import Reviews
 from app.extensions import db
+from app.utils.security import sanitize_html
 
 
 @books_bp.route('/')
@@ -98,8 +99,11 @@ def update_review(book_id):
         return jsonify({'error': 'Permission denied'}), 403
 
     book = Books.query.get_or_404(book_id)
-    new_review = request.form.get('my_review')
+    new_review = request.form.get('my_review', '')
     date_read = request.form.get('date_read')
+
+    # Sanitize review HTML to prevent XSS attacks
+    sanitized_review = sanitize_html(new_review)
 
     # Find or create review
     review = Reviews.query.filter_by(
@@ -109,12 +113,12 @@ def update_review(book_id):
     ).first()
 
     if review:
-        review.review_text = new_review
+        review.review_text = str(sanitized_review)
     else:
         review = Reviews(
             item_type='Book',
             item_id=str(book_id),
-            review_text=new_review,
+            review_text=str(sanitized_review),
             date_reviewed=date_read,
             rating=book.my_rating
         )

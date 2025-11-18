@@ -8,6 +8,7 @@ from app.movies.models import Movies
 from app.movies.services import read_movies_from_db
 from app.common.models import Reviews
 from app.extensions import db
+from app.utils.security import sanitize_html
 
 
 @movies_bp.route('/')
@@ -25,8 +26,11 @@ def update_review(movie_id):
         return jsonify({'error': 'Permission denied'}), 403
 
     movie = Movies.query.get_or_404(movie_id)
-    new_review = request.form.get('my_review')
+    new_review = request.form.get('my_review', '')
     date_watched = request.form.get('date_watched')
+
+    # Sanitize review HTML to prevent XSS attacks
+    sanitized_review = sanitize_html(new_review)
 
     # Find or create review
     review = Reviews.query.filter_by(
@@ -36,7 +40,7 @@ def update_review(movie_id):
     ).first()
 
     if review:
-        review.review_text = new_review
+        review.review_text = str(sanitized_review)
     else:
         # Get rating from movie if exists
         existing_review = Reviews.query.filter_by(
@@ -48,7 +52,7 @@ def update_review(movie_id):
         review = Reviews(
             item_type='Movie',
             item_id=movie_id,
-            review_text=new_review,
+            review_text=str(sanitized_review),
             date_reviewed=date_watched,
             rating=rating
         )

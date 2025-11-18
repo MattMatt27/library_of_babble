@@ -10,27 +10,62 @@ from app.artworks.models import Artworks
 
 def normalize_year(year):
     """
-    Convert century values to the start of the century (e.g., '20th Century' -> 1900).
-    Convert year ranges to the start year (e.g., '720-725' -> 720).
-    Other values are returned as-is.
+    Convert various year formats to a normalized integer for sorting.
+
+    Handles:
+    - Century formats: "19th Century" -> 1800, "1st Century" -> 0
+    - Multi-century: "18-19th century" -> 1700, "5-6th Century" -> 400
+    - Decade formats: "1890s" -> 1890
+    - BCE/CE ranges: "200 BCE-500 CE" -> -200, "664-332 BCE" -> -664
+    - Year ranges: "720-725" -> 720, "200–500" (em dash) -> 200
     """
     if not year:
         return None
 
     year_str = str(year).strip()
 
-    # Handle century format (e.g., "19th Century")
-    century_match = re.match(r"(\d+)(st|nd|rd|th)\s+Century", year_str, re.IGNORECASE)
+    # Handle BCE year ranges (e.g., "664-332 BCE") - must check before general BCE
+    bce_range_match = re.match(r"(\d+)\s*[-–]\s*\d+\s*BCE", year_str, re.IGNORECASE)
+    if bce_range_match:
+        # Use the earlier (more negative) year for BCE ranges
+        return -int(bce_range_match.group(1))
+
+    # Handle BCE/CE year ranges (e.g., "200 BCE-500 CE")
+    bce_ce_match = re.match(r"(\d+)\s*BCE\s*[-–]\s*\d+\s*CE", year_str, re.IGNORECASE)
+    if bce_ce_match:
+        # Use the BCE year (more negative)
+        return -int(bce_ce_match.group(1))
+
+    # Handle single BCE years (e.g., "500 BCE")
+    bce_match = re.match(r"(\d+)\s*BCE", year_str, re.IGNORECASE)
+    if bce_match:
+        return -int(bce_match.group(1))
+
+    # Handle multi-century format (e.g., "18-19th century", "5-6th Century", "19th-20th Century")
+    # This regex needs to match both "5-6th" and "19th-20th" patterns
+    multi_century_match = re.match(r"(\d+)(?:st|nd|rd|th)?-(\d+)(st|nd|rd|th)\s+[Cc]entury", year_str)
+    if multi_century_match:
+        # Use the earlier century
+        century = int(multi_century_match.group(1))
+        return (century - 1) * 100
+
+    # Handle single century format (e.g., "19th Century", "1st Century")
+    century_match = re.match(r"(\d+)(st|nd|rd|th)\s+[Cc]entury", year_str)
     if century_match:
         century = int(century_match.group(1))
         return (century - 1) * 100
 
-    # Handle year ranges (e.g., "720-725")
-    range_match = re.match(r"(\d+)\s*-\s*\d+", year_str)
+    # Handle decade format (e.g., "1890s")
+    decade_match = re.match(r"(\d{3,4})0s", year_str)
+    if decade_match:
+        return int(decade_match.group(1) + "0")
+
+    # Handle year ranges with em dash or en dash (e.g., "200–500", "720-725")
+    range_match = re.match(r"(\d+)\s*[-–]\s*\d+", year_str)
     if range_match:
         return int(range_match.group(1))
 
-    # If it's not a century or range, return the year as an integer
+    # If it's not a special format, try to parse as plain integer
     try:
         return int(year_str)
     except ValueError:

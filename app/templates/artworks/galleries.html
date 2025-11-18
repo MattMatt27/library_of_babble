@@ -147,6 +147,10 @@
                 .catch(error => console.error('Error fetching like state:', error));
         }
 
+        function getCSRFToken() {
+            return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        }
+
         likeButton.addEventListener('click', function () {
             if (!currentArtworkId) return;
 
@@ -154,6 +158,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
                 },
                 body: JSON.stringify({ artwork_id: currentArtworkId }),
             })

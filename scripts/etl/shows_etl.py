@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from app import create_app
 from app.extensions import db
 from app.shows.models import TVShows
-from app.collections.models import Reviews, Collections
+from app.common.models import Reviews, Collections
 
 # Configure paths
 CSV_FOLDER = Path('data/staging/')

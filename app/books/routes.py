@@ -11,7 +11,7 @@ from app.books.services import (
     get_books_from_bookshelf,
     truncate_title
 )
-from app.collections.models import Reviews
+from app.common.models import Reviews
 from app.extensions import db
 
 

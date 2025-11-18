@@ -10,7 +10,7 @@ from app.movies.models import Movies
 from app.shows.models import TVShows
 from app.music.models import Playlists
 from app.artworks.models import Artworks, LikedArtworks, GeneratedImages
-from app.collections.models import Reviews, Collections
+from app.common.models import Reviews, Collections
 
 __all__ = [
     'User',

@@ -3,7 +3,7 @@ Movies Business Logic and Helper Functions
 """
 from app.extensions import db
 from app.movies.models import Movies
-from app.collections.models import Reviews, Collections
+from app.common.models import Reviews, Collections
 
 
 def get_recently_watched_movies(limit=10):

@@ -3,7 +3,7 @@ TV Shows Business Logic and Helper Functions
 """
 from app.extensions import db
 from app.shows.models import TVShows
-from app.collections.models import Reviews, Collections
+from app.common.models import Reviews, Collections
 
 
 def get_recently_watched_shows(limit=10):

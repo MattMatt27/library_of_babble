@@ -6,7 +6,7 @@ from flask_login import login_required, current_user
 from app.movies import movies_bp
 from app.movies.models import Movies
 from app.movies.services import read_movies_from_db
-from app.collections.models import Reviews
+from app.common.models import Reviews
 from app.extensions import db
 
 

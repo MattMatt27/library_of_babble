@@ -11,7 +11,7 @@ from app.books.services import (
     get_books_from_bookshelf,
     truncate_title
 )
-from app.collections.models import Reviews
+from app.common.models import Reviews
 from app.extensions import db
 
 
@@ -171,3 +171,50 @@ def update_cover_url(book_id):
 
     flash('Cover image URL updated successfully!', 'success')
     return redirect(url_for('books.detail', book_id=book_id))
+
+
+@books_bp.route('/update_rating/<int:book_id>', methods=['POST'])
+@login_required
+def update_rating(book_id):
+    """Update book rating via AJAX (admin only)"""
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Permission denied'}), 403
+
+    try:
+        data = request.get_json()
+        rating = data.get('rating')
+
+        # Validate rating
+        if rating is None:
+            return jsonify({'error': 'Rating is required'}), 400
+
+        rating = float(rating)
+        if rating < 0 or rating > 5 or (rating * 2) % 1 != 0:
+            return jsonify({'error': 'Rating must be between 0-5 in 0.5 increments'}), 400
+
+        # Update book rating
+        book = Books.query.get_or_404(book_id)
+        book.my_rating = rating
+
+        # Update review rating if exists
+        review = Reviews.query.filter_by(
+            item_type='Book',
+            item_id=str(book_id)
+        ).first()
+
+        if review:
+            review.rating = rating
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'rating': rating,
+            'message': f'Rating updated to {rating} stars'
+        })
+
+    except ValueError:
+        return jsonify({'error': 'Invalid rating value'}), 400
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500

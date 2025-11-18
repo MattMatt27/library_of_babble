@@ -14,12 +14,12 @@ def get_user_nav_items():
     """
     nav_items = [
         {'name': 'Home', 'url': url_for('main.home'), 'active_page': 'home'},
-        {'name': 'Writing', 'url': url_for('main.writing'), 'active_page': 'writing'},
+        {'name': 'Writing', 'url': url_for('writing.index'), 'active_page': 'writing'},
         {'name': 'Creating', 'url': url_for('main.creating'), 'active_page': 'creating'},
         {'name': 'Reading', 'url': url_for('books.reading'), 'active_page': 'reading'},
         {'name': 'Watching', 'url': url_for('watching.index'), 'active_page': 'watching'},
         {'name': 'Listening', 'url': url_for('music.index'), 'active_page': 'listening'},
-        {'name': 'Collecting', 'url': url_for('collections.index'), 'active_page': 'collecting'},
+        {'name': 'Collecting', 'url': url_for('collecting.index'), 'active_page': 'collecting'},
         {'name': 'Pondering', 'url': url_for('artworks.pondering'), 'active_page': 'pondering'},
     ]
 
@@ -28,5 +28,8 @@ def get_user_nav_items():
             return nav_items
         elif current_user.role == 'viewer':
             return [item for item in nav_items if item['name'] not in ['Pondering', 'Collecting']]
+        else:
+            # Regular user role - same as unauthenticated
+            return [item for item in nav_items if item['name'] in ['Home', 'Reading', 'Writing', 'Creating']]
     else:
         return [item for item in nav_items if item['name'] in ['Home', 'Reading', 'Writing', 'Creating']]

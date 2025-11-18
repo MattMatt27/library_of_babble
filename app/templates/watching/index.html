@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}📺 Watching{% endblock %}
+
+{% set active_page = 'watching' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/movies.css') }}">
+<script src="{{ url_for('static', filename='js/star-rating.js') }}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <section class="movies-section">
+        <div class="movies-section-header">
+            <h2>Recommended Movies</h2>
+        </div>
+        <div class="movies-grid">
+            {% for rec_movie in recommended_movies %}
+                <div class="movie-card">
+                    <div class="movie-card-image">
+                        <img src="{{ rec_movie['cover_image_url'] }}" alt="{{ rec_movie['title'] }}">
+                    </div>
+                    <div class="movie-card-content">
+                        <div class="movie-card-title">{{ rec_movie['title'] }}</div>
+                        <div class="movie-card-director">{{ rec_movie['director'] }}</div>
+                        <div class="movie-card-year">{{ rec_movie['year'] }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="movies-section">
+        <div class="movies-section-header">
+            <h2>Recently Watched Movies</h2>
+            <a href="{{ url_for('movies.index') }}" class="see-all-btn">See All</a>
+        </div>
+        <div class="movies-grid">
+            {% for movie in recently_watched_movies %}
+                <div class="movie-card">
+                    <div class="movie-card-image">
+                        <img src="{{ movie['cover_image_url'] }}" alt="{{ movie['title'] }}">
+                    </div>
+                    <div class="movie-card-content">
+                        <div class="movie-card-title">{{ movie['title'] }}</div>
+                        <div class="movie-card-director">{{ movie['director'] }}</div>
+                        <div class="movie-card-year">{{ movie['year'] }}</div>
+                        <div class="movie-card-rating">
+                            {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                <div data-star-rating="{{ movie['my_rating'] or 0 }}"
+                                     data-interactive
+                                     data-item-type="movie"
+                                     data-item-id="{{ movie.id }}"
+                                     data-size="small"></div>
+                            {% else %}
+                                <div data-star-rating="{{ movie['my_rating'] or 0 }}" data-size="small"></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="movies-section">
+        <div class="movies-section-header">
+            <h2>Recommended TV Shows</h2>
+        </div>
+        <div class="movies-grid">
+            {% for rec_show in recommended_shows %}
+                <div class="movie-card">
+                    <div class="movie-card-image">
+                        <img src="{{ rec_show['cover_image_url'] }}" alt="{{ rec_show['title'] }}">
+                    </div>
+                    <div class="movie-card-content">
+                        <div class="movie-card-title">{{ rec_show['title'] }}</div>
+                        <div class="movie-card-year">{{ rec_show['year'] }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

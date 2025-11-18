@@ -10,7 +10,8 @@ from app.movies.models import Movies
 from app.shows.models import TVShows
 from app.music.models import Playlists
 from app.artworks.models import Artworks, LikedArtworks, GeneratedImages
-from app.collections.models import Reviews, Collections
+from app.common.models import Reviews, Collections
+from app.collecting.models import Pin, AlcoholLabel
 
 __all__ = [
     'User',
@@ -24,4 +25,6 @@ __all__ = [
     'GeneratedImages',
     'Reviews',
     'Collections',
+    'Pin',
+    'AlcoholLabel',
 ]

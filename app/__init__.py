@@ -62,11 +62,12 @@ def register_blueprints(app):
     from app.auth import auth_bp
     from app.books import books_bp
     from app.movies import movies_bp
-    from app.shows import watching_bp
+    from app.watching import watching_bp
     from app.music import music_bp
     from app.artworks import artworks_bp
-    from app.collections import collections_bp
+    from app.collecting import collecting_bp
     from app.account import account_bp
+    from app.writing import writing_bp
     from app.main import main_bp
 
     # Register blueprints
@@ -77,7 +78,8 @@ def register_blueprints(app):
     app.register_blueprint(watching_bp, url_prefix='/watching')
     app.register_blueprint(music_bp, url_prefix='/listening')
     app.register_blueprint(artworks_bp, url_prefix='/artworks')
-    app.register_blueprint(collections_bp, url_prefix='/collecting')
+    app.register_blueprint(collecting_bp, url_prefix='/collecting')
+    app.register_blueprint(writing_bp, url_prefix='/writing')
     app.register_blueprint(account_bp)
 
 
@@ -127,7 +129,7 @@ def register_context_processors(app):
             active_page = 'writing'
         elif path.startswith('/books'):
             active_page = 'reading'
-        elif path.startswith('/shows'):
+        elif path.startswith('/watching'):
             active_page = 'watching'
         elif path.startswith('/creating'):
             active_page = 'creating'

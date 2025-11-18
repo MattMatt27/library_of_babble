@@ -2,6 +2,7 @@
 TV Shows Models
 """
 from app.extensions import db
+from datetime import datetime
 
 
 class TVShows(db.Model):
@@ -21,6 +22,15 @@ class TVShows(db.Model):
     cover_image_url = db.Column(db.String(500))
     collections = db.Column(db.Text)
     status = db.Column(db.String(50))
+
+    # Audit/metadata fields
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    source = db.Column(db.String(50), default='manual')  # 'manual', 'boredom_killer_import', etc.
+    import_batch_id = db.Column(db.String)
+    notes = db.Column(db.Text)
 
     def __repr__(self):
         return f'<TVShow {self.title} ({self.year})>'

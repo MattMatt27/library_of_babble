@@ -158,30 +158,7 @@
     </div>
 </div>
 
-<div class="modal-overlay" id="showsModal">
-    <div class="modal">
-        <div class="modal-header">
-            <h3>Import TV Shows</h3>
-            <button class="modal-close" onclick="closeModal('showsModal')">&times;</button>
-        </div>
-        <div class="modal-body">
-            <p style="color: var(--text-secondary); margin-bottom: var(--space-4);">
-                Upload your TV Shows CSV file. The system will add new shows and report any conflicts with existing data.
-            </p>
-            <form id="showsForm" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="showsFile">TV Shows CSV File</label>
-                    <input type="file" id="showsFile" name="file" accept=".csv" required>
-                </div>
-                <div id="showsStatus"></div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeModal('showsModal')">Cancel</button>
-            <button class="btn btn-primary" onclick="submitShowsImport()">Import</button>
-        </div>
-    </div>
-</div>
+<!-- Legacy TV Shows modal removed - functionality replaced by Boredom Killer import -->
 
 <div class="modal-overlay" id="spotifyModal">
     <div class="modal">
@@ -205,44 +182,443 @@
 <div class="modal-overlay" id="uploadArtworkModal">
     <div class="modal">
         <div class="modal-header">
-            <h3>Upload New Artwork</h3>
+            <h3>Upload Artworks</h3>
             <button class="modal-close" onclick="closeModal('uploadArtworkModal')">&times;</button>
         </div>
         <div class="modal-body">
-            <p>Artwork upload coming soon...</p>
+            <p style="color: var(--text-secondary); margin-bottom: var(--space-4);">
+                Upload artwork metadata from CSV or add a single artwork with image.
+            </p>
+
+            <!-- Upload Mode Tabs -->
+            <div class="review-tabs" style="margin-bottom: var(--space-4);">
+                <button type="button" class="review-tab active" data-upload-mode="csv" onclick="switchUploadMode('csv')">CSV Import</button>
+                <button type="button" class="review-tab" data-upload-mode="individual" onclick="switchUploadMode('individual')">Individual Upload</button>
+            </div>
+
+            <form id="uploadArtworkForm" enctype="multipart/form-data">
+                <!-- CSV Import Section -->
+                <div id="csvUploadSection">
+                    <div class="form-group">
+                        <label for="artworksCsvFile" style="display: block; margin-bottom: var(--space-2);">Artworks CSV File (Required)</label>
+                        <div class="file-drop-zone" onclick="document.getElementById('artworksCsvFile').click()">
+                            <span class="file-drop-text" id="artworksCsvFileName">Click to select CSV file</span>
+                            <input type="file" id="artworksCsvFile" name="artworks_csv" accept=".csv" style="display: none;">
+                        </div>
+                    </div>
+                    <p style="color: var(--text-tertiary); font-size: var(--font-sm); margin-top: var(--space-2);">
+                        CSV should include columns: artist, title, year, and optionally: medium, location, series, description, file_name, site_approved
+                    </p>
+                </div>
+
+                <!-- Individual Upload Section -->
+                <div id="individualUploadSection" style="display: none;">
+                    <!-- Image File Upload -->
+                    <div class="form-group">
+                        <label for="artworkFile" style="display: block; margin-bottom: var(--space-2);">Artwork Image (Required)</label>
+                        <div class="file-drop-zone" onclick="document.getElementById('artworkFile').click()">
+                            <span class="file-drop-text" id="artworkFileName">Click to select image file</span>
+                            <input type="file" id="artworkFile" name="artwork_file" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+
+                    <!-- Artist Name -->
+                    <div class="form-group">
+                        <label for="artworkArtist">Artist Name (Required)</label>
+                        <input type="text" id="artworkArtist" name="artist" class="form-input">
+                    </div>
+
+                    <!-- Artwork Title -->
+                    <div class="form-group">
+                        <label for="artworkTitle">Artwork Title (Required)</label>
+                        <input type="text" id="artworkTitle" name="title" class="form-input">
+                    </div>
+
+                    <!-- Year -->
+                    <div class="form-group">
+                        <label for="artworkYear">Year (Required)</label>
+                        <input type="text" id="artworkYear" name="year" class="form-input" placeholder="e.g., 1890, c. 1900, 1920-1925">
+                    </div>
+
+                    <!-- Medium -->
+                    <div class="form-group">
+                        <label for="artworkMedium">Medium (Optional)</label>
+                        <input type="text" id="artworkMedium" name="medium" class="form-input" placeholder="e.g., Oil on canvas, Watercolor">
+                    </div>
+
+                    <!-- Location -->
+                    <div class="form-group">
+                        <label for="artworkLocation">Location (Optional)</label>
+                        <input type="text" id="artworkLocation" name="location" class="form-input" placeholder="e.g., Museum of Fine Arts, Boston">
+                    </div>
+
+                    <!-- Series -->
+                    <div class="form-group">
+                        <label for="artworkSeries">Series (Optional)</label>
+                        <input type="text" id="artworkSeries" name="series" class="form-input">
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label for="artworkDescription">Description (Optional)</label>
+                        <textarea id="artworkDescription" name="description" class="form-textarea" rows="3"></textarea>
+                    </div>
+
+                    <!-- Site Approved -->
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer;">
+                            <input type="checkbox" id="artworkSiteApproved" name="site_approved" style="width: auto;">
+                            <span>Approve for public display</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="uploadArtworkProgress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="uploadArtworkProgressBar"></div>
+                    </div>
+                    <div class="progress-text" id="uploadArtworkProgressText">Uploading...</div>
+                </div>
+                <div id="uploadArtworkStatus"></div>
+            </form>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeModal('uploadArtworkModal')">Close</button>
+            <button class="btn btn-secondary" id="uploadArtworkCancelBtn" onclick="closeModal('uploadArtworkModal')">Cancel</button>
+            <button class="btn btn-primary" id="uploadArtworkBtn" onclick="submitArtworkUpload()">Upload</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="managePublicationsModal">
+    <div class="modal modal-large">
+        <div class="modal-header">
+            <h3>Manage Publications</h3>
+            <button class="modal-close" onclick="closeModal('managePublicationsModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="review-tabs">
+                <button class="review-tab active" data-tab="addPublication" onclick="switchPublicationTab('addPublication')">Add Publication</button>
+                <button class="review-tab" data-tab="viewPublications" onclick="switchPublicationTab('viewPublications')">View All</button>
+            </div>
+
+            <!-- Add Publication Tab -->
+            <div id="addPublicationTab" class="tab-content active">
+                <form id="publicationForm">
+                    <input type="hidden" id="publicationId">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="publicationSection">Section *</label>
+                            <select id="publicationSection" class="form-input" required>
+                                <option value="academic">Academic</option>
+                                <option value="creative">Creative</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="publicationCategory">Category *</label>
+                            <select id="publicationCategory" class="form-input" required>
+                                <option value="">Select category...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="publicationTitle">Title *</label>
+                        <input type="text" id="publicationTitle" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Authors * <small style="color: var(--text-secondary); font-weight: normal;">(in order)</small></label>
+                        <div id="authorsList" class="authors-list">
+                            <!-- Authors will be added here dynamically -->
+                        </div>
+                        <div style="display: flex; gap: var(--space-2); margin-top: var(--space-2);">
+                            <input type="text" id="newAuthorName" class="form-input" placeholder="Enter author name" style="flex: 1;">
+                            <label style="display: flex; align-items: center; gap: var(--space-1); cursor: pointer; white-space: nowrap;">
+                                <input type="checkbox" id="newAuthorIsYou">
+                                <span style="font-size: var(--font-sm);">This is me</span>
+                            </label>
+                            <button type="button" class="btn btn-secondary" onclick="addAuthor()" style="white-space: nowrap;">+ Add</button>
+                        </div>
+                        <small class="form-help">Authors marked as "me" will be bolded on the site. Use drag handles to reorder.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="publicationVenue">Venue *</label>
+                        <input type="text" id="publicationVenue" class="form-input"
+                               placeholder="Journal name or conference location" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="publicationDate">Publication Date *</label>
+                        <input type="text" id="publicationDate" class="form-input"
+                               placeholder="e.g., December 2024 or September 2018" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="publicationUrl">URL</label>
+                        <input type="url" id="publicationUrl" class="form-input"
+                               placeholder="https://...">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="publicationDoi">DOI</label>
+                            <input type="text" id="publicationDoi" class="form-input"
+                                   placeholder="10.1136/...">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="publicationPmid">PMID</label>
+                            <input type="text" id="publicationPmid" class="form-input"
+                                   placeholder="39632121">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="publicationVolumeIssue">Volume/Issue</label>
+                        <input type="text" id="publicationVolumeIssue" class="form-input"
+                               placeholder="e.g., 27(1):e301298">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="publicationBadge">Award/Badge</label>
+                        <input type="text" id="publicationBadge" class="form-input"
+                               placeholder="e.g., 2025 Prize Finalist">
+                    </div>
+
+                    <div id="publicationStatus"></div>
+                </form>
+            </div>
+
+            <!-- View Publications Tab -->
+            <div id="viewPublicationsTab" class="tab-content">
+                <div id="publicationsList">
+                    <p>Loading publications...</p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('managePublicationsModal')">Close</button>
+            <button class="btn btn-primary" id="savePublicationBtn" onclick="savePublication()">Save Publication</button>
         </div>
     </div>
 </div>
 
 <div class="modal-overlay" id="manageUsersModal">
-    <div class="modal">
+    <div class="modal modal-large">
         <div class="modal-header">
             <h3>Manage Users</h3>
             <button class="modal-close" onclick="closeModal('manageUsersModal')">&times;</button>
         </div>
         <div class="modal-body">
-            <p>User management coming soon...</p>
+            <div class="review-tabs">
+                <button class="review-tab active" data-tab="usersList" onclick="switchUserTab('usersList')">All Users</button>
+                <button class="review-tab" data-tab="createUser" onclick="switchUserTab('createUser')">Create User</button>
+            </div>
+
+            <!-- Users List Tab -->
+            <div id="usersListTab" class="tab-content active">
+                <div class="table-container">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            {% for user in all_users %}
+                            <tr>
+                                <td>
+                                    {{ user.username }}
+                                    {% if user.id == current_user.id %}
+                                    <span class="current-user-badge">(You)</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="role-badge role-{{ user.role }}">{{ user.role }}</span>
+                                </td>
+                                <td>
+                                    <div class="actions-cell">
+                                        <button type="button" class="btn-icon btn-role" onclick="openChangeRoleModal({{ user.id }}, '{{ user.username }}', '{{ user.role }}')" title="Change Role">
+                                            ✎
+                                        </button>
+                                        <button type="button" class="btn-icon btn-password" onclick="openChangePasswordModal({{ user.id }}, '{{ user.username }}')" title="Change Password">
+                                            ⚿
+                                        </button>
+                                        {% if user.id != current_user.id %}
+                                        <button type="button" class="btn-icon btn-delete" onclick="openDeleteUserModal({{ user.id }}, '{{ user.username }}')" title="Delete User">
+                                            ×
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Create User Tab -->
+            <div id="createUserTab" class="tab-content" style="display: none;">
+                <form method="POST" action="{{ url_for('auth.create_user') }}" id="createUserForm">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" class="form-input" required autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" class="form-input" required autocomplete="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="role">Role</label>
+                        <select id="role" name="role" class="form-input" required>
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                            <option value="viewer">Viewer</option>
+                        </select>
+                    </div>
+                    <div id="createUserStatus"></div>
+                </form>
+            </div>
         </div>
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeModal('manageUsersModal')">Close</button>
+            <button class="btn btn-primary" id="createUserBtn" onclick="submitCreateUser()" style="display: none;">Create User</button>
         </div>
     </div>
 </div>
 
-<div class="modal-overlay" id="importArtworksModal">
+<!-- Change Password Modal -->
+<div class="modal-overlay" id="changePasswordModal">
     <div class="modal">
         <div class="modal-header">
-            <h3>Import Artworks CSV</h3>
-            <button class="modal-close" onclick="closeModal('importArtworksModal')">&times;</button>
+            <h3>Change Password</h3>
+            <button class="modal-close" onclick="closeModal('changePasswordModal')">&times;</button>
         </div>
-        <div class="modal-body">
-            <p>Artworks CSV import coming soon...</p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeModal('importArtworksModal')">Close</button>
-        </div>
+        <form method="POST" id="changePasswordForm">
+            <div class="modal-body">
+                <p class="modal-description">
+                    Change password for <strong id="passwordUsername"></strong>
+                </p>
+                <div class="form-group">
+                    <label for="new_password">New Password</label>
+                    <input type="password" id="new_password" name="new_password" class="form-input" required autocomplete="new-password">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('changePasswordModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Change Password</button>
+            </div>
+        </form>
     </div>
 </div>
+
+<!-- Change Role Modal -->
+<div class="modal-overlay" id="changeRoleModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Change User Role</h3>
+            <button class="modal-close" onclick="closeModal('changeRoleModal')">&times;</button>
+        </div>
+        <form method="POST" id="changeRoleForm">
+            <div class="modal-body">
+                <p class="modal-description">
+                    Change role for <strong id="roleUsername"></strong>
+                </p>
+                <div class="form-group">
+                    <label for="new_role">Role</label>
+                    <select id="new_role" name="role" class="form-input" required>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                        <option value="viewer">Viewer</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('changeRoleModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Change Role</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete User Modal -->
+<div class="modal-overlay" id="deleteUserModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Delete User</h3>
+            <button class="modal-close" onclick="closeModal('deleteUserModal')">&times;</button>
+        </div>
+        <form method="POST" id="deleteUserForm" action="">
+            <div class="modal-body">
+                <p class="modal-description warning">
+                    Are you sure you want to delete user <strong id="deleteUsername"></strong>?
+                    This action cannot be undone.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('deleteUserModal')">Cancel</button>
+                <button type="submit" class="btn btn-danger">Delete User</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function switchUserTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('#manageUsersModal .tab-content').forEach(tab => {
+        tab.style.display = 'none';
+    });
+
+    // Remove active from all tab buttons
+    document.querySelectorAll('#manageUsersModal .review-tab').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Show selected tab
+    if (tabName === 'usersList') {
+        document.getElementById('usersListTab').style.display = 'block';
+        document.getElementById('createUserBtn').style.display = 'none';
+        document.querySelector('[data-tab="usersList"]').classList.add('active');
+    } else {
+        document.getElementById('createUserTab').style.display = 'block';
+        document.getElementById('createUserBtn').style.display = 'inline-flex';
+        document.querySelector('[data-tab="createUser"]').classList.add('active');
+    }
+}
+
+function openChangePasswordModal(userId, username) {
+    document.getElementById('passwordUsername').textContent = username;
+    document.getElementById('changePasswordForm').action = `/users/${userId}/change_password`;
+    closeModal('manageUsersModal');
+    openModal('changePasswordModal');
+}
+
+function openChangeRoleModal(userId, username, currentRole) {
+    document.getElementById('roleUsername').textContent = username;
+    document.getElementById('new_role').value = currentRole;
+    document.getElementById('changeRoleForm').action = `/users/${userId}/change_role`;
+    closeModal('manageUsersModal');
+    openModal('changeRoleModal');
+}
+
+function openDeleteUserModal(userId, username) {
+    console.log('Opening delete modal for user:', userId, username);
+    document.getElementById('deleteUsername').textContent = username;
+    const form = document.getElementById('deleteUserForm');
+    form.action = `/users/${userId}/delete`;
+    console.log('Form action set to:', form.action);
+    console.log('Form method:', form.method);
+    openModal('deleteUserModal');
+}
+
+function submitCreateUser() {
+    document.getElementById('createUserForm').submit();
+}
+</script>

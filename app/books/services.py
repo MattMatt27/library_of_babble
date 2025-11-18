@@ -4,7 +4,7 @@ Books Business Logic and Helper Functions
 import sqlite3
 from app.extensions import db
 from app.books.models import Books, BookQuote
-from app.collections.models import Reviews
+from app.common.models import Reviews
 
 
 def truncate_title(title):

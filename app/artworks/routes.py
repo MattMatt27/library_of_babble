@@ -13,6 +13,8 @@ from app.extensions import db
 @login_required
 def pondering():
     """Artwork browsing page with filters and pagination"""
+    from app.artworks.models import ArtworkGallery
+
     # Get pagination and filter parameters from the request
     page = request.args.get('page', 1, type=int)
     per_page = 50
@@ -20,13 +22,21 @@ def pondering():
     start_date = request.args.get('start_date', None, type=int)
     end_date = request.args.get('end_date', None, type=int)
     artist_filter = request.args.getlist('artist')
+    collection_filter = request.args.getlist('collection')
     selected_artists = request.args.getlist('artist')
+    selected_collections = request.args.getlist('collection')
 
     # Get user's liked artworks
     liked_artworks = {
         like.artwork_id
         for like in LikedArtworks.query.filter_by(user_id=current_user.id).all()
     }
+
+    # Get all galleries for the filter dropdown (filter by is_public unless admin)
+    if current_user.role == 'admin':
+        all_galleries = ArtworkGallery.query.order_by(ArtworkGallery.display_order.asc()).all()
+    else:
+        all_galleries = ArtworkGallery.query.filter_by(is_public=True).order_by(ArtworkGallery.display_order.asc()).all()
 
     # Fetch paginated and filtered artworks
     approved_artworks, total_pages, all_artists = get_approved_artworks_from_db(
@@ -35,7 +45,8 @@ def pondering():
         sort_order=sort_order,
         start_date=start_date,
         end_date=end_date,
-        artist_filter=artist_filter
+        artist_filter=artist_filter,
+        collection_filter=collection_filter
     )
 
     return render_template(
@@ -44,7 +55,9 @@ def pondering():
         current_page=page,
         total_pages=total_pages,
         all_artists=all_artists,
+        all_galleries=all_galleries,
         selected_artists=selected_artists,
+        selected_collections=selected_collections,
         liked_artworks=liked_artworks
     )
 
@@ -52,64 +65,84 @@ def pondering():
 @artworks_bp.route('/galleries')
 def galleries():
     """Curated artwork galleries page"""
-    all_artworks = get_all_artworks()
+    import random
+    from app.artworks.models import ArtworkGallery, ArtworkGalleryItem
 
-    # Get liked artworks
-    liked_artwork_ids = set()
+    # Get all galleries ordered by display_order (filter by is_public unless admin)
+    if current_user.is_authenticated and current_user.role == 'admin':
+        galleries_list = ArtworkGallery.query.order_by(ArtworkGallery.display_order.asc()).all()
+    else:
+        galleries_list = ArtworkGallery.query.filter_by(is_public=True).order_by(ArtworkGallery.display_order.asc()).all()
+
+    # Build galleries data structure
+    galleries_data = []
+
+    # Handle liked artworks separately (user-specific)
     if current_user.is_authenticated:
         liked_artwork_ids = {
             like.artwork_id
             for like in LikedArtworks.query.filter_by(user_id=current_user.id).all()
         }
+        if liked_artwork_ids:
+            liked_artworks = Artworks.query.filter(
+                Artworks.id.in_(liked_artwork_ids),
+                Artworks.site_approved == True
+            ).all()
 
-    # Get artworks by location/medium
-    at_boston_museums_ids = {
-        work.id
-        for work in Artworks.query.filter(Artworks.location.like('%Boston%')).all()
-    }
-    worcester_artwork_ids = {
-        work.id
-        for work in Artworks.query.filter_by(location="Worcester Art Museum, Worcester, MA").all()
-    }
-    oil_on_canvas_artwork_ids = {
-        work.id
-        for work in Artworks.query.filter_by(medium="Oil on canvas").all()
-    }
-    watercolor_artwork_ids = {
-        work.id
-        for work in Artworks.query.filter(Artworks.medium.like('%watercolor%')).all()
-    }
+            # Shuffle and take first 25
+            random.shuffle(liked_artworks)
+            display_liked = liked_artworks[:25]
 
-    # Filter artworks based on these IDs
-    liked_artworks = [art for art in all_artworks if art['id'] in liked_artwork_ids]
-    at_boston_museums = [art for art in all_artworks if art['id'] in at_boston_museums_ids]
-    worcester_artworks = [art for art in all_artworks if art['id'] in worcester_artwork_ids]
-    oil_on_canvas_artworks = [art for art in all_artworks if art['id'] in oil_on_canvas_artwork_ids]
-    watercolor_artworks = [art for art in all_artworks if art['id'] in watercolor_artwork_ids]
+            galleries_data.append({
+                'id': 'liked_artworks',
+                'name': 'Your Liked Artworks',
+                'count': len(liked_artworks),
+                'artworks': [artwork_to_dict(art) for art in display_liked]
+            })
 
-    # Shuffle and take first 25
-    import random
-    random.shuffle(all_artworks)
+    # Process system galleries
+    for gallery in galleries_list:
+        # Get artworks in this gallery
+        artwork_ids = [
+            item.artwork_id
+            for item in ArtworkGalleryItem.query.filter_by(gallery_id=gallery.id).all()
+        ]
 
-    display_liked_artworks = [art for art in all_artworks if art['id'] in liked_artwork_ids][:25]
-    display_at_boston_museums = [art for art in all_artworks if art['id'] in at_boston_museums_ids][:25]
-    display_worcester_artworks = [art for art in all_artworks if art['id'] in worcester_artwork_ids][:25]
-    display_oil_on_canvas_artworks = [art for art in all_artworks if art['id'] in oil_on_canvas_artwork_ids][:25]
-    display_watercolor_artworks = [art for art in all_artworks if art['id'] in watercolor_artwork_ids][:25]
+        if artwork_ids:
+            artworks = Artworks.query.filter(
+                Artworks.id.in_(artwork_ids),
+                Artworks.site_approved == True
+            ).all()
+
+            # Shuffle and take first 25
+            random.shuffle(artworks)
+            display_artworks = artworks[:25]
+
+            galleries_data.append({
+                'id': gallery.id,
+                'name': gallery.name,
+                'count': len(artworks),
+                'artworks': [artwork_to_dict(art) for art in display_artworks]
+            })
 
     return render_template(
         'artworks/galleries.html',
-        liked_artworks_count=len(liked_artworks),
-        at_boston_museums_count=len(at_boston_museums),
-        worcester_artworks_count=len(worcester_artworks),
-        oil_on_canvas_artworks_count=len(oil_on_canvas_artworks),
-        watercolor_artworks_count=len(watercolor_artworks),
-        display_liked_artworks=display_liked_artworks,
-        display_at_boston_museums=display_at_boston_museums,
-        display_worcester_artworks=display_worcester_artworks,
-        display_oil_on_canvas_artworks=display_oil_on_canvas_artworks,
-        display_watercolor_artworks=display_watercolor_artworks
+        collections=galleries_data
     )
+
+
+def artwork_to_dict(artwork):
+    """Convert artwork object to dictionary for template"""
+    return {
+        'id': artwork.id,
+        'title': artwork.title,
+        'artist': artwork.artist,
+        'year': artwork.year,
+        'file_name': artwork.file_name,
+        'location': artwork.location,
+        'medium': artwork.medium,
+        'description': artwork.description
+    }
 
 
 @artworks_bp.route('/like_artwork', methods=['POST'])

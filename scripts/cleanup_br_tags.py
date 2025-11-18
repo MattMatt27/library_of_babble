@@ -19,7 +19,7 @@ from app.extensions import db
 from app.books.models import Books
 from app.movies.models import Movies
 from app.shows.models import TVShows
-from app.collections.models import Reviews
+from app.common.models import Reviews
 
 
 def clean_br_tags(text):

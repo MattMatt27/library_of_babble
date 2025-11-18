@@ -113,6 +113,23 @@ def register_error_handlers(app):
                      and not f.startswith('.')]
         return render_template('500.html', images=images), 500
 
+    # In production, handle all unhandled exceptions
+    if not app.debug:
+        @app.errorhandler(Exception)
+        def handle_exception(error):
+            # Log the error
+            app.logger.error(f"Unhandled exception: {str(error)}", exc_info=True)
+            db.session.rollback()
+
+            # Return generic error page (no debug info)
+            lunacy_path = os.path.join(app.static_folder, 'images/creating/lunacy')
+            images = []
+            if os.path.exists(lunacy_path):
+                images = [f for f in os.listdir(lunacy_path)
+                         if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
+                         and not f.startswith('.')]
+            return render_template('500.html', images=images), 500
+
 
 def register_context_processors(app):
     """Register context processors to inject variables into all templates"""

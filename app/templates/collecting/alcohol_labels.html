@@ -5,133 +5,68 @@
 {% set active_page = 'collecting' %}
 
 {% block extra_styles %}
-<style type="text/css">
-    body {
-        background-color: #C1DFF0; 
-        color: #121212; 
-        font-family: Garamond, sans-serif;
-        font-size: 18px;
-        margin: 0;
-        padding: 0; 
-    }
-
-    header {
-        background-color: #121212;
-    }
-
-    table {
-        background-color: #093249;
-        color: #fff;
-        border-collapse: collapse;
-        margin: 10px auto;
-        width: 98%;
-    }
-    th, td {
-        padding: 8px;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
-    }
-    th {
-        background-color: #121212;
-        color: #fff;
-    }
-    .center-header {
-        text-align: center;
-    }
-    .image-column {
-        width: 250px; /* Fixed width for image column */
-    }
-    .details-column {
-        width: 250px;
-    }
-    .offer-column {
-        width: 200px;
-    }
-    img {
-        max-height: 350px; /* Limit image height */
-        max-width: 100%; /* Ensure image fits within its container */
-        display: block; /* Ensure proper sizing */
-        margin: auto; /* Center the image horizontally */
-    }
-    .header-text {
-        padding-left: 20px;
-        text-align: center;
-    }
-    .header-container {
-        display: flex; /* Use flexbox for layout */
-        align-items: center; /* Center vertically */
-        
-    }
-    .back-button {
-        background-color: #007bff; /* Blue background color for button */
-        color: #ffffff; /* White text color */
-        padding: 10px 20px; /* Add padding */
-        margin-left: 20px;
-        border-radius: 5px; /* Rounded corners */
-        text-decoration: none; /* Remove underline from button */
-        transition: background-color 0.3s; /* Smooth transition for background color */
-        display: flex; /* Use flexbox for layout */
-        align-items: center; /* Center vertically */
-    }
-    .back-button:hover {
-        background-color: #0056b3; /* Darker blue on hover */
-    }
-
-    .offer-button {
-        background-color: #007bff; /* Blue background color for button */
-        color: #ffffff; /* White text color */
-        padding: 10px 20px; /* Add padding */
-        margin-top: 5px;
-        border-radius: 5px; /* Rounded corners */
-        text-decoration: none; /* Remove underline from button */
-        transition: background-color 0.3s; /* Smooth transition for background color */
-        display: flex; /* Use flexbox for layout */
-        align-items: center; /* Center vertically */
-        text-align: center;
-        width: 40%;
-    }
-    .offer-button:hover {
-        background-color: #0056b3; /* Darker blue on hover */
-    }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/collecting.css') }}">
 {% endblock %}
 
 {% block content %}
-<table>
-    <thead>
-        <tr>
-            <th class="center-header">Image</th>
-            <th>Details</th>
-            <th>Notes</th>
-            <th>Make Offer</th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="container collecting-page">
+    <div class="page-header">
+        <h1>Vintage Alcohol Labels</h1>
+        <p class="page-subtitle">Antique whiskey, bourbon, and liquor labels from the early-to-mid 20th century.</p>
+    </div>
+
+    <div class="collection-grid detail-grid">
         {% for label in labels %}
-            <tr>
-                <td class="image-column">
-                    <a href="/labels/{{ label.id }}">
-                        <img src="{{ url_for('static', filename='images/antiques/alcohol labels/' + label.image_filename) }}" alt="{{ label.text }}">
-                    </a>
-                </td>
-                <td class="details-column">
-                    <strong>ID: </strong>{{ label.id }}<br><br>
-                    <strong>Year:</strong> {{ label.year if label.year else 'Unknown' }}<br><br>
-                    <strong>Alcohol Type:</strong> {{ label.alcohol_type }}<br><br>
-                    <strong>Location:</strong> {{ label.bottled_by_location }}
-                </td>
-                <td>
-                    <!-- Placeholder for a Text Field -->
-                    <strong>Dimensions:</strong> {{ label.dimensions }}<br><br>
-                    {{ label.notes }}<br><br>
-                    <strong>Number Owned: </strong>{{ '1' if label.owned else '0' }}<br>
-                </td>
-                <td class="offer-column">
-                    <a href="mailto:MattFlathers27@gmail.com?subject=Offer For Alcohol Label Number {{ label.id }}&body=Hi Matt, I am looking to make an offer for alcohol label number {{ label.id }}. I would pay X for it. Let me know if you are interested in selling. Thank you!" class="offer-button">Make Offer</a>
-                </td>
-                
-            </tr>
+        <a href="{{ url_for('collecting.label_detail', label_id=label.id) }}" class="collection-card" style="text-decoration: none; color: inherit;">
+            <div class="card-image">
+                <img src="{{ url_for('static', filename='images/antiques/alcohol labels/' + label.image_filename) }}" alt="{{ label.text }}">
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">{{ label.text }}</h3>
+
+                <div class="card-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Year:</span>
+                        <span class="detail-value">{{ label.year if label.year else 'Unknown' }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Type:</span>
+                        <span class="detail-value">{{ label.alcohol_type }}</span>
+                    </div>
+                    {% if label.alcohol_proof %}
+                    <div class="detail-row">
+                        <span class="detail-label">Proof:</span>
+                        <span class="detail-value">{{ label.alcohol_proof }}</span>
+                    </div>
+                    {% endif %}
+                    {% if label.bottled_by_location %}
+                    <div class="detail-row">
+                        <span class="detail-label">Location:</span>
+                        <span class="detail-value">{{ label.bottled_by_location }}</span>
+                    </div>
+                    {% endif %}
+                    {% if label.dimensions %}
+                    <div class="detail-row">
+                        <span class="detail-label">Dimensions:</span>
+                        <span class="detail-value">{{ label.dimensions }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if label.notes %}
+                <div class="card-notes">
+                    <p>{{ label.notes }}</p>
+                </div>
+                {% endif %}
+
+                <div class="card-actions">
+                    <span class="status-badge {{ 'owned' if label.owned else 'sold' }}">
+                        {{ 'Owned' if label.owned else 'Sold' }}
+                    </span>
+                </div>
+            </div>
+        </a>
         {% endfor %}
-    </tbody>
-</table>
+    </div>
+</div>
 {% endblock %}

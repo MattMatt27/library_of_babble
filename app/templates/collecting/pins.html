@@ -5,133 +5,62 @@
 {% set active_page = 'collecting' %}
 
 {% block extra_styles %}
-<style type="text/css">
-    body {
-        background-color: #C1DFF0; 
-        color: #121212; 
-        font-family: Garamond, sans-serif;
-        font-size: 18px;
-        margin: 0;
-        padding: 0; 
-    }
-
-    header {
-        background-color: #121212;
-    }
-
-    table {
-        background-color: #093249;
-        color: #fff;
-        border-collapse: collapse;
-        margin: 10px auto;
-        width: 98%;
-    }
-    th, td {
-        padding: 8px;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
-    }
-    th {
-        background-color: #121212;
-        color: #fff;
-    }
-    .center-header {
-        text-align: center;
-    }
-    .image-column {
-        width: 650px; /* Fixed width for image column */
-    }
-    .details-column {
-        width: 200px;
-    }
-    .offer-column {
-        width: 200px;
-    }
-    .offer-column {
-        padding: 20px;
-    }
-    img {
-        max-height: 650px; /* Limit image height */
-        max-width: 100%; /* Ensure image fits within its container */
-        display: block; /* Ensure proper sizing */
-        margin: auto; /* Center the image horizontally */
-    }
-    .header-text {
-        padding-left: 20px;
-        text-align: center;
-    }
-    .header-container {
-        display: flex; /* Use flexbox for layout */
-        align-items: center; /* Center vertically */
-        
-    }
-    .back-button {
-        background-color: #007bff; /* Blue background color for button */
-        color: #ffffff; /* White text color */
-        padding: 10px 20px; /* Add padding */
-        margin-left: 20px;
-        border-radius: 5px; /* Rounded corners */
-        text-decoration: none; /* Remove underline from button */
-        transition: background-color 0.3s; /* Smooth transition for background color */
-        display: flex; /* Use flexbox for layout */
-        align-items: center; /* Center vertically */
-    }
-    .back-button:hover {
-        background-color: #0056b3; /* Darker blue on hover */
-    }
-
-    .offer-button {
-        background-color: #007bff; /* Blue background color for button */
-        color: #ffffff; /* White text color */
-        padding: 10px 20px; /* Add padding */
-        margin-top: 5px;
-        border-radius: 5px; /* Rounded corners */
-        text-decoration: none; /* Remove underline from button */
-        transition: background-color 0.3s; /* Smooth transition for background color */
-        display: flex; /* Use flexbox for layout */
-        align-items: center; /* Center vertically */
-        text-align: center;
-        width: 40%;
-    }
-    .offer-button:hover {
-        background-color: #0056b3; /* Darker blue on hover */
-    }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/collecting.css') }}">
 {% endblock %}
 
 {% block content %}
-<table>
-    <thead>
-        <tr>
-            <th class="center-header">Image</th>
-            <th>Details</th>
-            <th>Notes</th>
-            <th>Make Offer</th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="container collecting-page">
+    <div class="page-header">
+        <h1>Political & Historical Pins</h1>
+        <p class="page-subtitle">A collection of vintage pins including political campaigns, clubs, and commemorative items.</p>
+    </div>
+
+    <div class="collection-grid detail-grid">
         {% for pin in pins %}
-            <tr>
-                <td class="image-column">
-                    <img src="{{ url_for('static', filename='images/antiques/pins/' + pin.image_filename) }}" alt="{{ pin.text }}">
-                </td>
-                <td class="details-column">
-                    <strong>ID: </strong>{{ pin.id }}<br><br>
-                    <strong>Year:</strong> {{ pin.year if pin.year else 'Unknown' }}<br><br>
-                    <strong>Type:</strong> {{ pin.pin_type }}<br>
-                </td>
-                <td class="notes-column">
-                    <strong>Text:</strong> {{ pin.text }}<br><br>
-                    {{ pin.notes }}<br><br>
-                    <strong>Number Owned: </strong>{{ '1' if pin.owned else '0' }}<br>
-                </td>
-                <td class="offer-column">
+        <a href="{{ url_for('collecting.pin_detail', pin_id=pin.id) }}" class="collection-card" style="text-decoration: none; color: inherit;">
+            <div class="card-image">
+                <img src="{{ url_for('static', filename='images/antiques/pins/' + pin.image_filename) }}" alt="{{ pin.text }}">
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">{{ pin.text }}</h3>
 
-                    <a href="mailto:MattFlathers27@gmail.com?subject=Offer For Pin Number {{ pin.id }}&body=Hi Matt, I am looking to make an offer for pin number {{ pin.id }}. I would pay X for it. Let me know if you are interested in selling. Thank you!" class="offer-button">Make Offer</a>
-                </td>
+                <div class="card-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Year:</span>
+                        <span class="detail-value">{{ pin.year if pin.year else 'Unknown' }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Type:</span>
+                        <span class="detail-value">{{ pin.pin_type }}</span>
+                    </div>
+                    {% if pin.associated_person %}
+                    <div class="detail-row">
+                        <span class="detail-label">Associated:</span>
+                        <span class="detail-value">{{ pin.associated_person }}</span>
+                    </div>
+                    {% endif %}
+                    {% if pin.dimensions %}
+                    <div class="detail-row">
+                        <span class="detail-label">Dimensions:</span>
+                        <span class="detail-value">{{ pin.dimensions }}</span>
+                    </div>
+                    {% endif %}
+                </div>
 
-            </tr>
+                {% if pin.notes %}
+                <div class="card-notes">
+                    <p>{{ pin.notes }}</p>
+                </div>
+                {% endif %}
+
+                <div class="card-actions">
+                    <span class="status-badge {{ 'owned' if pin.owned else 'sold' }}">
+                        {{ 'Owned' if pin.owned else 'Sold' }}
+                    </span>
+                </div>
+            </div>
+        </a>
         {% endfor %}
-    </tbody>
-</table>
+    </div>
+</div>
 {% endblock %}

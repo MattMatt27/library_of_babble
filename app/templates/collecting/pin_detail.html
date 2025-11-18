@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block title %}{{ pin.text }}{% endblock %}
+
+{% set active_page = 'collecting' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/collecting.css') }}">
+<style>
+/* Collecting item detail page styles */
+.item-detail-container {
+  padding: var(--space-8) var(--space-6);
+  min-height: calc(100vh - 200px);
+}
+
+@media (min-width: 768px) {
+  .item-detail-container {
+    padding: var(--space-10) var(--space-8);
+  }
+}
+
+@media (min-width: 1024px) {
+  .item-detail-container {
+    padding: var(--space-12) var(--space-10);
+  }
+}
+
+.item-detail-main {
+  display: grid;
+  grid-template-columns: 450px 1fr;
+  gap: var(--space-8);
+  margin-bottom: var(--space-8);
+}
+
+.item-detail-sidebar {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  height: fit-content;
+}
+
+.item-detail-image {
+  margin-bottom: var(--space-5);
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  border: 1px solid var(--border-secondary);
+}
+
+.item-detail-image img {
+  max-width: 100%;
+  max-height: 500px;
+  height: auto;
+  width: auto;
+  object-fit: contain;
+}
+
+.item-detail-title {
+  font-size: var(--font-2xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-4);
+  line-height: var(--leading-tight);
+}
+
+.item-detail-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.meta-label {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  font-weight: var(--font-medium);
+  min-width: 100px;
+}
+
+.meta-value {
+  font-size: var(--font-base);
+  color: var(--text-primary);
+  text-align: right;
+  flex: 1;
+}
+
+.item-status {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  font-size: var(--font-sm);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.item-status.owned {
+  background: rgba(63, 185, 80, 0.15);
+  color: var(--success);
+  border: 1px solid var(--success);
+}
+
+.item-status.sold {
+  background: rgba(210, 153, 34, 0.15);
+  color: var(--warning);
+  border: 1px solid var(--warning);
+}
+
+.item-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Description section */
+.description-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.section-title {
+  font-size: var(--font-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.description-content {
+  color: var(--text-primary);
+  line-height: var(--leading-relaxed);
+  font-size: var(--font-base);
+}
+
+.no-content {
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+/* Mobile responsive */
+@media (max-width: 900px) {
+  .item-detail-main {
+    grid-template-columns: 1fr;
+  }
+
+  .item-detail-sidebar {
+    text-align: center;
+  }
+
+  .item-detail-image {
+    min-height: 300px;
+  }
+
+  .meta-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .meta-value {
+    text-align: left;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container item-detail-container">
+    <!-- Main content: Sidebar + Description -->
+    <div class="item-detail-main">
+        <!-- Left sidebar: Item details -->
+        <div class="item-detail-sidebar">
+            <div class="item-detail-image">
+                <img src="{{ url_for('static', filename='images/antiques/pins/' + pin.image_filename) }}" alt="{{ pin.text }}">
+            </div>
+
+            <h1 class="item-detail-title">{{ pin.text }}</h1>
+
+            <div class="item-detail-meta">
+                {% if pin.year %}
+                <div class="meta-row">
+                    <span class="meta-label">Year:</span>
+                    <span class="meta-value">{{ pin.year }}</span>
+                </div>
+                {% endif %}
+
+                <div class="meta-row">
+                    <span class="meta-label">Type:</span>
+                    <span class="meta-value">{{ pin.pin_type }}</span>
+                </div>
+
+                {% if pin.associated_person %}
+                <div class="meta-row">
+                    <span class="meta-label">Associated:</span>
+                    <span class="meta-value">{{ pin.associated_person }}</span>
+                </div>
+                {% endif %}
+
+                {% if pin.dimensions %}
+                <div class="meta-row">
+                    <span class="meta-label">Dimensions:</span>
+                    <span class="meta-value">{{ pin.dimensions }}</span>
+                </div>
+                {% endif %}
+
+                <div class="meta-row">
+                    <span class="meta-label">Status:</span>
+                    <span class="item-status {{ 'owned' if pin.owned else 'sold' }}">
+                        {{ 'Owned' if pin.owned else 'Sold' }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="item-actions">
+                {% if pin.owned %}
+                <button type="button" class="btn btn-primary" onclick="openOfferModal({{ pin.id }}, 'pin', '{{ pin.text }}')">
+                    Make an Offer
+                </button>
+                {% else %}
+                <button type="button" class="btn btn-primary" disabled>
+                    Sold
+                </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right side: Description -->
+        <div class="description-section">
+            <h2 class="section-title">Description & Notes</h2>
+            {% if pin.notes %}
+                <div class="description-content">{{ pin.notes }}</div>
+            {% else %}
+                <p class="no-content">No additional notes available for this item.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Offer Modal -->
+<div class="modal-overlay" id="offerModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="offerModalTitle">Make an Offer</h3>
+            <button class="modal-close" onclick="closeOfferModal()">&times;</button>
+        </div>
+        <form action="{{ url_for('collecting.submit_offer') }}" method="POST">
+            <div class="modal-body">
+                <input type="hidden" name="item_id" id="offerItemId">
+                <input type="hidden" name="item_type" id="offerItemType">
+                <input type="hidden" name="item_name" id="offerItemName">
+
+                <div class="form-group">
+                    <label for="offerName">Your Name</label>
+                    <input type="text" id="offerName" name="name" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="offerEmail">Your Email</label>
+                    <input type="email" id="offerEmail" name="email" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="offerAmount">Offer Amount (USD)</label>
+                    <input type="number" id="offerAmount" name="amount" class="form-input" step="0.01" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="offerMessage">Message (Optional)</label>
+                    <textarea id="offerMessage" name="message" class="form-textarea" rows="4" placeholder="Any additional information..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" onclick="closeOfferModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Submit Offer</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function openOfferModal(itemId, itemType, itemName) {
+    document.getElementById('offerItemId').value = itemId;
+    document.getElementById('offerItemType').value = itemType;
+    document.getElementById('offerItemName').value = itemName;
+    document.getElementById('offerModalTitle').textContent = `Make an Offer - ${itemName}`;
+    document.getElementById('offerModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeOfferModal() {
+    document.getElementById('offerModal').classList.remove('active');
+    document.body.style.overflow = '';
+    // Reset form
+    document.querySelector('#offerModal form').reset();
+}
+
+// Close modal on overlay click
+document.getElementById('offerModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeOfferModal();
+    }
+});
+
+// Close modal on escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const activeModal = document.querySelector('.modal-overlay.active');
+        if (activeModal) {
+            closeOfferModal();
+        }
+    }
+});
+</script>
+{% endblock %}

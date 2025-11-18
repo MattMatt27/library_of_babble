@@ -9,8 +9,11 @@
 {% endblock %}
 
 {% block content %}
-<div class="collecting-page">
-    <p class="intro">Over the years I have tried various different methods to organize my various collections, without ever finding a solution that I particularly like. This page is my latest attempt to share my collecting hobby with people. Most of my notes and details are preliminary and based on simple inventory passes and have very little detailed research yet.</p>
+<div class="container collecting-page">
+    <div class="page-header">
+        <h1>Matt's Cabinet of Curiosities</h1>
+        <p class="page-subtitle">Over the years I have tried various different methods to organize my various collections, without ever finding a solution that I particularly like. This page is my latest attempt to share my collecting hobby with people. Most of my notes and details are preliminary and based on simple inventory passes and have very little detailed research yet.</p>
+    </div>
 
     <div class="collection-section">
         <div class="collection-header">
@@ -19,27 +22,27 @@
         </div>
         <div class="collection-grid">
             {% for pin in recently_added_pins %}
-                <div class="collection-item">
+                <a href="{{ url_for('collecting.pin_detail', pin_id=pin.id) }}" class="collection-item" aria-label="View {{ pin.text }}">
                     <div class="collection-item-image">
                         <img src="{{ url_for('static', filename='images/antiques/pins/' + pin.image_filename) }}" alt="{{ pin.text }}">
                     </div>
-                </div>
+                </a>
             {% endfor %}
         </div>
     </div>
 
     <div class="collection-section">
         <div class="collection-header">
-            <h2>Alcohol Labels</h2>
+            <h2>Vintage Alcohol Labels</h2>
             <a href="{{ url_for('collecting.alcohol_labels') }}" class="see-all-btn">See All</a>
         </div>
-        <div class="collection-grid">
+        <div class="collection-grid labels-grid">
             {% for label in recently_added_labels %}
-                <div class="collection-item">
+                <a href="{{ url_for('collecting.label_detail', label_id=label.id) }}" class="collection-item" aria-label="View {{ label.text }}">
                     <div class="collection-item-image">
                         <img src="{{ url_for('static', filename='images/antiques/alcohol labels/' + label.image_filename) }}" alt="{{ label.text }}">
                     </div>
-                </div>
+                </a>
             {% endfor %}
         </div>
     </div>

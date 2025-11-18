@@ -261,6 +261,7 @@
             <button class="modal-close" onclick="closeOfferModal()">&times;</button>
         </div>
         <form action="{{ url_for('collecting.submit_offer') }}" method="POST">
+            {{ csrf_token() }}
             <div class="modal-body">
                 <input type="hidden" name="item_id" id="offerItemId">
                 <input type="hidden" name="item_type" id="offerItemType">

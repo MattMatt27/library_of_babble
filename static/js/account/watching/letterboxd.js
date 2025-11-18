@@ -79,6 +79,9 @@ export function submitLetterboxdImport() {
 
     fetch('/account/import/letterboxd', {
         method: 'POST',
+        headers: {
+            'X-CSRFToken': getCSRFToken()
+        },
         body: formData
     })
     .then(response => response.json())

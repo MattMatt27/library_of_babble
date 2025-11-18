@@ -12,6 +12,7 @@
                 Upload your Goodreads CSV export file. The system will add new books and report any conflicts with existing data.
             </p>
             <form id="goodreadsForm" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="form-group">
                     <label for="goodreadsFile" style="display: block; margin-bottom: var(--space-2);">Goodreads CSV File</label>
                     <div class="file-drop-zone" onclick="document.getElementById('goodreadsFile').click()">
@@ -49,6 +50,7 @@
                 Upload your Letterboxd ratings.csv and reviews.csv files. The system will add reviews and ratings to existing movies.
             </p>
             <form id="letterboxdForm" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <!-- Ratings CSV (Required) -->
                 <div class="form-group">
                     <label for="letterboxdRatingsFile" style="display: block; margin-bottom: var(--space-2);">Ratings CSV (Required)</label>
@@ -106,6 +108,7 @@
                 Upload your Boredom Killer CSV files. You can upload one or more files at a time. All fields are optional.
             </p>
             <form id="bkForm" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <!-- Movies (Optional) -->
                 <div class="form-group">
                     <label for="bkMoviesFile" style="display: block; margin-bottom: var(--space-2);">Movies CSV (Optional)</label>
@@ -197,6 +200,7 @@
             </div>
 
             <form id="uploadArtworkForm" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <!-- CSV Import Section -->
                 <div id="csvUploadSection">
                     <div class="form-group">
@@ -304,6 +308,7 @@
             <!-- Add Publication Tab -->
             <div id="addPublicationTab" class="tab-content active">
                 <form id="publicationForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" id="publicationId">
 
                     <div class="form-row">
@@ -466,6 +471,7 @@
             <!-- Create User Tab -->
             <div id="createUserTab" class="tab-content" style="display: none;">
                 <form method="POST" action="{{ url_for('auth.create_user') }}" id="createUserForm">
+                    {{ csrf_token() }}
                     <div class="form-group">
                         <label for="username">Username</label>
                         <input type="text" id="username" name="username" class="form-input" required autocomplete="off">
@@ -501,6 +507,7 @@
             <button class="modal-close" onclick="closeModal('changePasswordModal')">&times;</button>
         </div>
         <form method="POST" id="changePasswordForm">
+            {{ csrf_token() }}
             <div class="modal-body">
                 <p class="modal-description">
                     Change password for <strong id="passwordUsername"></strong>
@@ -526,6 +533,7 @@
             <button class="modal-close" onclick="closeModal('changeRoleModal')">&times;</button>
         </div>
         <form method="POST" id="changeRoleForm">
+            {{ csrf_token() }}
             <div class="modal-body">
                 <p class="modal-description">
                     Change role for <strong id="roleUsername"></strong>
@@ -555,6 +563,7 @@
             <button class="modal-close" onclick="closeModal('deleteUserModal')">&times;</button>
         </div>
         <form method="POST" id="deleteUserForm" action="">
+            {{ csrf_token() }}
             <div class="modal-body">
                 <p class="modal-description warning">
                     Are you sure you want to delete user <strong id="deleteUsername"></strong>?

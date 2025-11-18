@@ -16,7 +16,10 @@ export function submitSpotifyRefresh() {
     showStatus(statusDiv, 'Refreshing Spotify playlists...', 'loading');
 
     fetch('/account/refresh/spotify', {
-        method: 'POST'
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCSRFToken()
+        }
     })
     .then(response => response.json())
     .then(data => {

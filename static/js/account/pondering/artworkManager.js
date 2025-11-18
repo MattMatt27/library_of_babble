@@ -107,6 +107,9 @@ export async function submitArtworkUpload() {
 
         const response = await fetch(endpoint, {
             method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            },
             body: formData
         });
 

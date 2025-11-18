@@ -6,8 +6,11 @@ This allows for multiple instances with different configurations (dev, test, pro
 """
 import os
 from flask import Flask, render_template
+from flask_wtf.csrf import CSRFProtect
 from config import config
 from app.extensions import db, login_manager, migrate
+
+csrf = CSRFProtect()
 
 
 def create_app(config_name=None):
@@ -38,6 +41,7 @@ def create_app(config_name=None):
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
+    csrf.init_app(app)
 
     # Configure login manager
     login_manager.login_view = 'auth.login'

@@ -193,11 +193,12 @@ def register_security_headers(app):
         # Note: Adjust this based on your application's needs
         csp = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://code.jquery.com; "
             "font-src 'self' https://fonts.gstatic.com; "
             "img-src 'self' data: https:; "
             "connect-src 'self'; "
+            "frame-src 'self' https://open.spotify.com; "
             "frame-ancestors 'self'; "
         )
         response.headers['Content-Security-Policy'] = csp

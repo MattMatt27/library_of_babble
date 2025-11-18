@@ -146,16 +146,21 @@
         fetchPlaylistDetails(parseInt(month), year, selectedPlaylist, monthNames[month]);
     }
 
+    function getCSRFToken() {
+        return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    }
+
     function fetchPlaylistDetails(month, year, selectedPlaylist, monthName) {
         fetch('/listening', {
             method: 'POST',
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 month: month + 1, // Adding 1 to match Python's month numbering (1-12)
                 year: year,
                 playlist_code: selectedPlaylist
             }),
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
             }
         })
         .then(response => {

@@ -6,8 +6,11 @@ This allows for multiple instances with different configurations (dev, test, pro
 """
 import os
 from flask import Flask, render_template
+from flask_wtf.csrf import CSRFProtect
 from config import config
 from app.extensions import db, login_manager, migrate
+
+csrf = CSRFProtect()
 
 
 def create_app(config_name=None):
@@ -38,6 +41,7 @@ def create_app(config_name=None):
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
+    csrf.init_app(app)
 
     # Configure login manager
     login_manager.login_view = 'auth.login'
@@ -51,6 +55,9 @@ def create_app(config_name=None):
 
     # Register context processors
     register_context_processors(app)
+
+    # Add security headers
+    register_security_headers(app)
 
     return app
 
@@ -109,6 +116,23 @@ def register_error_handlers(app):
                      and not f.startswith('.')]
         return render_template('500.html', images=images), 500
 
+    # In production, handle all unhandled exceptions
+    if not app.debug:
+        @app.errorhandler(Exception)
+        def handle_exception(error):
+            # Log the error
+            app.logger.error(f"Unhandled exception: {str(error)}", exc_info=True)
+            db.session.rollback()
+
+            # Return generic error page (no debug info)
+            lunacy_path = os.path.join(app.static_folder, 'images/creating/lunacy')
+            images = []
+            if os.path.exists(lunacy_path):
+                images = [f for f in os.listdir(lunacy_path)
+                         if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
+                         and not f.startswith('.')]
+            return render_template('500.html', images=images), 500
+
 
 def register_context_processors(app):
     """Register context processors to inject variables into all templates"""
@@ -144,3 +168,55 @@ def register_context_processors(app):
             'nav_items': get_user_nav_items(),
             'active_page': active_page
         }
+
+
+def register_security_headers(app):
+    """Add security headers to all responses"""
+
+    @app.after_request
+    def add_security_headers(response):
+        """Add security headers to prevent common attacks"""
+
+        # Prevent clickjacking attacks
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+
+        # Prevent MIME type sniffing
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+
+        # Enable XSS protection in browsers
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+
+        # Control referrer information
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+
+        # Content Security Policy - prevents inline scripts and external resources
+        # Note: Adjust this based on your application's needs
+        csp = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://code.jquery.com https://cdnjs.cloudflare.com; "
+            "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self'; "
+            "frame-src 'self' https://open.spotify.com; "
+            "frame-ancestors 'self'; "
+        )
+        response.headers['Content-Security-Policy'] = csp
+
+        # Permissions Policy - restrict browser features
+        response.headers['Permissions-Policy'] = (
+            'geolocation=(), '
+            'microphone=(), '
+            'camera=(), '
+            'payment=(), '
+            'usb=(), '
+            'magnetometer=(), '
+            'gyroscope=(), '
+            'accelerometer=()'
+        )
+
+        # HSTS - Force HTTPS (only enable in production with HTTPS)
+        if not app.debug:
+            response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+
+        return response

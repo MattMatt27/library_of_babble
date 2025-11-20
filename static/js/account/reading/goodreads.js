@@ -66,6 +66,9 @@ export function submitGoodreadsImport() {
 
     fetch('/account/import/goodreads', {
         method: 'POST',
+        headers: {
+            'X-CSRFToken': getCSRFToken()
+        },
         body: formData
     })
     .then(response => response.json())

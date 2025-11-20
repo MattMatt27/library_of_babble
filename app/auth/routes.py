@@ -7,6 +7,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from app.auth import auth_bp
 from app.extensions import db, login_manager
 from app.auth.models import User
+from app.utils.security import is_safe_url
 
 
 @login_manager.user_loader
@@ -39,7 +40,10 @@ def login():
         if user and check_password_hash(user.password, password):
             login_user(user)
             next_page = request.args.get('next')
-            return redirect(next_page or url_for('main.home'))
+            # Validate redirect URL to prevent open redirect vulnerability
+            if next_page and is_safe_url(next_page):
+                return redirect(next_page)
+            return redirect(url_for('main.home'))
         else:
             flash('Invalid username or password', 'error')
 

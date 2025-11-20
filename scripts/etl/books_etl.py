@@ -164,8 +164,18 @@ def load_book_quotes_from_csv(csv_file='book_quotes.csv'):
 
 def reset_sequence(table_name, id_column='id'):
     """Reset PostgreSQL sequence to match the current max ID"""
+    # Whitelist allowed table names to prevent SQL injection
+    ALLOWED_TABLES = {'books', 'reviews', 'collections', 'book_quotes'}
+    ALLOWED_COLUMNS = {'id'}
+
+    if table_name not in ALLOWED_TABLES:
+        raise ValueError(f"Table {table_name} not in whitelist")
+    if id_column not in ALLOWED_COLUMNS:
+        raise ValueError(f"Column {id_column} not in whitelist")
+
     try:
-        # This works for PostgreSQL
+        # Safe to use f-string now that table_name is validated against whitelist
+        # Note: PostgreSQL doesn't support parameters for table/column names in this context
         db.session.execute(db.text(
             f"SELECT setval(pg_get_serial_sequence('{table_name}', '{id_column}'), "
             f"COALESCE((SELECT MAX({id_column}) FROM {table_name}), 1), true);"

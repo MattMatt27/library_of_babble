@@ -181,6 +181,7 @@ async function updateRating(itemType, itemId, rating) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-CSRFToken': getCSRFToken()
       },
       body: JSON.stringify({ rating: rating })
     });

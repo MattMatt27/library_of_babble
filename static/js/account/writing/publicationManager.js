@@ -344,7 +344,10 @@ async function savePublicationsOrder(container) {
     try {
         const response = await fetch('/writing/publications/reorder', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
             body: JSON.stringify({ publication_ids: publicationIds })
         });
 
@@ -394,7 +397,10 @@ export async function savePublication() {
 
         const response = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
             body: JSON.stringify(data)
         });
 
@@ -475,7 +481,10 @@ export async function deletePublication(publicationId) {
 
     try {
         const response = await fetch(`/writing/delete/${publicationId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
         });
 
         const result = await response.json();

@@ -9,13 +9,35 @@ from app.account import account_bp
 from app.extensions import db
 from app.artworks.models import Artworks, LikedArtworks
 from app.auth.models import User
+from app.utils.security import run_etl_script, run_pg_dump, sanitize_path, sanitize_directory_name, validate_file_path
 import json
 import csv
 import tempfile
 import os
 import shutil
+import subprocess
 from pathlib import Path
 from datetime import datetime
+
+
+def load_page_permissions():
+    """Load page permissions from config file"""
+    config_path = Path('config/page_permissions.json')
+    try:
+        with open(config_path, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        # Return empty default if file doesn't exist
+        return {'pages': []}
+
+
+def save_page_permissions(permissions_data):
+    """Save page permissions to config file"""
+    config_path = Path('config/page_permissions.json')
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(config_path, 'w') as f:
+        json.dump(permissions_data, f, indent=2)
+    return True
 
 
 def admin_required(f):
@@ -64,14 +86,8 @@ def create_database_backup():
         elif db_uri.startswith('postgresql://') or db_uri.startswith('postgres://'):
             backup_file = backup_dir / f"library_backup_{timestamp}.sql"
 
-            # Use pg_dump to create backup
-            import subprocess
-            result = subprocess.run(
-                ['pg_dump', '-Fc', db_uri, '-f', str(backup_file)],
-                capture_output=True,
-                text=True,
-                timeout=60
-            )
+            # Use secure pg_dump function to create backup
+            result = run_pg_dump(db_uri, str(backup_file))
 
             if result.returncode != 0:
                 return False, f"pg_dump failed: {result.stderr}"
@@ -274,13 +290,11 @@ def import_goodreads():
         file.save(temp_file_path)
         temp_file.close()
 
-        # Run the Goodreads ETL script with transaction flag
-        import subprocess
-        result = subprocess.run(
-            ['python', 'scripts/etl/books_etl.py', temp_file_path, '--use-transaction'],
-            capture_output=True,
-            text=True,
-            timeout=600  # 10 minute timeout
+        # Run the Goodreads ETL script with transaction flag using secure function
+        result = run_etl_script(
+            'etl/books_etl.py',
+            temp_file_path,
+            ['--use-transaction']
         )
 
         # Clean up temp file
@@ -378,22 +392,21 @@ def import_letterboxd():
         reviews_file.save(reviews_temp_path)
         reviews_temp.close()
 
-        # Run the Letterboxd ETL script with both files
-        import subprocess
-        cmd = ['python', 'scripts/etl/movies_etl.py',
-               '--letterboxd-ratings', ratings_temp_path,
-               '--letterboxd-reviews', reviews_temp_path,
-               '--use-transaction']
+        # Run the Letterboxd ETL script with both files using secure function
+        extra_args = [
+            '--letterboxd-ratings', ratings_temp_path,
+            '--letterboxd-reviews', reviews_temp_path,
+            '--use-transaction'
+        ]
 
         # Add reset flag if requested
         if reset_data:
-            cmd.append('--reset-letterboxd')
+            extra_args.append('--reset-letterboxd')
 
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=600  # 10 minute timeout
+        result = run_etl_script(
+            'etl/movies_etl.py',
+            None,  # No single file path for this command
+            extra_args
         )
 
         # Clean up temp files
@@ -516,19 +529,14 @@ def import_boredom_killer():
             request.files['docuseries_file'].save(temp.name)
             temp.close()
 
-        import subprocess
-
         movies_added = docs_added = tv_added = docuseries_added = 0
 
-        # Process Movies file
+        # Process Movies file using secure function
         if has_movies:
-            result = subprocess.run(
-                ['python', 'scripts/etl/movies_etl.py',
-                 '--bk-movies', temp_files['movies'],
-                 '--use-transaction'],
-                capture_output=True,
-                text=True,
-                timeout=600
+            result = run_etl_script(
+                'etl/movies_etl.py',
+                None,
+                ['--bk-movies', temp_files['movies'], '--use-transaction']
             )
 
             if result.returncode != 0:
@@ -541,15 +549,12 @@ def import_boredom_killer():
                     except:
                         pass
 
-        # Process Documentaries file (goes to movies table)
+        # Process Documentaries file (goes to movies table) using secure function
         if has_docs:
-            result = subprocess.run(
-                ['python', 'scripts/etl/movies_etl.py',
-                 '--bk-docs', temp_files['docs'],
-                 '--use-transaction'],
-                capture_output=True,
-                text=True,
-                timeout=600
+            result = run_etl_script(
+                'etl/movies_etl.py',
+                None,
+                ['--bk-docs', temp_files['docs'], '--use-transaction']
             )
 
             if result.returncode != 0:
@@ -562,15 +567,12 @@ def import_boredom_killer():
                     except:
                         pass
 
-        # Process TV file
+        # Process TV file using secure function
         if has_tv:
-            result = subprocess.run(
-                ['python', 'scripts/etl/shows_etl.py',
-                 '--bk-tv', temp_files['tv'],
-                 '--use-transaction'],
-                capture_output=True,
-                text=True,
-                timeout=600
+            result = run_etl_script(
+                'etl/shows_etl.py',
+                None,
+                ['--bk-tv', temp_files['tv'], '--use-transaction']
             )
 
             if result.returncode != 0:
@@ -583,15 +585,12 @@ def import_boredom_killer():
                     except:
                         pass
 
-        # Process Docuseries file (goes to shows table)
+        # Process Docuseries file (goes to shows table) using secure function
         if has_docuseries:
-            result = subprocess.run(
-                ['python', 'scripts/etl/shows_etl.py',
-                 '--bk-docuseries', temp_files['docuseries'],
-                 '--use-transaction'],
-                capture_output=True,
-                text=True,
-                timeout=600
+            result = run_etl_script(
+                'etl/shows_etl.py',
+                None,
+                ['--bk-docuseries', temp_files['docuseries'], '--use-transaction']
             )
 
             if result.returncode != 0:
@@ -671,13 +670,10 @@ def import_shows():
         file.save(temp_file.name)
         temp_file.close()
 
-        # Run the TV Shows ETL script
-        import subprocess
-        result = subprocess.run(
-            ['python', 'scripts/etl/shows_etl.py', temp_file.name],
-            capture_output=True,
-            text=True,
-            timeout=300
+        # Run the TV Shows ETL script using secure function
+        result = run_etl_script(
+            'etl/shows_etl.py',
+            temp_file.name
         )
 
         # Clean up temp file
@@ -725,13 +721,9 @@ def import_shows():
 def refresh_spotify():
     """Refresh Spotify playlists"""
     try:
-        # Run the Spotify refresh script
-        import subprocess
-        result = subprocess.run(
-            ['python', 'scripts/refresh_spotify.py'],
-            capture_output=True,
-            text=True,
-            timeout=300
+        # Run the Spotify refresh script using secure function
+        result = run_etl_script(
+            'refresh_spotify.py'
         )
 
         if result.returncode != 0:
@@ -816,17 +808,33 @@ def upload_artwork():
         original_filename = secure_filename(file.filename)
         file_ext = Path(original_filename).suffix
 
+        # Sanitize artist name to prevent path traversal
+        safe_artist = sanitize_directory_name(artist)
+        if not safe_artist:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid artist name'
+            }), 400
+
         # Create filename using format: "Title (Year).ext"
         # Only include characters that are safe for filenames
         safe_title = "".join(c for c in title if c.isalnum() or c in (' ', '-', '_', ',')).strip()
         new_filename = f"{safe_title} ({year}){file_ext}"
 
-        # Create artist directory if it doesn't exist
-        artist_dir = Path('static/images/artists') / artist
+        # Create artist directory if it doesn't exist (with sanitized name)
+        base_dir = Path('static/images/artists')
+        artist_dir = base_dir / safe_artist
         artist_dir.mkdir(parents=True, exist_ok=True)
 
         # Save the file
         file_path = artist_dir / new_filename
+
+        # Validate that final path is within allowed directory (defense in depth)
+        if not validate_file_path(base_dir, file_path):
+            return jsonify({
+                'success': False,
+                'error': 'Invalid file path'
+            }), 400
 
         # Check if file already exists
         if file_path.exists():
@@ -838,11 +846,11 @@ def upload_artwork():
 
         file.save(str(file_path))
 
-        # Create artwork database entry
+        # Create artwork database entry (use sanitized artist name)
         artwork = Artworks(
             id=artwork_id,
             title=title,
-            artist=artist,
+            artist=safe_artist,  # Use sanitized artist name
             year=year,
             medium=medium or None,
             location=location or None,
@@ -935,6 +943,13 @@ def import_artworks_csv():
                         skipped += 1
                         continue
 
+                    # Sanitize artist name to prevent path traversal
+                    safe_artist = sanitize_directory_name(artist)
+                    if not safe_artist:
+                        errors.append(f'Row {row_num}: Invalid artist name "{artist}"')
+                        skipped += 1
+                        continue
+
                     # Optional fields
                     medium = row.get('medium', '').strip() or None
                     location = row.get('location', '').strip() or None
@@ -944,18 +959,18 @@ def import_artworks_csv():
                     site_approved_str = row.get('site_approved', '').strip().lower()
                     site_approved = site_approved_str in ('true', '1', 'yes', 'y')
 
-                    # Check if artwork already exists (by artist + title)
-                    existing = Artworks.query.filter_by(artist=artist, title=title).first()
+                    # Check if artwork already exists (by artist + title, using sanitized artist)
+                    existing = Artworks.query.filter_by(artist=safe_artist, title=title).first()
                     if existing:
-                        errors.append(f'Row {row_num}: Artwork "{title}" by {artist} already exists')
+                        errors.append(f'Row {row_num}: Artwork "{title}" by {safe_artist} already exists')
                         skipped += 1
                         continue
 
-                    # Create new artwork
+                    # Create new artwork (use sanitized artist name)
                     import uuid
                     artwork = Artworks(
                         id=str(uuid.uuid4()),
-                        artist=artist,
+                        artist=safe_artist,  # Use sanitized artist name
                         title=title,
                         year=year,
                         medium=medium,
@@ -1004,3 +1019,39 @@ def import_artworks_csv():
             'success': False,
             'error': f'Import failed: {str(e)}'
         }), 500
+
+
+@account_bp.route('/account/page-permissions', methods=['GET'])
+@admin_required
+def get_page_permissions():
+    """Get current page permissions configuration"""
+    try:
+        permissions = load_page_permissions()
+        return jsonify({'success': True, 'permissions': permissions})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@account_bp.route('/account/page-permissions', methods=['POST'])
+@admin_required
+def update_page_permissions():
+    """Update page permissions configuration"""
+    try:
+        data = request.get_json()
+
+        if not data or 'pages' not in data:
+            return jsonify({'success': False, 'error': 'Invalid data format'}), 400
+
+        # Validate that all required fields are present
+        for page in data['pages']:
+            required_fields = ['page_name', 'display_name', 'route_name', 'public', 'viewer', 'user', 'admin']
+            if not all(field in page for field in required_fields):
+                return jsonify({'success': False, 'error': f'Missing required fields for page: {page.get("page_name", "unknown")}'}), 400
+
+        # Save the configuration
+        save_page_permissions(data)
+
+        return jsonify({'success': True, 'message': 'Page permissions updated successfully'})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500

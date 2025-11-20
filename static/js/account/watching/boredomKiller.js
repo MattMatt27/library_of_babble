@@ -86,6 +86,9 @@ export function submitBKImport() {
 
     fetch('/account/import/boredom-killer', {
         method: 'POST',
+        headers: {
+            'X-CSRFToken': getCSRFToken()
+        },
         body: formData
     })
     .then(response => response.json())

@@ -471,7 +471,7 @@
             <!-- Create User Tab -->
             <div id="createUserTab" class="tab-content" style="display: none;">
                 <form method="POST" action="{{ url_for('auth.create_user') }}" id="createUserForm">
-                    {{ csrf_token() }}
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="form-group">
                         <label for="username">Username</label>
                         <input type="text" id="username" name="username" class="form-input" required autocomplete="off">
@@ -507,7 +507,7 @@
             <button class="modal-close" onclick="closeModal('changePasswordModal')">&times;</button>
         </div>
         <form method="POST" id="changePasswordForm">
-            {{ csrf_token() }}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="modal-body">
                 <p class="modal-description">
                     Change password for <strong id="passwordUsername"></strong>
@@ -533,7 +533,7 @@
             <button class="modal-close" onclick="closeModal('changeRoleModal')">&times;</button>
         </div>
         <form method="POST" id="changeRoleForm">
-            {{ csrf_token() }}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="modal-body">
                 <p class="modal-description">
                     Change role for <strong id="roleUsername"></strong>
@@ -563,7 +563,7 @@
             <button class="modal-close" onclick="closeModal('deleteUserModal')">&times;</button>
         </div>
         <form method="POST" id="deleteUserForm" action="">
-            {{ csrf_token() }}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="modal-body">
                 <p class="modal-description warning">
                     Are you sure you want to delete user <strong id="deleteUsername"></strong>?
@@ -630,4 +630,211 @@ function openDeleteUserModal(userId, username) {
 function submitCreateUser() {
     document.getElementById('createUserForm').submit();
 }
+</script>
+
+<!-- Manage Pages Modal -->
+<div class="modal-overlay" id="managePagesModal">
+    <div class="modal modal-large">
+        <div class="modal-header">
+            <h3>Manage Page Visibility</h3>
+            <button class="modal-close" onclick="closeModal('managePagesModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="color: var(--text-secondary); margin-bottom: var(--space-4);">
+                Control which pages are visible to different user roles. Changes affect both navigation and route access.
+            </p>
+
+            <div class="table-container">
+                <table class="permissions-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">Page</th>
+                            <th style="width: 20%; text-align: center;">Public</th>
+                            <th style="width: 20%; text-align: center;">Viewer</th>
+                            <th style="width: 20%; text-align: center;">User</th>
+                            <th style="width: 20%; text-align: center;">Admin</th>
+                        </tr>
+                    </thead>
+                    <tbody id="permissionsTableBody">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="managePagesStatus" style="margin-top: var(--space-4);"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('managePagesModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="savePagePermissions()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.permissions-table {
+    width: 100%;
+}
+
+.permissions-table th {
+    text-transform: uppercase;
+    font-size: var(--font-xs);
+    letter-spacing: 0.05em;
+}
+
+.permissions-table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.permissions-table td:first-child {
+    text-align: left;
+    font-weight: var(--font-medium);
+}
+
+.permissions-table input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--accent-blue);
+}
+
+.permissions-table input[type="checkbox"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+</style>
+
+<script>
+// Get CSRF token from meta tag
+function getCSRFToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute('content') : '';
+}
+
+async function loadPagePermissions() {
+    console.log('Loading page permissions...');
+    try {
+        const response = await fetch('/account/page-permissions', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('Response status:', response.status);
+        const data = await response.json();
+        console.log('Response data:', data);
+
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to load permissions');
+        }
+
+        // Populate the table
+        const tbody = document.getElementById('permissionsTableBody');
+        if (!tbody) {
+            console.error('permissionsTableBody not found!');
+            return;
+        }
+
+        tbody.innerHTML = '';
+
+        data.permissions.pages.forEach(page => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${page.display_name}</td>
+                <td><input type="checkbox" data-page="${page.page_name}" data-role="public" ${page.public ? 'checked' : ''}></td>
+                <td><input type="checkbox" data-page="${page.page_name}" data-role="viewer" ${page.viewer ? 'checked' : ''}></td>
+                <td><input type="checkbox" data-page="${page.page_name}" data-role="user" ${page.user ? 'checked' : ''}></td>
+                <td><input type="checkbox" data-page="${page.page_name}" data-role="admin" ${page.admin ? 'checked' : ''} disabled></td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        console.log('Table populated with', data.permissions.pages.length, 'pages');
+
+        // Store original data for saving
+        window.pagePermissionsData = data.permissions;
+
+    } catch (error) {
+        console.error('Error loading permissions:', error);
+        const statusDiv = document.getElementById('managePagesStatus');
+        if (statusDiv) {
+            statusDiv.innerHTML = `<div class="flash-message error">Error loading permissions: ${error.message}</div>`;
+        }
+    }
+}
+
+async function savePagePermissions() {
+    try {
+        const statusDiv = document.getElementById('managePagesStatus');
+        statusDiv.innerHTML = '<div class="flash-message info">Saving...</div>';
+
+        // Collect checkbox states
+        const checkboxes = document.querySelectorAll('.permissions-table input[type="checkbox"]:not([disabled])');
+        const updates = {};
+
+        checkboxes.forEach(checkbox => {
+            const pageName = checkbox.dataset.page;
+            const role = checkbox.dataset.role;
+
+            if (!updates[pageName]) {
+                updates[pageName] = {};
+            }
+            updates[pageName][role] = checkbox.checked;
+        });
+
+        // Update the stored data
+        window.pagePermissionsData.pages.forEach(page => {
+            if (updates[page.page_name]) {
+                Object.assign(page, updates[page.page_name]);
+            }
+        });
+
+        // Send to server
+        const response = await fetch('/account/page-permissions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify(window.pagePermissionsData)
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to save permissions');
+        }
+
+        statusDiv.innerHTML = '<div class="flash-message success">Permissions saved successfully! Page will reload...</div>';
+
+        // Reload page after 1 second to reflect changes in navbar
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
+
+    } catch (error) {
+        console.error('Error saving permissions:', error);
+        const statusDiv = document.getElementById('managePagesStatus');
+        statusDiv.innerHTML = `<div class="flash-message error">Error saving permissions: ${error.message}</div>`;
+    }
+}
+
+// Make functions globally available
+window.loadPagePermissions = loadPagePermissions;
+window.savePagePermissions = savePagePermissions;
+
+// Add event listener to load permissions when the modal button is clicked
+document.addEventListener('DOMContentLoaded', function() {
+    // Find all buttons that open managePagesModal
+    const managePageButtons = document.querySelectorAll('button[onclick*="managePagesModal"]');
+    managePageButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Small delay to ensure modal is open
+            setTimeout(() => {
+                loadPagePermissions();
+            }, 100);
+        });
+    });
+});
 </script>

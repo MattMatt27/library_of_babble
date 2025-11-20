@@ -1,0 +1,76 @@
+{
+  "pages": [
+    {
+      "admin": true,
+      "display_name": "Home",
+      "page_name": "home",
+      "public": true,
+      "route_name": "main.home",
+      "user": true,
+      "viewer": true
+    },
+    {
+      "admin": true,
+      "display_name": "Writing",
+      "page_name": "writing",
+      "public": true,
+      "route_name": "writing.index",
+      "user": true,
+      "viewer": true
+    },
+    {
+      "admin": true,
+      "display_name": "Creating",
+      "page_name": "creating",
+      "public": false,
+      "route_name": "main.creating",
+      "user": true,
+      "viewer": true
+    },
+    {
+      "admin": true,
+      "display_name": "Reading",
+      "page_name": "reading",
+      "public": true,
+      "route_name": "books.reading",
+      "user": true,
+      "viewer": true
+    },
+    {
+      "admin": true,
+      "display_name": "Watching",
+      "page_name": "watching",
+      "public": false,
+      "route_name": "watching.index",
+      "user": true,
+      "viewer": true
+    },
+    {
+      "admin": true,
+      "display_name": "Listening",
+      "page_name": "listening",
+      "public": false,
+      "route_name": "music.index",
+      "user": false,
+      "viewer": true
+    },
+    {
+      "admin": true,
+      "display_name": "Collecting",
+      "page_name": "collecting",
+      "public": false,
+      "route_name": "collecting.index",
+      "user": false,
+      "viewer": true
+    },
+    {
+      "admin": true,
+      "display_name": "Pondering",
+      "page_name": "pondering",
+      "public": false,
+      "route_name": "artworks.pondering",
+      "user": false,
+      "viewer": true
+    }
+  ]
+}

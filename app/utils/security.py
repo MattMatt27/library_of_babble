@@ -5,10 +5,13 @@ import re
 import shlex
 import subprocess
 import imghdr
+import json
 from pathlib import Path
 from typing import List, Union, Tuple
 from urllib.parse import urlparse, urljoin
-from flask import request
+from flask import request, abort
+from flask_login import current_user
+from functools import wraps
 from markupsafe import Markup
 import bleach
 
@@ -412,3 +415,68 @@ def check_password_common(password: str) -> bool:
         'password1', 'Password123', 'Welcome123'
     }
     return password.lower() in common_passwords
+
+
+# ==============================================================================
+# Page Permission Enforcement
+# ==============================================================================
+
+def page_visible(page_name):
+    """
+    Decorator to enforce page visibility permissions based on config.
+    Returns 403 if user doesn't have permission to view the page.
+
+    Usage:
+        @page_visible('watching')
+        def watching_index():
+            ...
+
+    Args:
+        page_name: Name of the page in page_permissions.json
+    """
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            # Load permissions from config
+            config_path = Path('config/page_permissions.json')
+            try:
+                with open(config_path, 'r') as file:
+                    permissions = json.load(file)
+            except FileNotFoundError:
+                # If config doesn't exist, only allow admins
+                if not current_user.is_authenticated or current_user.role != 'admin':
+                    abort(403)
+                return f(*args, **kwargs)
+
+            # Find the page in permissions
+            page_config = None
+            for page in permissions.get('pages', []):
+                if page['page_name'] == page_name:
+                    page_config = page
+                    break
+
+            # If page not in config, default to admin-only
+            if not page_config:
+                if not current_user.is_authenticated or current_user.role != 'admin':
+                    abort(403)
+                return f(*args, **kwargs)
+
+            # Check visibility based on user role
+            user_role = current_user.role if current_user.is_authenticated else None
+
+            if user_role == 'admin':
+                allowed = page_config.get('admin', True)
+            elif user_role == 'user':
+                allowed = page_config.get('user', False)
+            elif user_role == 'viewer':
+                allowed = page_config.get('viewer', False)
+            else:
+                # Public (not logged in)
+                allowed = page_config.get('public', False)
+
+            if not allowed:
+                abort(403)
+
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator

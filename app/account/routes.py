@@ -20,6 +20,26 @@ from pathlib import Path
 from datetime import datetime
 
 
+def load_page_permissions():
+    """Load page permissions from config file"""
+    config_path = Path('config/page_permissions.json')
+    try:
+        with open(config_path, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        # Return empty default if file doesn't exist
+        return {'pages': []}
+
+
+def save_page_permissions(permissions_data):
+    """Save page permissions to config file"""
+    config_path = Path('config/page_permissions.json')
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(config_path, 'w') as f:
+        json.dump(permissions_data, f, indent=2)
+    return True
+
+
 def admin_required(f):
     """Decorator to require admin access"""
     @wraps(f)
@@ -999,3 +1019,39 @@ def import_artworks_csv():
             'success': False,
             'error': f'Import failed: {str(e)}'
         }), 500
+
+
+@account_bp.route('/account/page-permissions', methods=['GET'])
+@admin_required
+def get_page_permissions():
+    """Get current page permissions configuration"""
+    try:
+        permissions = load_page_permissions()
+        return jsonify({'success': True, 'permissions': permissions})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@account_bp.route('/account/page-permissions', methods=['POST'])
+@admin_required
+def update_page_permissions():
+    """Update page permissions configuration"""
+    try:
+        data = request.get_json()
+
+        if not data or 'pages' not in data:
+            return jsonify({'success': False, 'error': 'Invalid data format'}), 400
+
+        # Validate that all required fields are present
+        for page in data['pages']:
+            required_fields = ['page_name', 'display_name', 'route_name', 'public', 'viewer', 'user', 'admin']
+            if not all(field in page for field in required_fields):
+                return jsonify({'success': False, 'error': f'Missing required fields for page: {page.get("page_name", "unknown")}'}), 400
+
+        # Save the configuration
+        save_page_permissions(data)
+
+        return jsonify({'success': True, 'message': 'Page permissions updated successfully'})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500

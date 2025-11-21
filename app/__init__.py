@@ -67,6 +67,7 @@ def register_blueprints(app):
 
     # Import blueprints here to avoid circular imports
     from app.auth import auth_bp
+    from app.reading import reading_bp
     from app.books import books_bp
     from app.movies import movies_bp
     from app.watching import watching_bp
@@ -80,6 +81,7 @@ def register_blueprints(app):
     # Register blueprints
     app.register_blueprint(main_bp)  # No prefix, root routes
     app.register_blueprint(auth_bp)
+    app.register_blueprint(reading_bp, url_prefix='/reading')
     app.register_blueprint(books_bp, url_prefix='/books')
     app.register_blueprint(movies_bp, url_prefix='/movies')
     app.register_blueprint(watching_bp, url_prefix='/watching')

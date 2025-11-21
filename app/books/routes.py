@@ -5,42 +5,12 @@ from flask import render_template, request, redirect, url_for, jsonify, flash, c
 from flask_login import login_required, current_user
 from app.books import books_bp
 from app.books.models import Books, BookQuote, LikedQuotes
-from app.books.services import (
-    get_recently_read_books,
-    read_books_from_db,
-    get_books_from_bookshelf,
-    truncate_title
-)
+from app.books.services import truncate_title
 from app.common.models import Reviews
 from app.extensions import db
 from app.utils.security import page_visible
 from app.utils.security import sanitize_html
 import html
-
-
-@books_bp.route('/')
-@page_visible('books')
-def index():
-    """List all books"""
-    books_data = read_books_from_db()
-    return render_template('books/index.html', books=books_data)
-
-
-@books_bp.route('/reading')
-@page_visible('reading')
-def reading():
-    """Reading page with recently read and recommendations"""
-    recently_read_books = get_recently_read_books()
-    recommended_fiction_books = get_books_from_bookshelf('matts-recommended-fiction')
-    recommended_nonfiction_books = get_books_from_bookshelf('matts-recommended-nonfiction')
-
-    return render_template(
-        'books/reading.html',
-        recently_read_books=recently_read_books,
-        recommended_fiction_books=recommended_fiction_books,
-        recommended_nonfiction_books=recommended_nonfiction_books,
-        current_user=current_user
-    )
 
 
 @books_bp.route('/<int:book_id>')

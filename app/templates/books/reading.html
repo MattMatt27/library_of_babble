@@ -73,7 +73,7 @@
         <div class="books-section-header">
             <h2>Recently Read</h2>
             {% if can_access_page('books') %}
-            <a href="{{ url_for('books.index') }}" class="see-all-btn">See All</a>
+            <a href="{{ url_for('reading.books') }}" class="see-all-btn">See All</a>
             {% endif %}
         </div>
         <div class="books-grid">

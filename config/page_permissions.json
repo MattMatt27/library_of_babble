@@ -35,7 +35,7 @@
       "display_name": "Reading",
       "page_name": "reading",
       "public": true,
-      "route_name": "books.reading",
+      "route_name": "reading.index",
       "show_in_navbar": true,
       "user": true,
       "viewer": true
@@ -45,7 +45,7 @@
       "display_name": "Books",
       "page_name": "books",
       "public": false,
-      "route_name": "books.index",
+      "route_name": "reading.books",
       "show_in_navbar": false,
       "user": true,
       "viewer": true

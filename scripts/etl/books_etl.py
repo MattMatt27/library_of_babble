@@ -334,11 +334,17 @@ def load_goodreads_export(csv_file):
                         db.session.add(review)
                         reviews_added += 1
                     else:
-                        # Update existing review if rating or text changed
-                        if existing_review.rating != my_rating or existing_review.review_text != review_text:
-                            existing_review.rating = my_rating
-                            existing_review.review_text = review_text
-                            db.session.add(existing_review)
+                        # Only update review if the book is not locked (read=0 or doesn't exist)
+                        # Read books and their reviews are locked
+                        if existing_book and existing_book.read == 1:
+                            # Book is read - review is locked, don't update
+                            pass
+                        else:
+                            # Book is not read yet - allow review update
+                            if existing_review.rating != my_rating or existing_review.review_text != review_text:
+                                existing_review.rating = my_rating
+                                existing_review.review_text = review_text
+                                db.session.add(existing_review)
 
                 # Handle bookshelves as collections (incremental)
                 if row['Bookshelves'].strip():

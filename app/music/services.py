@@ -2,6 +2,7 @@
 Music/Spotify Business Logic and Helper Functions
 """
 import os
+import re
 import pandas as pd
 import spotipy
 from datetime import datetime, timedelta
@@ -52,15 +53,40 @@ def generate_monthly_playlists_df():
 
     # Find matching playlists
     matching_playlists = []
+    matched_playlist_ids = set()
+
     for playlist in all_playlists:
-        if any(month in playlist.name for month in month_list):
-            matching_playlists.append({
-                'playlist_id': playlist.id,
-                'playlist_name': playlist.name,
-                'playlist_art': playlist.album_art
-            })
-            # Mark as site-approved
-            playlist.site_approved = True
+        # Match exact pattern (Month YY) - ensure no dash/space between month and year
+        matched = False
+        for month in month_list:
+            # Build pattern: opening paren, month name, single space, 2-digit year, closing paren
+            # Extract month and year from the month string like "(Feb 19)"
+            month_parts = month.strip('()').split()  # ['Feb', '19']
+            if len(month_parts) == 2:
+                month_name, year = month_parts
+                # Match opening paren, month, single space, year, closing paren
+                exact_pattern = rf'\({month_name}\s+{year}\)'
+                if re.search(exact_pattern, playlist.name):
+                    matching_playlists.append({
+                        'playlist_id': playlist.id,
+                        'playlist_name': playlist.name,
+                        'playlist_art': playlist.album_art
+                    })
+                    # Mark as site-approved
+                    playlist.site_approved = True
+                    matched_playlist_ids.add(playlist.id)
+                    matched = True
+                    break  # Stop checking other months once we find a match
+
+        # If playlist has a date-like pattern but didn't match, ensure it's not approved
+        if not matched and playlist.id not in matched_playlist_ids:
+            # Check if it looks like a date playlist (has parentheses with month name)
+            month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            for month_name in month_names:
+                if f'({month_name}' in playlist.name or f'({month_name.lower()}' in playlist.name:
+                    # This looks like a date playlist but didn't match our pattern
+                    playlist.site_approved = False
+                    break
 
     # Commit changes
     db.session.commit()

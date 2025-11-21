@@ -121,6 +121,9 @@
   font-size: var(--font-sm);
   line-height: var(--leading-relaxed);
   border: 1px solid;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .flash-message.error {

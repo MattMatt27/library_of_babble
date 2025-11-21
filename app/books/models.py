@@ -56,3 +56,19 @@ class BookQuote(db.Model):
 
     def __repr__(self):
         return f'<BookQuote from book {self.book_id}>'
+
+
+class LikedQuotes(db.Model):
+    """User quote likes (many-to-many relationship)"""
+
+    __tablename__ = 'liked_quotes'
+
+    # Composite primary key (user_id + quote_id)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    quote_id = db.Column(db.Integer, db.ForeignKey('book_quote.id'), primary_key=True)
+
+    # Audit field
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<LikedQuote user={self.user_id} quote={self.quote_id}>'

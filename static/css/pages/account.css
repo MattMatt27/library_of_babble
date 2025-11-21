@@ -194,6 +194,182 @@
   font-size: var(--font-base);
 }
 
+/* Liked Quotes Section */
+.quotes-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+.quotes-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.quotes-section-header h2 {
+  font-size: var(--font-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.quote-count {
+  color: var(--text-secondary);
+  font-weight: var(--font-normal);
+}
+
+.quotes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-4);
+}
+
+.liked-quote-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-base);
+  padding: var(--space-5);
+  transition: all var(--transition-base);
+  cursor: pointer;
+  display: block;
+}
+
+.liked-quote-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent-blue);
+}
+
+.liked-quote-text {
+  font-size: var(--font-base);
+  font-style: italic;
+  color: var(--text-primary);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-4);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.liked-quote-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.liked-quote-book {
+  font-size: var(--font-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.liked-quote-author {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+}
+
+.liked-quote-page {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+  margin-top: var(--space-2);
+}
+
+/* Quotes Pagination */
+.quotes-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-primary);
+}
+
+.pagination-btn {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-base);
+  padding: var(--space-2) var(--space-4);
+  color: var(--text-primary);
+  font-size: var(--font-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 100px;
+  justify-content: center;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: var(--accent-blue);
+  color: white;
+  border-color: var(--accent-blue);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  font-weight: var(--font-medium);
+  min-width: 100px;
+  text-align: center;
+}
+
+/* Quote Modal Styles */
+.quote-modal {
+  max-width: 600px;
+}
+
+.quote-modal-text {
+  font-size: var(--font-lg);
+  font-style: italic;
+  color: var(--text-primary);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-5);
+  padding: var(--space-4);
+  background: var(--bg-primary);
+  border-left: 3px solid var(--accent-blue);
+  border-radius: var(--radius-base);
+}
+
+.quote-modal-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-base);
+}
+
+.quote-modal-book {
+  font-size: var(--font-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.quote-modal-author {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+}
+
+.quote-modal-page {
+  font-size: var(--font-sm);
+  color: var(--text-tertiary);
+}
+
 /* Admin tools section */
 .admin-tools-section {
   background: var(--bg-secondary);
@@ -596,6 +772,16 @@
 
   .artworks-preview-grid {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  .quotes-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .quotes-grid {
+    grid-template-columns: 1fr;
   }
 }
 

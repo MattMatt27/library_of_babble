@@ -8,6 +8,7 @@ from functools import wraps
 from app.account import account_bp
 from app.extensions import db
 from app.artworks.models import Artworks, LikedArtworks
+from app.books.models import LikedQuotes, BookQuote, Books
 from app.auth.models import User
 from app.utils.security import run_etl_script, run_pg_dump, sanitize_path, sanitize_directory_name, validate_file_path
 import json
@@ -18,6 +19,7 @@ import shutil
 import subprocess
 from pathlib import Path
 from datetime import datetime
+import html
 
 
 def load_page_permissions():
@@ -112,11 +114,13 @@ def create_database_backup():
 @login_required
 def index():
     """Main account page"""
+    from app.main.services import can_access_page
+
     # Get user's liked artworks if they have permission
     liked_artworks = []
     liked_count = 0
 
-    if current_user.can_view_artworks:
+    if can_access_page('pondering'):
         # Get liked artwork IDs
         liked_ids = [like.artwork_id for like in
                      LikedArtworks.query.filter_by(user_id=current_user.id).all()]
@@ -126,11 +130,49 @@ def index():
             liked_artworks = Artworks.query.filter(Artworks.id.in_(liked_ids)).limit(24).all()
             liked_count = len(liked_ids)
 
+    # Get user's liked quotes if they have permission
+    liked_quotes = []
+    if can_access_page('book-detail'):
+        liked_quotes_query = db.session.query(
+            LikedQuotes, BookQuote, Books
+        ).join(
+            BookQuote, LikedQuotes.quote_id == BookQuote.id
+        ).join(
+            Books, BookQuote.book_id == Books.id.cast(db.String)
+        ).filter(
+            LikedQuotes.user_id == current_user.id
+        ).order_by(
+            LikedQuotes.created_at.desc()
+        ).all()
+
+        for like, quote, book in liked_quotes_query:
+            # Fix Windows-1252 encoding issues (common in imported data)
+            quote_text = quote.quote_text
+            # Map common Windows-1252 characters to proper Unicode
+            replacements = {
+                '\u0092': "'",  # Right single quotation mark
+                '\u0093': '"',  # Left double quotation mark
+                '\u0094': '"',  # Right double quotation mark
+                '\u0096': '—',  # Em dash
+                '\u0097': '—',  # Em dash (alternative)
+                '\u0091': "'",  # Left single quotation mark
+            }
+            for old, new in replacements.items():
+                quote_text = quote_text.replace(old, new)
+
+            liked_quotes.append({
+                'id': quote.id,
+                'text': quote_text,
+                'page_number': quote.page_number,
+                'book_title': book.title,
+                'book_author': book.author,
+                'book_id': book.id
+            })
+
     # Get database statistics for admins
     stats = {}
     all_users = []
     if current_user.is_admin:
-        from app.books.models import Books
         from app.movies.models import Movies
         from app.shows.models import TVShows
         from app.music.models import Playlists
@@ -150,6 +192,8 @@ def index():
     return render_template('account/index.html',
                          liked_artworks=liked_artworks,
                          liked_count=liked_count,
+                         liked_quotes=liked_quotes,
+                         liked_quotes_count=len(liked_quotes),
                          stats=stats,
                          all_users=all_users)
 

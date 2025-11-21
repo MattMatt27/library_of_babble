@@ -30,7 +30,7 @@
     </div>
 
     <!-- Liked Artworks Section -->
-    {% if current_user.can_view_artworks %}
+    {% if can_access_page('pondering') %}
     <div class="gallery-section">
         <div class="gallery-section-header">
             <h2>Your Liked Artworks <span class="gallery-count">({{ liked_count }})</span></h2>
@@ -56,6 +56,48 @@
         <div class="empty-state">
             <p>You haven't liked any artworks yet.</p>
             <a href="{{ url_for('artworks.pondering') }}" class="btn btn-primary">Explore Artworks</a>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Liked Quotes Section -->
+    {% if can_access_page('book-detail') %}
+    <div class="quotes-section">
+        <div class="quotes-section-header">
+            <h2>Your Liked Quotes <span class="quote-count">({{ liked_quotes_count }})</span></h2>
+            {% if liked_quotes_count > 0 %}
+            <a href="{{ url_for('books.reading') }}" class="btn btn-secondary">Browse Books</a>
+            {% endif %}
+        </div>
+
+        {% if liked_quotes %}
+        <div class="quotes-grid" id="quotesGrid">
+            {% for quote in liked_quotes %}
+            <div class="liked-quote-card" onclick="openQuoteModal({{ loop.index0 }})">
+                <div class="liked-quote-text">"{{ quote.text }}"</div>
+                <div class="liked-quote-meta">
+                    <div class="liked-quote-book">{{ quote.book_title }}</div>
+                    <div class="liked-quote-author">by {{ quote.book_author }}</div>
+                    <div class="liked-quote-page">Page {{ quote.page_number }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="quotes-pagination">
+            <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)" disabled>
+                <i class="fa-solid fa-chevron-left"></i> Previous
+            </button>
+            <span class="pagination-info" id="pageInfo">Page 1</span>
+            <button class="pagination-btn" id="nextBtn" onclick="changePage(1)">
+                Next <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>You haven't liked any quotes yet.</p>
+            <a href="{{ url_for('books.reading') }}" class="btn btn-primary">Explore Books</a>
         </div>
         {% endif %}
     </div>
@@ -156,11 +198,159 @@
     {% endif %}
 </div>
 
+<!-- Quote Detail Modal -->
+<div class="modal-overlay" id="quoteModal">
+    <div class="modal quote-modal">
+        <div class="modal-header">
+            <h3>Quote Details</h3>
+            <button class="modal-close" onclick="closeQuoteModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="quote-modal-text" id="quoteModalText"></div>
+            <div class="quote-modal-meta">
+                <div class="quote-modal-book" id="quoteModalBook"></div>
+                <div class="quote-modal-author" id="quoteModalAuthor"></div>
+                <div class="quote-modal-page" id="quoteModalPage"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeQuoteModal()">Close</button>
+            <a href="#" class="btn btn-primary" id="quoteModalLink">View Book</a>
+        </div>
+    </div>
+</div>
+
 <!-- Modals will go here -->
 {% include 'account/modals.html' %}
 
 {% endblock %}
 
 {% block extra_scripts %}
+<script>
+// Quote data for modal
+const likedQuotes = {{ liked_quotes | tojson }};
+
+function openQuoteModal(index) {
+    const quote = likedQuotes[index];
+
+    // Populate modal with quote data
+    document.getElementById('quoteModalText').textContent = `"${quote.text}"`;
+    document.getElementById('quoteModalBook').textContent = quote.book_title;
+    document.getElementById('quoteModalAuthor').textContent = `by ${quote.book_author}`;
+    document.getElementById('quoteModalPage').textContent = `Page ${quote.page_number}`;
+    document.getElementById('quoteModalLink').href = `/books/${quote.book_id}`;
+
+    // Show modal
+    const modal = document.getElementById('quoteModal');
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeQuoteModal() {
+    const modal = document.getElementById('quoteModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// Pagination state
+let currentPage = 1;
+let cardsPerPage = 9; // 3 rows × 3 cards (default)
+let totalCards = 0;
+
+function calculateCardsPerPage() {
+    const grid = document.getElementById('quotesGrid');
+    if (!grid) return;
+
+    const cards = grid.querySelectorAll('.liked-quote-card');
+    if (cards.length === 0) return;
+
+    // Get the computed grid columns
+    const gridStyle = window.getComputedStyle(grid);
+    const gridTemplateColumns = gridStyle.gridTemplateColumns.split(' ').length;
+
+    // 3 rows × number of columns
+    cardsPerPage = gridTemplateColumns * 3;
+    totalCards = cards.length;
+}
+
+function showPage(page) {
+    const grid = document.getElementById('quotesGrid');
+    if (!grid) return;
+
+    const cards = grid.querySelectorAll('.liked-quote-card');
+    const startIndex = (page - 1) * cardsPerPage;
+    const endIndex = startIndex + cardsPerPage;
+
+    cards.forEach((card, index) => {
+        if (index >= startIndex && index < endIndex) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    // Update pagination controls
+    const totalPages = Math.ceil(totalCards / cardsPerPage);
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const pageInfo = document.getElementById('pageInfo');
+
+    if (prevBtn) prevBtn.disabled = page === 1;
+    if (nextBtn) nextBtn.disabled = page >= totalPages;
+    if (pageInfo) pageInfo.textContent = `Page ${page} of ${totalPages}`;
+}
+
+function changePage(direction) {
+    const totalPages = Math.ceil(totalCards / cardsPerPage);
+    currentPage += direction;
+
+    if (currentPage < 1) currentPage = 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    showPage(currentPage);
+
+    // Scroll to top of quotes section
+    const quotesSection = document.querySelector('.quotes-section');
+    if (quotesSection) {
+        quotesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// Close modal on overlay click
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('quoteModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeQuoteModal();
+            }
+        });
+    }
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const activeModal = document.querySelector('.modal-overlay.active');
+            if (activeModal && activeModal.id === 'quoteModal') {
+                closeQuoteModal();
+            }
+        }
+    });
+
+    // Initialize pagination
+    calculateCardsPerPage();
+    showPage(1);
+
+    // Recalculate on window resize
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            calculateCardsPerPage();
+            showPage(currentPage);
+        }, 250);
+    });
+});
+</script>
 <script type="module" src="{{ url_for('static', filename='js/account/main.js') }}"></script>
 {% endblock %}

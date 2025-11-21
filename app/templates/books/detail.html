@@ -170,6 +170,14 @@
   margin-bottom: var(--space-5);
   padding-left: var(--space-4);
   border-left: 3px solid var(--accent-blue);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.quote-content {
+  flex: 1;
 }
 
 .quote-text {
@@ -183,6 +191,57 @@
 .quote-page {
   color: var(--text-tertiary);
   font-size: var(--font-sm);
+}
+
+/* Quote like button styles */
+.quote-like-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-2);
+  color: var(--text-tertiary);
+  font-size: var(--font-lg);
+  transition: all var(--transition-fast);
+  border-radius: var(--radius-base);
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quote-like-btn:hover {
+  color: var(--accent-blue);
+  background: rgba(88, 166, 255, 0.1);
+}
+
+.quote-like-btn.liked {
+  color: var(--accent-blue);
+}
+
+.quote-like-btn.liked:hover {
+  color: var(--accent-blue-hover);
+}
+
+.quote-like-btn:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+.quote-like-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Animation for like action */
+@keyframes heartBeat {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.2); }
+  30% { transform: scale(1); }
+}
+
+.quote-like-btn.animating {
+  animation: heartBeat 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .no-content {
@@ -439,8 +498,19 @@
         {% if quotes %}
             {% for quote in quotes %}
                 <div class="quote-item">
-                    <div class="quote-text">"{{ quote.text }}"</div>
-                    <div class="quote-page">Page {{ quote.page_number }}</div>
+                    <div class="quote-content">
+                        <div class="quote-text">"{{ quote.text }}"</div>
+                        <div class="quote-page">Page {{ quote.page_number }}</div>
+                    </div>
+                    {% if current_user.is_authenticated %}
+                    <button class="quote-like-btn {{ 'liked' if quote.is_liked else '' }}"
+                            data-quote-id="{{ quote.id }}"
+                            aria-label="{{ 'Unlike this quote' if quote.is_liked else 'Like this quote' }}"
+                            aria-pressed="{{ 'true' if quote.is_liked else 'false' }}"
+                            onclick="toggleQuoteLike(this, {{ quote.id }})">
+                        <i class="{{ 'fa-solid' if quote.is_liked else 'fa-regular' }} fa-heart"></i>
+                    </button>
+                    {% endif %}
                 </div>
             {% endfor %}
         {% else %}
@@ -481,6 +551,60 @@
 
 {% block extra_scripts %}
 <script>
+    // Get CSRF token from meta tag
+    function getCSRFToken() {
+        return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    }
+
+    // Toggle quote like
+    async function toggleQuoteLike(button, quoteId) {
+        // Prevent double-clicking
+        if (button.disabled) return;
+        button.disabled = true;
+
+        try {
+            const response = await fetch('{{ url_for("books.like_quote") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({ quote_id: quoteId })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to toggle like');
+            }
+
+            const data = await response.json();
+            const icon = button.querySelector('i');
+
+            // Update button state
+            if (data.liked) {
+                button.classList.add('liked');
+                icon.classList.remove('fa-regular');
+                icon.classList.add('fa-solid');
+                button.setAttribute('aria-pressed', 'true');
+                button.setAttribute('aria-label', 'Unlike this quote');
+            } else {
+                button.classList.remove('liked');
+                icon.classList.remove('fa-solid');
+                icon.classList.add('fa-regular');
+                button.setAttribute('aria-pressed', 'false');
+                button.setAttribute('aria-label', 'Like this quote');
+            }
+
+            // Trigger animation
+            button.classList.add('animating');
+            setTimeout(() => button.classList.remove('animating'), 400);
+
+        } catch (error) {
+            console.error('Error toggling quote like:', error);
+        } finally {
+            button.disabled = false;
+        }
+    }
+
     function toggleQuoteForm() {
         const formContainer = document.getElementById("quoteFormContainer");
         formContainer.classList.toggle('active');

@@ -478,6 +478,7 @@
 
         <div id="quoteFormContainer" class="quote-form-container">
             <form class="form-group" action="{{ url_for('books.add_quote', book_id=book.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="form-group">
                     <label class="form-label" for="quoteText">Quote Text</label>
                     <textarea id="quoteText" name="quote_text" class="form-textarea" rows="4" required></textarea>
@@ -527,6 +528,7 @@
                 <button class="modal-close" onclick="closeCoverUrlModal()">&times;</button>
             </div>
             <form action="{{ url_for('books.update_cover_url', book_id=book.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body">
                     <p style="color: var(--text-secondary); margin-bottom: var(--space-4);">
                         Enter the URL of the book cover image:

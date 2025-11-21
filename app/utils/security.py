@@ -127,10 +127,13 @@ def sanitize_path(path: Union[str, Path]) -> str:
     """
     path = Path(path).resolve()
     # Ensure path is within expected directories
+    import tempfile
     allowed_bases = [
         Path.cwd() / 'static',
         Path.cwd() / 'scripts',
-        Path('/tmp'),
+        Path.cwd() / 'data',
+        Path('/tmp').resolve(),
+        Path(tempfile.gettempdir()).resolve(),  # System temp directory (e.g., /private/var/folders on macOS)
     ]
     if not any(path.is_relative_to(base) for base in allowed_bases):
         raise ValueError(f"Path {path} is outside allowed directories")
@@ -246,17 +249,21 @@ def run_pg_dump(db_uri: str, output_path: str) -> subprocess.CompletedProcess:
 
     # Use environment variable for password instead of URI
     import os
+    import getpass
     env = os.environ.copy()
     if parsed.password:
         env['PGPASSWORD'] = parsed.password
 
     # Build safe command
+    # If no username in URI, use current system user (PostgreSQL default behavior)
+    username = parsed.username if parsed.username else getpass.getuser()
+
     cmd = [
         'pg_dump',
         '-Fc',
         '-h', parsed.hostname or 'localhost',
         '-p', str(parsed.port or 5432),
-        '-U', parsed.username or 'postgres',
+        '-U', username,
         '-d', parsed.path.lstrip('/'),
         '-f', output_path
     ]

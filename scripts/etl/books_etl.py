@@ -202,6 +202,7 @@ def load_goodreads_export(csv_file):
     print("\nResetting database sequences...")
     reset_sequence('reviews')
     reset_sequence('collections')
+    reset_sequence('book_quotes')
 
     conflicts = []
     books_added = 0

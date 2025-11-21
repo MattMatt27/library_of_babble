@@ -23,13 +23,47 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from app import create_app
 from app.extensions import db
 from app.movies.models import Movies
-from app.common.models import Reviews, Collections
+from app.common.models import Reviews, Collection, CollectionItem
 
 # Configure paths
 CSV_FOLDER = Path('data/staging/')
 LETTERBOXD_FOLDER = Path('data/staging/letterboxd/')
 LOADED_FOLDER = Path('data/loaded/')
 REPORTS_FOLDER = Path('data/reports/')
+
+
+def add_item_to_collection(collection_name, item_type, item_id):
+    """
+    Add an item to a collection. Creates the collection if it doesn't exist.
+    Returns True if item was added, False if it already existed.
+    """
+    # Get or create the collection
+    collection = Collection.query.filter_by(collection_name=collection_name).first()
+    if not collection:
+        collection = Collection(
+            collection_name=collection_name,
+            site_approved=False  # New collections default to not approved
+        )
+        db.session.add(collection)
+        db.session.flush()  # Get the ID
+
+    # Check if item already exists in this collection
+    existing_item = CollectionItem.query.filter_by(
+        collection_id=collection.id,
+        item_type=item_type,
+        item_id=item_id
+    ).first()
+
+    if not existing_item:
+        collection_item = CollectionItem(
+            collection_id=collection.id,
+            item_type=item_type,
+            item_id=item_id
+        )
+        db.session.add(collection_item)
+        return True
+
+    return False
 
 
 def generate_conflict_report(source_file, import_type, conflicts):
@@ -191,22 +225,12 @@ def load_boredom_killer_movies(csv_file='Boredom Killer - Movies.csv', csv_folde
 
             # Update collections (always incremental, even for watched movies)
             if data.get('collections'):
-                existing_collections = set(
-                    collection.collection_name for collection in
-                    Collections.query.filter_by(item_type='Movie', item_id=tmdb_id).all()
-                )
-
                 collection_list = data['collections'].split('|')
                 for collection_name in collection_list:
                     collection_name = collection_name.strip()
-                    if collection_name and collection_name not in existing_collections:
-                        collection = Collections(
-                            collection_name=collection_name,
-                            item_type='Movie',
-                            item_id=tmdb_id
-                        )
-                        db.session.add(collection)
-                        collections_added += 1
+                    if collection_name:
+                        if add_item_to_collection(collection_name, 'Movie', tmdb_id):
+                            collections_added += 1
         else:
             # Create new movie record
             new_movie = Movies(**data)
@@ -219,13 +243,8 @@ def load_boredom_killer_movies(csv_file='Boredom Killer - Movies.csv', csv_folde
                 for collection_name in collection_list:
                     collection_name = collection_name.strip()
                     if collection_name:
-                        collection = Collections(
-                            collection_name=collection_name,
-                            item_type='Movie',
-                            item_id=tmdb_id
-                        )
-                        db.session.add(collection)
-                        collections_added += 1
+                        if add_item_to_collection(collection_name, 'Movie', tmdb_id):
+                            collections_added += 1
 
     # Commit all changes
     db.session.commit()

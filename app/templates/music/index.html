@@ -32,39 +32,32 @@
             <p class="section-description">Every month I create a new playlist for songs that I am listening to on repeat. It is usually mostly new songs I heard for the first time that month with the occasional song I love thrown in. Use the search below to see what I was listening to in any given month since February 2019.</p>
             <input type="text" id="datepickerInput" placeholder="Select month and year" autocomplete="off">
         </div>
-        <div class="playlist-section color-playlists">
-            <h1 class="section-title">Color Playlists</h1>
-            <p class="section-description">Out of boredom, I went through my liked songs and created separate playlists based on the color of their album art. In most cases I have tried avoiding adding multiple songs from the same album to any of the playlists (choosing just my favorite track instead).</p>
+        {% for collection_name, collection_data in playlist_collections.items() %}
+        <div class="playlist-section">
+            <h1 class="section-title">{{ collection_name }}</h1>
+            {% if collection_data.description %}
+            <p class="section-description">{{ collection_data.description }}</p>
+            {% endif %}
             <div class="playlist-grid">
-                <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84f4597cdd4a269b2d6b99cb6b" id="5dSSoKT4XixyrMAfghFEnj" playlistname="Green" description="Songs with predominantly green album art"> 
-                <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da846cad4745d0bf2594fb6687c6" id="4LMgntTP6vsjkiEvvlHAbj" playlistname="Yellow" description="Songs with predominantly yellow album art">
-                <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da8443b69f66cabf6ae4b26a7ded" id="4BeLgttjCMKJ6gVEsWpZFf" playlistname="Orange" description="Songs with predominantly orange album art">
-                <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84fa853badbffa5686cbd79556" id="1mCvZw2wuEQ80VoNuf2Z8I" playlistname="Red" description="Songs with predominantly red album art"> 
-                <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da842ff9ae2073e8711d9e0152e8" id="38qoJ0cp1jgomJd300eya6" playlistname="Pink" description="Songs with predominantly pink album art"> 
-                <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84132105904431b23c5dbe97e3" id="1uuMuf5NLjCPkFQNa0q2zS" playlistname="Purple" description="Songs with predominantly purple album art"> 
+                {% for playlist in collection_data.playlists %}
+                <img src="{{ playlist.album_art }}" id="{{ playlist.id }}" playlistname="{{ playlist.name }}" description="{{ playlist.description }}">
+                {% endfor %}
             </div>
         </div>
-        <div class="playlist-section tv-playlists">
-            <h1 class="section-title">TV Show Playlists</h1>
-            <p class="section-description">One of the things that will keep me invested in a TV show is good music. I have started making small playlists of songs I like from shows that I think had really solid soundtracks.</p>
-            <div class="playlist-grid">
-                <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84f2ac5a21e21a897c6e82a77b" id="4wsBIj6PQgvgNEdE2Ky8OT" playlistname="The Young Pope" description="Songs I liked from the TV Show The Young Pope"> 
-                <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da843fea3565ca39406587577d15" id="1kFAlfgQA3wC6tsEqSt0Oe" playlistname="Dollface" description="Songs I liked from the TV Show Dollface"> 
-                <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84fb60a39a288da9b8eeefd469" id="3fq86UjfF4WxotFcGlpJtx" playlistname="Severance" description="Songs I liked from the TV Show Severance"> 
-                <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da8473e64bcf66c0f22e258f7047" id="7M2R94ie1U0D4XbPRngKrl" playlistname="Death and Other Details" description="Songs I liked from the TV Show Death and Other Details"> 
+        {% endfor %}
 
-            </div>
-        </div>
+        {% if other_playlists %}
         <div class="playlist-section individual-playlists">
             <h1 class="section-title">Other Playlists</h1>
             <div class="playlist-grid">
-                {% for playlist in approved_playlists %}
+                {% for playlist in other_playlists %}
                     <div class="image-caption">
                         <img src="{{ playlist['album_art'] }}" id="{{ playlist['id'] }}" playlistname="{{ playlist['name'] }}" description="{{ playlist['description'] }}">
                     </div>
                 {% endfor %}
             </div>
         </div>
+        {% endif %}
     </div>
     <div class="divider" id="divider"></div>
     <div class="playlist-details" id="playlist-details">

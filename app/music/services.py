@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from spotipy.oauth2 import SpotifyClientCredentials
 from app.extensions import db
 from app.music.models import Playlists
+from app.common.models import Collection, CollectionItem
 
 # Initialize Spotify client
 SPOTIPY_CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
@@ -146,3 +147,42 @@ def get_site_approved_playlists():
         'album_art': playlist.album_art,
         'description': playlist.description
     } for playlist in playlists]
+
+
+def get_approved_playlist_collections():
+    """
+    Get all approved collections that contain playlists.
+    Returns dict: {collection_name: {description, playlists: [...]}}
+    """
+    # Get all approved collections
+    collections = Collection.query.filter_by(site_approved=True).all()
+
+    result = {}
+    for collection in collections:
+        # Get playlist items in this collection
+        playlist_items = CollectionItem.query.filter_by(
+            collection_id=collection.id,
+            item_type='Playlist'
+        ).all()
+
+        if not playlist_items:
+            continue  # Skip collections with no playlists
+
+        playlists = []
+        for item in playlist_items:
+            playlist = Playlists.query.get(item.item_id)
+            if playlist:
+                playlists.append({
+                    'id': playlist.id,
+                    'name': playlist.name,
+                    'album_art': playlist.album_art,
+                    'description': playlist.description
+                })
+
+        if playlists:  # Only include if we found actual playlists
+            result[collection.collection_name] = {
+                'description': collection.description,
+                'playlists': playlists
+            }
+
+    return result

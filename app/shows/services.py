@@ -3,7 +3,7 @@ TV Shows Business Logic and Helper Functions
 """
 from app.extensions import db
 from app.shows.models import TVShows
-from app.common.models import Reviews, Collections
+from app.common.models import Reviews, Collection, CollectionItem
 
 
 def get_recently_watched_shows(limit=10):
@@ -69,9 +69,14 @@ def get_shows_from_collection(collection_name):
     """Get TV shows from a specific collection"""
     shows = []
 
-    # Get show IDs from collection
-    collection_items = Collections.query.filter_by(
-        collection_name=collection_name,
+    # Get the collection
+    collection = Collection.query.filter_by(collection_name=collection_name).first()
+    if not collection:
+        return shows
+
+    # Get show IDs from collection items
+    collection_items = CollectionItem.query.filter_by(
+        collection_id=collection.id,
         item_type='TVShow'
     ).all()
 

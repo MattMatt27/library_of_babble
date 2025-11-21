@@ -8,10 +8,12 @@ from app.movies.models import Movies
 from app.movies.services import read_movies_from_db
 from app.common.models import Reviews
 from app.extensions import db
+from app.utils.security import page_visible
 from app.utils.security import sanitize_html
 
 
 @movies_bp.route('/')
+@page_visible('movies')
 def index():
     """List all movies"""
     movies_data = read_movies_from_db()

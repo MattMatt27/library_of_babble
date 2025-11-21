@@ -13,10 +13,12 @@ from app.books.services import (
 )
 from app.common.models import Reviews
 from app.extensions import db
+from app.utils.security import page_visible
 from app.utils.security import sanitize_html
 
 
 @books_bp.route('/')
+@page_visible('books')
 def index():
     """List all books"""
     books_data = read_books_from_db()
@@ -24,6 +26,7 @@ def index():
 
 
 @books_bp.route('/reading')
+@page_visible('reading')
 def reading():
     """Reading page with recently read and recommendations"""
     recently_read_books = get_recently_read_books()
@@ -40,6 +43,7 @@ def reading():
 
 
 @books_bp.route('/<int:book_id>')
+@page_visible('book-detail')
 def detail(book_id):
     """Individual book detail page with reviews and quotes"""
     # Get book details from the database

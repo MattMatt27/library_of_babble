@@ -93,6 +93,17 @@ def register_blueprints(app):
 def register_error_handlers(app):
     """Register error handlers"""
 
+    @app.errorhandler(403)
+    def forbidden_error(error):
+        # Get list of generative art images for background
+        lunacy_path = os.path.join(app.static_folder, 'images/creating/lunacy')
+        images = []
+        if os.path.exists(lunacy_path):
+            images = [f for f in os.listdir(lunacy_path)
+                     if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
+                     and not f.startswith('.')]
+        return render_template('403.html', images=images), 403
+
     @app.errorhandler(404)
     def not_found_error(error):
         # Get list of generative art images for background
@@ -141,7 +152,7 @@ def register_context_processors(app):
     def inject_nav_items():
         """Inject navigation items and active page into all templates"""
         from flask import request
-        from app.main.services import get_user_nav_items
+        from app.main.services import get_user_nav_items, can_access_page
 
         # Auto-detect active page based on URL path
         path = request.path
@@ -166,7 +177,8 @@ def register_context_processors(app):
 
         return {
             'nav_items': get_user_nav_items(),
-            'active_page': active_page
+            'active_page': active_page,
+            'can_access_page': can_access_page
         }
 
 

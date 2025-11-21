@@ -34,7 +34,9 @@
     <section class="movies-section">
         <div class="movies-section-header">
             <h2>Recently Watched Movies</h2>
+            {% if can_access_page('movies') %}
             <a href="{{ url_for('movies.index') }}" class="see-all-btn">See All</a>
+            {% endif %}
         </div>
         <div class="movies-grid">
             {% for movie in recently_watched_movies %}

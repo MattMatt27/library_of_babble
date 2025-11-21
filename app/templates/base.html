@@ -38,9 +38,11 @@
             </div>
             <div class="navbar-right">
                 {% if current_user.is_authenticated %}
+                    {% if can_access_page('pondering') or can_access_page('book-detail') %}
                     <a href="{{ url_for('account.index') }}" class="account-button" title="Account Settings">
                         <i class="fa-solid fa-user"></i>
                     </a>
+                    {% endif %}
                     <a href="{{ url_for('auth.logout') }}" class="login-button">Logout</a>
                 {% else %}
                     <a href="{{ url_for('auth.login') }}" class="login-button">Login</a>
@@ -76,10 +78,12 @@
             
             <div class="side-menu-login">
                 {% if current_user.is_authenticated %}
+                    {% if can_access_page('pondering') %}
                     <a href="{{ url_for('account.index') }}" class="side-menu-account">
                         <i class="fa-solid fa-user"></i>
                         Account
                     </a>
+                    {% endif %}
                     <a href="{{ url_for('auth.logout') }}" class="login-button">Logout</a>
                 {% else %}
                     <a href="{{ url_for('auth.login') }}" class="login-button">Login</a>

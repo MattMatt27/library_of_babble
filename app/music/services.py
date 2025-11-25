@@ -3,7 +3,6 @@ Music/Spotify Business Logic and Helper Functions
 """
 import os
 import re
-import pandas as pd
 import spotipy
 from datetime import datetime, timedelta
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -26,10 +25,10 @@ spotify = spotipy.Spotify(
 )
 
 
-def generate_monthly_playlists_df():
+def generate_monthly_playlists():
     """
-    Generate DataFrame of monthly playlists and mark them as site-approved.
-    Returns DataFrame with playlist_id, playlist_name, playlist_art columns.
+    Generate list of monthly playlists and mark them as site-approved.
+    Returns list of dicts with playlist_id, playlist_name, playlist_art keys.
     """
     # Define month format used in playlist names
     month_format = {
@@ -92,29 +91,22 @@ def generate_monthly_playlists_df():
     # Commit changes
     db.session.commit()
 
-    # Return as DataFrame
-    return pd.DataFrame(matching_playlists)
+    return matching_playlists
 
 
-def select_playlist(monthly_playlists_df, search_term):
+def select_playlist(monthly_playlists, search_term):
     """
     Select a specific playlist from monthly playlists based on search term.
     Returns tuple of (playlist_id, playlist_art, playlist_name) or (None, None, None)
     """
     selected_suffix = f'({search_term})'
 
-    # Filter DataFrame based on selected suffix
-    selected_playlist = monthly_playlists_df[
-        monthly_playlists_df['playlist_name'].str.contains(selected_suffix, na=False)
-    ]
+    # Find first matching playlist
+    for playlist in monthly_playlists:
+        if selected_suffix in playlist['playlist_name']:
+            return playlist['playlist_id'], playlist['playlist_art'], playlist['playlist_name']
 
-    if not selected_playlist.empty:
-        playlist_id = selected_playlist.iloc[0]['playlist_id']
-        playlist_art = selected_playlist.iloc[0]['playlist_art']
-        playlist_name = selected_playlist.iloc[0]['playlist_name']
-        return playlist_id, playlist_art, playlist_name
-    else:
-        return None, None, None
+    return None, None, None
 
 
 def get_tracks_artists(playlist_id):

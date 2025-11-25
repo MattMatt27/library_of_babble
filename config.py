@@ -23,6 +23,11 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
 
+    # Static Storage
+    # In development: serves from local /static folder (None or empty)
+    # In production: serves from S3 bucket URL
+    STATIC_STORAGE_URL = os.getenv('STATIC_STORAGE_URL', '')
+
     # Spotify API
     SPOTIPY_CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
     SPOTIPY_CLIENT_SECRET = os.getenv('SPOTIPY_CLIENT_SECRET')

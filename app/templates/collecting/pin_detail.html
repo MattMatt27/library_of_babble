@@ -188,7 +188,7 @@
         <!-- Left sidebar: Item details -->
         <div class="item-detail-sidebar">
             <div class="item-detail-image">
-                <img src="{{ url_for('static', filename='images/antiques/pins/' + pin.image_filename) }}" alt="{{ pin.text }}">
+                <img src="{{ static_url('images/antiques/pins/' + pin.image_filename) }}" alt="{{ pin.text }}">
             </div>
 
             <h1 class="item-detail-title">{{ pin.text }}</h1>

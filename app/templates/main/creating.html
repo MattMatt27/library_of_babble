@@ -15,9 +15,9 @@
         <h2>Books on Tape</h2>
         <p>Coming Soon</p>
         <div class="image-container">
-            <img src="{{ url_for('static', filename='images/creating/books-on-tape/Origins.jpg') }}" alt="Books on Tape - Origins">
-            <img src="{{ url_for('static', filename='images/creating/books-on-tape/Books.jpg') }}" alt="Books on Tape - Books">
-            <img src="{{ url_for('static', filename='images/creating/books-on-tape/Sample_stack.jpg') }}" alt="Books on Tape - Sample Stack">
+            <img src="{{ static_url('images/creating/books-on-tape/Origins.jpg') }}" alt="Books on Tape - Origins">
+            <img src="{{ static_url('images/creating/books-on-tape/Books.jpg') }}" alt="Books on Tape - Books">
+            <img src="{{ static_url('images/creating/books-on-tape/Sample_stack.jpg') }}" alt="Books on Tape - Sample Stack">
         </div>
     </section>
 
@@ -61,6 +61,7 @@
 
 {% block extra_scripts %}
 <script type="text/javascript">
+    const STATIC_BASE_URL = "{{ static_url('') }}";
     let allGeneratedImages = {{ generated_images | tojson | safe }};
     let selectedArtists = [];
     let currentGeneratedImageIndex = 0;
@@ -229,7 +230,7 @@
                     currentGeneratedImageIndex = 0; // Reset index if out of bounds
                 }
                 const image = relevantImages[currentGeneratedImageIndex];
-                generatedImageElement.src = `/static/images/creating/lunacy/${image.file_name}`;
+                generatedImageElement.src = `${STATIC_BASE_URL}images/creating/lunacy/${image.file_name}`;
                 promptText.textContent = `Prompt: ${image.prompt}`;
                 modelText.textContent = `${image.model} v${image.model_version}`;
                 generatedImageContainer.style.display = 'block';
@@ -274,7 +275,7 @@
     <div class="combo-container">
         <div class="artist-left">
             <div class="artist">
-                <img src="{{ url_for('static', filename='images/creating/lunacy/Wasily Kandinsky_Composition 8.jpg') }}" alt="Composition 8 by Wasily Kandinsky">
+                <img src="{{ static_url('images/creating/lunacy/Wasily Kandinsky_Composition 8.jpg') }}" alt="Composition 8 by Wasily Kandinsky">
                 <div class="artist-info">
                     <p class="piece-name">Composition 8 (1923)</p>
                     <h3>Wasily Kandinsky (1866-1944)</h3>
@@ -284,7 +285,7 @@
         </div>
         <div class="artist-right">
             <div class="artist">
-                <img src="{{ url_for('static', filename='images/creating/lunacy/Jacob August Riis_Home of an Italian Ragpicker.jpg') }}" alt="Home of an Italian Ragpicker by Jacob August Riis">
+                <img src="{{ static_url('images/creating/lunacy/Jacob August Riis_Home of an Italian Ragpicker.jpg') }}" alt="Home of an Italian Ragpicker by Jacob August Riis">
                 <div class="artist-info">
                     <p class="piece-name">Home of an Italian Ragpicker (1894)</p>
                     <h3>Jacob August Riis (1849-1914)</h3>
@@ -294,7 +295,7 @@
         </div>
         <div class="generated-image">
             <div class="artist">
-                <img src="{{ url_for('static', filename='images/creating/lunacy/Lunacy_Kandinsky+Riis.png') }}" alt="Lunacy by Wassily Kandinsky and Jacob August Riis">
+                <img src="{{ static_url('images/creating/lunacy/Lunacy_Kandinsky+Riis.png') }}" alt="Lunacy by Wassily Kandinsky and Jacob August Riis">
                 <div class="combined-info">
                     <h3>Model: Midjourney v6</h3>
                     <p class="prompt-text">Prompt: Lunacy by Wassily Kandinsky and Jacob August Riis</p>
@@ -306,7 +307,7 @@
     <div class="combo-container">
         <div class="artist-left">
             <div class="artist">
-                <img src="{{ url_for('static', filename='images/creating/lunacy/Un soir sur la Loire_Felix Vallotton.jpg') }}" alt="Un soir sur la Loire by Felix Vallotton">
+                <img src="{{ static_url('images/creating/lunacy/Un soir sur la Loire_Felix Vallotton.jpg') }}" alt="Un soir sur la Loire by Felix Vallotton">
                 <div class="artist-info">
                     <p class="piece-name">Un soir sur la Loire (1923)</p>
                     <h3>Félix Vallotton (1865-1925)</h3>
@@ -316,7 +317,7 @@
         </div>
         <div class="artist-right">
             <div class="artist">
-                <img src="{{ url_for('static', filename='images/creating/lunacy/Somber and Hard_Oscar Bluemner.jpg') }}" alt="Somber and Hard by Oscar Bluemner">
+                <img src="{{ static_url('images/creating/lunacy/Somber and Hard_Oscar Bluemner.jpg') }}" alt="Somber and Hard by Oscar Bluemner">
                 <div class="artist-info">
                     <p class="piece-name">Somber and Hard (1927)</p>
                     <h3>Oscar Bluemner (1867-1938)</h3>
@@ -326,7 +327,7 @@
         </div>
         <div class="generated-image">
             <div class="artist">
-                <img src="{{ url_for('static', filename='images/creating/lunacy/Lunacy_Félix Vallotton+Oscar Bluemner.png') }}" alt="Lunacy by Félix Vallotton and Oscar Bluemner">
+                <img src="{{ static_url('images/creating/lunacy/Lunacy_Félix Vallotton+Oscar Bluemner.png') }}" alt="Lunacy by Félix Vallotton and Oscar Bluemner">
                 <div class="combined-info">
                     <h3>Model: Midjourney v6</h3>
                     <p class="prompt-text">Prompt: Lunacy by Félix Vallotton and Oscar Bluemner</p>

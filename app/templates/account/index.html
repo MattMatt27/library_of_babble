@@ -46,7 +46,7 @@
         <div class="gallery-row">
             {% for artwork in liked_artworks %}
             <div class="gallery-item">
-                <img src="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
+                <img src="{{ static_url('images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
                      alt="{{ artwork.title }}"
                      data-artwork-id="{{ artwork.id }}">
             </div>
@@ -116,25 +116,25 @@
             <div class="tool-grid">
                 <button class="tool-button" onclick="openModal('goodreadsModal')">
                     <span class="tool-icon">
-                        <img src="{{ url_for('static', filename='images/logos/goodreads.png') }}" alt="Goodreads">
+                        <img src="{{ static_url('images/logos/goodreads.png') }}" alt="Goodreads">
                     </span>
                     <span class="tool-label">Import Goodreads</span>
                 </button>
                 <button class="tool-button" onclick="openModal('bkModal')">
                     <span class="tool-icon">
-                        <img src="{{ url_for('static', filename='images/logos/plex.png') }}" alt="Plex">
+                        <img src="{{ static_url('images/logos/plex.png') }}" alt="Plex">
                     </span>
                     <span class="tool-label">Import Boredom Killer</span>
                 </button>
                 <button class="tool-button" onclick="openModal('letterboxdModal')">
                     <span class="tool-icon">
-                        <img src="{{ url_for('static', filename='images/logos/letterboxd.png') }}" alt="Letterboxd">
+                        <img src="{{ static_url('images/logos/letterboxd.png') }}" alt="Letterboxd">
                     </span>
                     <span class="tool-label">Import Letterboxd</span>
                 </button>
                 <button class="tool-button" onclick="openModal('spotifyModal')">
                     <span class="tool-icon">
-                        <img src="{{ url_for('static', filename='images/logos/spotify.png') }}" alt="Spotify">
+                        <img src="{{ static_url('images/logos/spotify.png') }}" alt="Spotify">
                     </span>
                     <span class="tool-label">Refresh Spotify</span>
                 </button>

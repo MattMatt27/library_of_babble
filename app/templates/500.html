@@ -12,7 +12,7 @@
 <div class="error-page">
     <div class="error-background">
         {% for image in images %}
-            <img src="{{ url_for('static', filename='images/creating/lunacy/' ~ image) }}" alt="Generative Art">
+            <img src="{{ static_url('images/creating/lunacy/' ~ image) }}" alt="Generative Art">
         {% endfor %}
     </div>
 

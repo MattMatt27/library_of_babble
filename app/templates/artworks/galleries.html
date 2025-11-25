@@ -27,10 +27,10 @@
             {% for artwork in collection.artworks %}
             <div class="gallery-item">
                 <img
-                    src="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
+                    src="{{ static_url('images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
                     alt="{{ artwork.title }}"
                     data-img-id="{{ artwork.id }}"
-                    data-full-img="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
+                    data-full-img="{{ static_url('images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
                     data-title="{{ artwork.title }}"
                     data-artist="{{ artwork.artist }}"
                     data-year="{{ artwork.year }}"
@@ -47,7 +47,7 @@
 <div id="image-viewer" class="image-viewer">
     <button id="close-viewer" class="close-viewer">&times;</button>
     <button class="like-button" data-artwork-id="">
-        <img src="{{ url_for('static', filename='images/assets/hearts/heart_outline.png') }}" alt="Heart Icon" class="heart-icon">
+        <img src="{{ static_url('images/assets/hearts/heart_outline.png') }}" alt="Heart Icon" class="heart-icon">
     </button>
     <button id="prev-image" class="nav-arrow prev-arrow">&lt;</button>
     <button id="next-image" class="nav-arrow next-arrow">&gt;</button>
@@ -71,6 +71,7 @@
 
 {% block extra_scripts %}
 <script>
+    const STATIC_BASE_URL = "{{ static_url('') }}";
     document.addEventListener('DOMContentLoaded', function () {
         const viewer = document.getElementById('image-viewer');
         const viewerImage = document.getElementById('viewer-image');
@@ -139,9 +140,9 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.liked) {
-                        heartIcon.src = '/static/images/assets/hearts/heart_filled.png';
+                        heartIcon.src = `${STATIC_BASE_URL}images/assets/hearts/heart_filled.png`;
                     } else {
-                        heartIcon.src = '/static/images/assets/hearts/heart_outline.png';
+                        heartIcon.src = `${STATIC_BASE_URL}images/assets/hearts/heart_outline.png`;
                     }
                 })
                 .catch(error => console.error('Error fetching like state:', error));
@@ -165,9 +166,9 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.liked) {
-                        heartIcon.src = '/static/images/assets/hearts/heart_filled.png';
+                        heartIcon.src = `${STATIC_BASE_URL}images/assets/hearts/heart_filled.png`;
                     } else {
-                        heartIcon.src = '/static/images/assets/hearts/heart_outline.png';
+                        heartIcon.src = `${STATIC_BASE_URL}images/assets/hearts/heart_outline.png`;
                     }
                 })
                 .catch(error => console.error('Error toggling like state:', error));

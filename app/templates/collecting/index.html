@@ -24,7 +24,7 @@
             {% for pin in recently_added_pins %}
                 <a href="{{ url_for('collecting.pin_detail', pin_id=pin.id) }}" class="collection-item" aria-label="View {{ pin.text }}">
                     <div class="collection-item-image">
-                        <img src="{{ url_for('static', filename='images/antiques/pins/' + pin.image_filename) }}" alt="{{ pin.text }}">
+                        <img src="{{ static_url('images/antiques/pins/' + pin.image_filename) }}" alt="{{ pin.text }}">
                     </div>
                 </a>
             {% endfor %}
@@ -40,7 +40,7 @@
             {% for label in recently_added_labels %}
                 <a href="{{ url_for('collecting.label_detail', label_id=label.id) }}" class="collection-item" aria-label="View {{ label.text }}">
                     <div class="collection-item-image">
-                        <img src="{{ url_for('static', filename='images/antiques/alcohol labels/' + label.image_filename) }}" alt="{{ label.text }}">
+                        <img src="{{ static_url('images/antiques/alcohol labels/' + label.image_filename) }}" alt="{{ label.text }}">
                     </div>
                 </a>
             {% endfor %}

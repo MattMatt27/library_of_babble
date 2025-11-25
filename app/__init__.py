@@ -183,6 +183,25 @@ def register_context_processors(app):
             'can_access_page': can_access_page
         }
 
+    @app.context_processor
+    def inject_static_url():
+        """Inject static_url helper for images that may be on S3 or local"""
+        def static_url(path):
+            """
+            Returns the full URL for a static asset.
+            In development: /static/path
+            In production: https://bucket.s3.amazonaws.com/path
+            """
+            base_url = app.config.get('STATIC_STORAGE_URL', '')
+            if base_url:
+                # Production: serve from S3
+                return f"{base_url}/{path}"
+            else:
+                # Development: serve from local /static folder
+                return f"/static/{path}"
+
+        return {'static_url': static_url}
+
 
 def register_security_headers(app):
     """Add security headers to all responses"""

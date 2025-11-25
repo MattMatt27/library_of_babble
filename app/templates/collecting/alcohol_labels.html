@@ -19,7 +19,7 @@
         {% for label in labels %}
         <a href="{{ url_for('collecting.label_detail', label_id=label.id) }}" class="collection-card" style="text-decoration: none; color: inherit;">
             <div class="card-image">
-                <img src="{{ url_for('static', filename='images/antiques/alcohol labels/' + label.image_filename) }}" alt="{{ label.text }}">
+                <img src="{{ static_url('images/antiques/alcohol labels/' + label.image_filename) }}" alt="{{ label.text }}">
             </div>
             <div class="card-content">
                 <h3 class="card-title">{{ label.text }}</h3>

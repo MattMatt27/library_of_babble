@@ -188,7 +188,7 @@
         <!-- Left sidebar: Item details -->
         <div class="item-detail-sidebar">
             <div class="item-detail-image">
-                <img src="{{ url_for('static', filename='images/antiques/alcohol labels/' + label.image_filename) }}" alt="{{ label.text }}">
+                <img src="{{ static_url('images/antiques/alcohol labels/' + label.image_filename) }}" alt="{{ label.text }}">
             </div>
 
             <h1 class="item-detail-title">{{ label.text }}</h1>

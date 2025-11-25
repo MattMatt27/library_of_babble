@@ -2,24 +2,12 @@
 Writing Routes
 """
 from flask import render_template, request, jsonify
-from flask_login import login_required, current_user
 from app.writing import writing_bp
 from app.writing.models import Publication, Author, PublicationAuthor
 from app.extensions import db
-from functools import wraps
+from app.utils.security import admin_required
 import uuid
 from datetime import datetime
-
-
-def admin_required(f):
-    """Decorator to require admin access"""
-    @wraps(f)
-    @login_required
-    def decorated_function(*args, **kwargs):
-        if current_user.role != 'admin':
-            return jsonify({'error': 'Admin access required'}), 403
-        return f(*args, **kwargs)
-    return decorated_function
 
 
 # Category display names (hardcoded)

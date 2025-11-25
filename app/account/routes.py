@@ -4,13 +4,12 @@ User account pages and admin tools
 """
 from flask import render_template, request, jsonify, send_file, current_app
 from flask_login import login_required, current_user
-from functools import wraps
 from app.account import account_bp
 from app.extensions import db
 from app.artworks.models import Artworks, LikedArtworks
 from app.books.models import LikedQuotes, BookQuote, Books
 from app.auth.models import User
-from app.utils.security import run_etl_script, run_pg_dump, sanitize_path, sanitize_directory_name, validate_file_path
+from app.utils.security import run_etl_script, run_pg_dump, sanitize_path, sanitize_directory_name, validate_file_path, admin_required
 import json
 import csv
 import tempfile
@@ -40,17 +39,6 @@ def save_page_permissions(permissions_data):
     with open(config_path, 'w') as f:
         json.dump(permissions_data, f, indent=2)
     return True
-
-
-def admin_required(f):
-    """Decorator to require admin access"""
-    @wraps(f)
-    @login_required
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_admin:
-            return jsonify({'error': 'Admin access required'}), 403
-        return f(*args, **kwargs)
-    return decorated_function
 
 
 def create_database_backup():

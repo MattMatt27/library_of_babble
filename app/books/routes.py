@@ -94,7 +94,7 @@ def detail(book_id):
 @login_required
 def update_review(book_id):
     """Update book review (admin only)"""
-    if current_user.role != 'admin':
+    if not current_user.is_admin:
         return jsonify({'error': 'Permission denied'}), 403
 
     book = Books.query.get_or_404(book_id)
@@ -136,7 +136,7 @@ def update_review(book_id):
 @login_required
 def add_quote(book_id):
     """Add a quote to a book (admin only)"""
-    if current_user.role != 'admin':
+    if not current_user.is_admin:
         return jsonify({'error': 'Permission denied'}), 403
 
     quote_text = request.form.get('quote_text')
@@ -158,7 +158,7 @@ def add_quote(book_id):
 @login_required
 def update_cover_url(book_id):
     """Update the cover image URL for a book (admin only)"""
-    if current_user.role != 'admin':
+    if not current_user.is_admin:
         return jsonify({'error': 'Permission denied'}), 403
 
     book = Books.query.get_or_404(book_id)
@@ -180,7 +180,7 @@ def update_cover_url(book_id):
 @login_required
 def update_rating(book_id):
     """Update book rating via AJAX (admin only)"""
-    if current_user.role != 'admin':
+    if not current_user.is_admin:
         return jsonify({'error': 'Permission denied'}), 403
 
     try:

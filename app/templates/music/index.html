@@ -172,7 +172,11 @@
 
     function updatePlaylistDisplay(playlistId, playlistTitle, playlistDesc, playlistImageUrl) {
         var iframeSrc = `https://open.spotify.com/embed/playlist/${playlistId}`;
-        $("#playlistFrame").attr('src', iframeSrc);
+
+        // Recreate iframe to prevent it from adding browser history entries
+        var container = $("#playlistFrame").parent();
+        $("#playlistFrame").remove();
+        container.append(`<iframe id="playlistFrame" src="${iframeSrc}" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`);
 
         $(".selected-playlist .playlist-art img").attr("src", playlistImageUrl || "path/to/default-monthly-playlist-image.jpg");
         $(".selected-playlist .playlist-title").text(playlistTitle);
@@ -188,15 +192,8 @@
         var playlistTitle = $(this).attr("playlistname");
         var playlistDesc = $(this).attr("description");
 
-        $(".selected-playlist .playlist-art img").attr("src", imagesrc);
-        $(".selected-playlist .playlist-title").text(playlistTitle);
-        $(".selected-playlist .playlist-description").text(playlistDesc);
-        $(".open-spotify-button").attr("href", `https://open.spotify.com/playlist/${imageId}`);
-        $(".selected-playlist").show();
-
-        var iframeSrc = `https://open.spotify.com/embed/playlist/${imageId}`;
-        $("#playlistFrame").attr('src', iframeSrc);
-        $('.playlist-browser').scrollTop(0);
+        // Use shared function to update display and recreate iframe
+        updatePlaylistDisplay(imageId, playlistTitle, playlistDesc, imagesrc);
 
         // Clear the datepicker input
         $("#datepickerInput").val('');

@@ -59,7 +59,7 @@
         <div class="viewer-details">
             <div class="viewer-details-content">
                 <h2 id="viewer-title"></h2>
-                <p class="artist-name"><strong>Artist:</strong> <span id="viewer-artist"></span></p>
+                <p class="artist-name"><strong>Artist:</strong> <a href="#" id="viewer-artist" class="artist-link"></a></p>
                 <p><strong>Year:</strong> <span id="viewer-year"></span></p>
                 <p><strong>Medium:</strong> <span id="viewer-medium"></span></p>
                 <p><strong>Location:</strong> <span id="viewer-location"></span></p>
@@ -112,6 +112,7 @@
             viewerImage.src = fullImgSrc;
             viewerTitle.textContent = title || "Unknown Title";
             viewerArtist.textContent = artist || "Unknown Artist";
+            viewerArtist.href = artist ? `/artworks/pondering?artist=${encodeURIComponent(artist)}` : '#';
             viewerYear.textContent = year || "Unknown";
             viewerMedium.textContent = medium || "Unknown Medium";
             viewerLocation.textContent = location || "Unknown Location";

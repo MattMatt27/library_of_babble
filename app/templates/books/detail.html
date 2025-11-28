@@ -223,6 +223,65 @@
   color: var(--accent-blue-hover);
 }
 
+/* Quote editing tabs */
+.quote-tabs {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.quote-tab {
+  background: none;
+  border: none;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-sm);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: var(--radius-base);
+  transition: all var(--transition-fast);
+}
+
+.quote-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.quote-tab.active {
+  color: var(--accent-blue);
+  background: rgba(88, 166, 255, 0.1);
+}
+
+.quote-form {
+  flex: 1;
+}
+
+.quote-edit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.quote-textarea {
+  width: 100%;
+  font-style: italic;
+  resize: vertical;
+}
+
+.quote-edit-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.quote-page-label {
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+}
+
+.quote-page-input {
+  width: 80px;
+}
+
 .quote-like-btn:focus-visible {
   outline: 2px solid var(--accent-blue);
   outline-offset: 2px;
@@ -499,10 +558,33 @@
         {% if quotes %}
             {% for quote in quotes %}
                 <div class="quote-item">
-                    <div class="quote-content">
-                        <div class="quote-text">"{{ quote.text }}"</div>
-                        <div class="quote-page">Page {{ quote.page_number }}</div>
-                    </div>
+                    <form action="{{ url_for('books.update_quote', quote_id=quote.id) }}" method="POST" class="quote-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="quote-content">
+                            {% if current_user.is_authenticated and current_user.is_admin %}
+                            <div class="quote-tabs">
+                                <button type="button" class="quote-tab active" data-tab="preview" data-quote-id="{{ quote.id }}">Preview</button>
+                                <button type="button" class="quote-tab" data-tab="write" data-quote-id="{{ quote.id }}">Edit</button>
+                            </div>
+                            {% endif %}
+
+                            <div class="quote-preview" id="quote-preview-{{ quote.id }}">
+                                <div class="quote-text">"{{ quote.text }}"</div>
+                                <div class="quote-page">Page {{ quote.page_number }}</div>
+                            </div>
+
+                            {% if current_user.is_authenticated and current_user.is_admin %}
+                            <div class="quote-edit" id="quote-edit-{{ quote.id }}" style="display: none;">
+                                <textarea name="quote_text" class="form-textarea quote-textarea" rows="3">{{ quote.text }}</textarea>
+                                <div class="quote-edit-row">
+                                    <label class="quote-page-label">Page:</label>
+                                    <input type="number" name="page_number" class="form-input quote-page-input" value="{{ quote.page_number }}" min="1">
+                                    <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </form>
                     {% if current_user.is_authenticated %}
                     <button class="quote-like-btn {{ 'liked' if quote.is_liked else '' }}"
                             data-quote-id="{{ quote.id }}"
@@ -647,6 +729,30 @@
                     closeCoverUrlModal();
                 }
             }
+        });
+
+        // Quote tab switching (Preview/Edit)
+        document.querySelectorAll('.quote-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const quoteId = this.dataset.quoteId;
+                const tabType = this.dataset.tab;
+                const preview = document.getElementById(`quote-preview-${quoteId}`);
+                const edit = document.getElementById(`quote-edit-${quoteId}`);
+                const tabs = this.parentElement.querySelectorAll('.quote-tab');
+
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                // Toggle preview/edit view
+                if (tabType === 'preview') {
+                    preview.style.display = 'block';
+                    edit.style.display = 'none';
+                } else {
+                    preview.style.display = 'none';
+                    edit.style.display = 'block';
+                }
+            });
         });
     });
 </script>

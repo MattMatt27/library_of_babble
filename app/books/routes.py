@@ -154,6 +154,25 @@ def add_quote(book_id):
     return redirect(url_for('books.detail', book_id=book_id))
 
 
+@books_bp.route('/update_quote/<int:quote_id>', methods=['POST'])
+@login_required
+def update_quote(quote_id):
+    """Update a quote (admin only)"""
+    if not current_user.is_admin:
+        return jsonify({'error': 'Permission denied'}), 403
+
+    quote = BookQuote.query.get_or_404(quote_id)
+    quote_text = request.form.get('quote_text')
+    page_number = request.form.get('page_number')
+
+    if quote_text:
+        quote.quote_text = quote_text
+        quote.page_number = int(page_number) if page_number else None
+        db.session.commit()
+
+    return redirect(url_for('books.detail', book_id=quote.book_id))
+
+
 @books_bp.route('/update_cover_url/<int:book_id>', methods=['POST'])
 @login_required
 def update_cover_url(book_id):

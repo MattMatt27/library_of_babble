@@ -6,6 +6,7 @@
       "page_name": "home",
       "public": true,
       "route_name": "main.home",
+      "show_in_navbar": true,
       "user": true,
       "viewer": true
     },
@@ -15,6 +16,7 @@
       "page_name": "writing",
       "public": true,
       "route_name": "writing.index",
+      "show_in_navbar": true,
       "user": true,
       "viewer": true
     },
@@ -24,6 +26,7 @@
       "page_name": "creating",
       "public": false,
       "route_name": "main.creating",
+      "show_in_navbar": true,
       "user": true,
       "viewer": true
     },
@@ -32,7 +35,28 @@
       "display_name": "Reading",
       "page_name": "reading",
       "public": true,
-      "route_name": "books.reading",
+      "route_name": "reading.index",
+      "show_in_navbar": true,
+      "user": true,
+      "viewer": true
+    },
+    {
+      "admin": true,
+      "display_name": "Books",
+      "page_name": "books",
+      "public": false,
+      "route_name": "reading.books",
+      "show_in_navbar": false,
+      "user": true,
+      "viewer": true
+    },
+    {
+      "admin": true,
+      "display_name": "Book",
+      "page_name": "book-detail",
+      "public": false,
+      "route_name": "books.detail",
+      "show_in_navbar": false,
       "user": true,
       "viewer": true
     },
@@ -40,8 +64,19 @@
       "admin": true,
       "display_name": "Watching",
       "page_name": "watching",
-      "public": false,
+      "public": true,
       "route_name": "watching.index",
+      "show_in_navbar": true,
+      "user": true,
+      "viewer": true
+    },
+    {
+      "admin": true,
+      "display_name": "Movies",
+      "page_name": "movies",
+      "public": false,
+      "route_name": "movies.index",
+      "show_in_navbar": false,
       "user": true,
       "viewer": true
     },
@@ -51,6 +86,7 @@
       "page_name": "listening",
       "public": false,
       "route_name": "music.index",
+      "show_in_navbar": true,
       "user": false,
       "viewer": true
     },
@@ -60,6 +96,7 @@
       "page_name": "collecting",
       "public": false,
       "route_name": "collecting.index",
+      "show_in_navbar": true,
       "user": false,
       "viewer": true
     },
@@ -69,6 +106,7 @@
       "page_name": "pondering",
       "public": false,
       "route_name": "artworks.pondering",
+      "show_in_navbar": true,
       "user": false,
       "viewer": true
     }

@@ -11,7 +11,7 @@
                 {% endfor %}
             </div>
             {% endif %}
-            <div class="publication-venue">{{ pub.venue }}</div>
+            <div class="publication-venue">{{ pub.venue }}{% if pub.section == 'creative' and pub.publication_date %} &middot; {{ pub.publication_date }}{% endif %}</div>
 
             {% if pub.volume_issue or pub.doi or pub.pmid %}
             <div class="publication-meta">

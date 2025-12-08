@@ -19,7 +19,7 @@
         {% for pin in pins %}
         <a href="{{ url_for('collecting.pin_detail', pin_id=pin.id) }}" class="collection-card" style="text-decoration: none; color: inherit;">
             <div class="card-image">
-                <img src="{{ url_for('static', filename='images/antiques/pins/' + pin.image_filename) }}" alt="{{ pin.text }}">
+                <img src="{{ static_url('images/antiques/pins/' + pin.image_filename) }}" alt="{{ pin.text }}">
             </div>
             <div class="card-content">
                 <h3 class="card-title">{{ pin.text }}</h3>

@@ -22,12 +22,46 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from app import create_app
 from app.extensions import db
 from app.books.models import Books, BookQuote
-from app.common.models import Reviews, Collections
+from app.common.models import Reviews, Collection, CollectionItem
 
 # Configure paths
 CSV_FOLDER = Path('data/staging/')
 LOADED_FOLDER = Path('data/loaded/')
 REPORTS_FOLDER = Path('data/reports/')
+
+
+def add_item_to_collection(collection_name, item_type, item_id):
+    """
+    Add an item to a collection. Creates the collection if it doesn't exist.
+    Returns True if item was added, False if it already existed.
+    """
+    # Get or create the collection
+    collection = Collection.query.filter_by(collection_name=collection_name).first()
+    if not collection:
+        collection = Collection(
+            collection_name=collection_name,
+            site_approved=False  # New collections default to not approved
+        )
+        db.session.add(collection)
+        db.session.flush()  # Get the ID
+
+    # Check if item already exists in this collection
+    existing_item = CollectionItem.query.filter_by(
+        collection_id=collection.id,
+        item_type=item_type,
+        item_id=item_id
+    ).first()
+
+    if not existing_item:
+        collection_item = CollectionItem(
+            collection_id=collection.id,
+            item_type=item_type,
+            item_id=item_id
+        )
+        db.session.add(collection_item)
+        return True
+
+    return False
 
 
 def generate_conflict_report(source_file, import_type, conflicts):
@@ -202,6 +236,7 @@ def load_goodreads_export(csv_file):
     print("\nResetting database sequences...")
     reset_sequence('reviews')
     reset_sequence('collections')
+    reset_sequence('book_quotes')
 
     conflicts = []
     books_added = 0
@@ -334,11 +369,17 @@ def load_goodreads_export(csv_file):
                         db.session.add(review)
                         reviews_added += 1
                     else:
-                        # Update existing review if rating or text changed
-                        if existing_review.rating != my_rating or existing_review.review_text != review_text:
-                            existing_review.rating = my_rating
-                            existing_review.review_text = review_text
-                            db.session.add(existing_review)
+                        # Only update review if the book is not locked (read=0 or doesn't exist)
+                        # Read books and their reviews are locked
+                        if existing_book and existing_book.read == 1:
+                            # Book is read - review is locked, don't update
+                            pass
+                        else:
+                            # Book is not read yet - allow review update
+                            if existing_review.rating != my_rating or existing_review.review_text != review_text:
+                                existing_review.rating = my_rating
+                                existing_review.review_text = review_text
+                                db.session.add(existing_review)
 
                 # Handle bookshelves as collections (incremental)
                 if row['Bookshelves'].strip():
@@ -347,19 +388,7 @@ def load_goodreads_export(csv_file):
                         if not shelf:  # Skip empty shelf names
                             continue
 
-                        existing_collection = Collections.query.filter_by(
-                            collection_name=shelf,
-                            item_type='Book',
-                            item_id=str(book_id)
-                        ).first()
-
-                        if not existing_collection:
-                            collection = Collections(
-                                collection_name=shelf,
-                                item_type='Book',
-                                item_id=str(book_id)
-                            )
-                            db.session.add(collection)
+                        if add_item_to_collection(shelf, 'Book', str(book_id)):
                             collections_added += 1
 
                 # Commit in batches to avoid autoflush issues

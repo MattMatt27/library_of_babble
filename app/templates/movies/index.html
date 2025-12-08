@@ -255,6 +255,7 @@
                         </td>
                         <td class="review-column">
                             <form action="{{ url_for('movies.update_review', movie_id=movie.id) }}" method="POST" class="form-group mb-0">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 {% if current_user.is_authenticated and current_user.role == 'admin' %}
                                     <div class="review-tabs">
                                         <button type="button" class="review-tab active" data-tab="preview" data-movie-id="{{ movie.id }}">Preview</button>

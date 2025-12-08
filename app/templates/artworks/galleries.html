@@ -27,10 +27,10 @@
             {% for artwork in collection.artworks %}
             <div class="gallery-item">
                 <img
-                    src="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
+                    src="{{ static_url('images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
                     alt="{{ artwork.title }}"
                     data-img-id="{{ artwork.id }}"
-                    data-full-img="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
+                    data-full-img="{{ static_url('images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
                     data-title="{{ artwork.title }}"
                     data-artist="{{ artwork.artist }}"
                     data-year="{{ artwork.year }}"
@@ -47,7 +47,7 @@
 <div id="image-viewer" class="image-viewer">
     <button id="close-viewer" class="close-viewer">&times;</button>
     <button class="like-button" data-artwork-id="">
-        <img src="{{ url_for('static', filename='images/assets/hearts/heart_outline.png') }}" alt="Heart Icon" class="heart-icon">
+        <img src="{{ static_url('images/assets/hearts/heart_outline.png') }}" alt="Heart Icon" class="heart-icon">
     </button>
     <button id="prev-image" class="nav-arrow prev-arrow">&lt;</button>
     <button id="next-image" class="nav-arrow next-arrow">&gt;</button>
@@ -59,7 +59,7 @@
         <div class="viewer-details">
             <div class="viewer-details-content">
                 <h2 id="viewer-title"></h2>
-                <p class="artist-name"><strong>Artist:</strong> <span id="viewer-artist"></span></p>
+                <p class="artist-name"><strong>Artist:</strong> <a href="#" id="viewer-artist" class="artist-link"></a></p>
                 <p><strong>Year:</strong> <span id="viewer-year"></span></p>
                 <p><strong>Medium:</strong> <span id="viewer-medium"></span></p>
                 <p><strong>Location:</strong> <span id="viewer-location"></span></p>
@@ -71,6 +71,7 @@
 
 {% block extra_scripts %}
 <script>
+    const STATIC_BASE_URL = "{{ static_url('') }}";
     document.addEventListener('DOMContentLoaded', function () {
         const viewer = document.getElementById('image-viewer');
         const viewerImage = document.getElementById('viewer-image');
@@ -85,14 +86,20 @@
         const likeButton = viewer.querySelector('.like-button');
         const heartIcon = likeButton.querySelector('.heart-icon');
 
-        const images = Array.from(document.querySelectorAll('.gallery-item img')); // Collect all images
-        let currentIndex = 0; // Track the current image index
+        // Build collection-aware image structure
+        const collections = Array.from(document.querySelectorAll('.gallery-section')).map(section => {
+            return Array.from(section.querySelectorAll('.gallery-item img'));
+        });
+
+        let currentCollectionIndex = 0; // Track which collection we're in
+        let currentIndexInCollection = 0; // Track position within collection
         let currentArtworkId = null;
 
         // Function to open the image viewer
-        function openImageViewer(index) {
-            currentIndex = index;
-            const imgElement = images[currentIndex];
+        function openImageViewer(collectionIndex, indexInCollection) {
+            currentCollectionIndex = collectionIndex;
+            currentIndexInCollection = indexInCollection;
+            const imgElement = collections[currentCollectionIndex][currentIndexInCollection];
 
             const fullImgSrc = imgElement.getAttribute('data-full-img');
             const imgId = imgElement.getAttribute('data-img-id');
@@ -105,6 +112,7 @@
             viewerImage.src = fullImgSrc;
             viewerTitle.textContent = title || "Unknown Title";
             viewerArtist.textContent = artist || "Unknown Artist";
+            viewerArtist.href = artist ? `/artworks/pondering?artist=${encodeURIComponent(artist)}` : '#';
             viewerYear.textContent = year || "Unknown";
             viewerMedium.textContent = medium || "Unknown Medium";
             viewerLocation.textContent = location || "Unknown Location";
@@ -122,16 +130,18 @@
             viewer.style.display = 'none'; // Hide the viewer
         }
 
-        // Function to navigate to the previous image
+        // Function to navigate to the previous image (wraps within collection)
         function showPrevImage() {
-            currentIndex = (currentIndex - 1 + images.length) % images.length; // Wrap around to the last image
-            openImageViewer(currentIndex);
+            const collectionLength = collections[currentCollectionIndex].length;
+            currentIndexInCollection = (currentIndexInCollection - 1 + collectionLength) % collectionLength;
+            openImageViewer(currentCollectionIndex, currentIndexInCollection);
         }
 
-        // Function to navigate to the next image
+        // Function to navigate to the next image (wraps within collection)
         function showNextImage() {
-            currentIndex = (currentIndex + 1) % images.length; // Wrap around to the first image
-            openImageViewer(currentIndex);
+            const collectionLength = collections[currentCollectionIndex].length;
+            currentIndexInCollection = (currentIndexInCollection + 1) % collectionLength;
+            openImageViewer(currentCollectionIndex, currentIndexInCollection);
         }
 
         function updateLikeButtonState(artworkId) {
@@ -139,9 +149,9 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.liked) {
-                        heartIcon.src = '/static/images/assets/hearts/heart_filled.png';
+                        heartIcon.src = `${STATIC_BASE_URL}images/assets/hearts/heart_filled.png`;
                     } else {
-                        heartIcon.src = '/static/images/assets/hearts/heart_outline.png';
+                        heartIcon.src = `${STATIC_BASE_URL}images/assets/hearts/heart_outline.png`;
                     }
                 })
                 .catch(error => console.error('Error fetching like state:', error));
@@ -165,17 +175,19 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.liked) {
-                        heartIcon.src = '/static/images/assets/hearts/heart_filled.png';
+                        heartIcon.src = `${STATIC_BASE_URL}images/assets/hearts/heart_filled.png`;
                     } else {
-                        heartIcon.src = '/static/images/assets/hearts/heart_outline.png';
+                        heartIcon.src = `${STATIC_BASE_URL}images/assets/hearts/heart_outline.png`;
                     }
                 })
                 .catch(error => console.error('Error toggling like state:', error));
         });
 
         // Attach event listener to all images
-        images.forEach((img, index) => {
-            img.addEventListener('click', () => openImageViewer(index));
+        collections.forEach((collectionImages, collectionIndex) => {
+            collectionImages.forEach((img, indexInCollection) => {
+                img.addEventListener('click', () => openImageViewer(collectionIndex, indexInCollection));
+            });
         });
 
         // Attach event listener to the close button

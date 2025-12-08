@@ -3,7 +3,7 @@ Movies Business Logic and Helper Functions
 """
 from app.extensions import db
 from app.movies.models import Movies
-from app.common.models import Reviews, Collections
+from app.common.models import Reviews, Collection, CollectionItem
 
 
 def get_recently_watched_movies(limit=10):
@@ -73,9 +73,14 @@ def get_movies_from_collection(collection_name):
     """Get movies from a specific collection"""
     movies = []
 
-    # Get movie IDs from collection
-    collection_items = Collections.query.filter_by(
-        collection_name=collection_name,
+    # Get the collection
+    collection = Collection.query.filter_by(collection_name=collection_name).first()
+    if not collection:
+        return movies
+
+    # Get movie IDs from collection items
+    collection_items = CollectionItem.query.filter_by(
+        collection_id=collection.id,
         item_type='Movie'
     ).all()
 

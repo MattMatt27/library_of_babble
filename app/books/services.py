@@ -4,7 +4,7 @@ Books Business Logic and Helper Functions
 import sqlite3
 from app.extensions import db
 from app.books.models import Books, BookQuote
-from app.common.models import Reviews
+from app.common.models import Reviews, Collection, CollectionItem
 
 
 def truncate_title(title):
@@ -80,30 +80,38 @@ def read_books_from_db():
 
 
 def get_books_from_bookshelf(bookshelf_name):
-    """Get books from a specific Goodreads bookshelf"""
+    """Get books from a specific collection (formerly Goodreads bookshelf)"""
     books = []
 
-    # Query books that have the bookshelf name in their bookshelves field
-    query = Books.query.filter(
-        Books.bookshelves.like(f'%{bookshelf_name}%')
+    # Get the collection
+    collection = Collection.query.filter_by(collection_name=bookshelf_name).first()
+    if not collection:
+        return books
+
+    # Get book IDs from collection items
+    collection_items = CollectionItem.query.filter_by(
+        collection_id=collection.id,
+        item_type='Book'
     ).all()
 
-    for book in query:
-        # Get the latest review for this book
-        review = Reviews.query.filter_by(
-            item_type='Book',
-            item_id=str(book.id)
-        ).order_by(Reviews.date_reviewed.desc()).first()
+    for item in collection_items:
+        book = Books.query.get(item.item_id)
+        if book:
+            # Get the latest review for this book
+            review = Reviews.query.filter_by(
+                item_type='Book',
+                item_id=str(book.id)
+            ).order_by(Reviews.date_reviewed.desc()).first()
 
-        books.append({
-            'id': book.id,
-            'title': truncate_title(book.title),
-            'author': book.author,
-            'publication_year': book.original_publication_year,
-            'cover_image_url': book.cover_image_url if book.cover_image_url else 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg',
-            'date_read': review.date_reviewed if review else None,
-            'my_rating': str(review.rating) if review and review.rating else '0',
-            'my_review': review.review_text if review else None
-        })
+            books.append({
+                'id': book.id,
+                'title': truncate_title(book.title),
+                'author': book.author,
+                'publication_year': book.original_publication_year,
+                'cover_image_url': book.cover_image_url if book.cover_image_url else 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg',
+                'date_read': review.date_reviewed if review else None,
+                'my_rating': str(review.rating) if review and review.rating else '0',
+                'my_review': review.review_text if review else None
+            })
 
     return books

@@ -4,12 +4,12 @@ User account pages and admin tools
 """
 from flask import render_template, request, jsonify, send_file, current_app
 from flask_login import login_required, current_user
-from functools import wraps
 from app.account import account_bp
 from app.extensions import db
 from app.artworks.models import Artworks, LikedArtworks
+from app.books.models import LikedQuotes, BookQuote, Books
 from app.auth.models import User
-from app.utils.security import run_etl_script, run_pg_dump, sanitize_path, sanitize_directory_name, validate_file_path
+from app.utils.security import run_etl_script, run_pg_dump, sanitize_path, sanitize_directory_name, validate_file_path, admin_required
 import json
 import csv
 import tempfile
@@ -18,6 +18,22 @@ import shutil
 import subprocess
 from pathlib import Path
 from datetime import datetime
+import html
+
+
+def sanitize_error_message(stderr_output):
+    """
+    Sanitize error messages from ETL scripts to avoid leaking sensitive info.
+    Returns a generic message for users while logging the actual error.
+    """
+    if not stderr_output:
+        return "An unexpected error occurred"
+
+    # Log the actual error for debugging (visible in server logs)
+    current_app.logger.error(f"ETL script error: {stderr_output}")
+
+    # Return generic message to user - don't expose internal paths/details
+    return "Import failed. Please check the file format and try again."
 
 
 def load_page_permissions():
@@ -38,17 +54,6 @@ def save_page_permissions(permissions_data):
     with open(config_path, 'w') as f:
         json.dump(permissions_data, f, indent=2)
     return True
-
-
-def admin_required(f):
-    """Decorator to require admin access"""
-    @wraps(f)
-    @login_required
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_admin:
-            return jsonify({'error': 'Admin access required'}), 403
-        return f(*args, **kwargs)
-    return decorated_function
 
 
 def create_database_backup():
@@ -90,7 +95,8 @@ def create_database_backup():
             result = run_pg_dump(db_uri, str(backup_file))
 
             if result.returncode != 0:
-                return False, f"pg_dump failed: {result.stderr}"
+                current_app.logger.error(f"pg_dump failed: {result.stderr}")
+                return False, "Database backup failed"
 
             # Keep only last 10 backups
             backups = sorted(backup_dir.glob('library_backup_*.sql'), key=os.path.getmtime, reverse=True)
@@ -112,11 +118,13 @@ def create_database_backup():
 @login_required
 def index():
     """Main account page"""
+    from app.main.services import can_access_page
+
     # Get user's liked artworks if they have permission
     liked_artworks = []
     liked_count = 0
 
-    if current_user.can_view_artworks:
+    if can_access_page('pondering'):
         # Get liked artwork IDs
         liked_ids = [like.artwork_id for like in
                      LikedArtworks.query.filter_by(user_id=current_user.id).all()]
@@ -126,11 +134,49 @@ def index():
             liked_artworks = Artworks.query.filter(Artworks.id.in_(liked_ids)).limit(24).all()
             liked_count = len(liked_ids)
 
+    # Get user's liked quotes if they have permission
+    liked_quotes = []
+    if can_access_page('book-detail'):
+        liked_quotes_query = db.session.query(
+            LikedQuotes, BookQuote, Books
+        ).join(
+            BookQuote, LikedQuotes.quote_id == BookQuote.id
+        ).join(
+            Books, BookQuote.book_id == Books.id.cast(db.String)
+        ).filter(
+            LikedQuotes.user_id == current_user.id
+        ).order_by(
+            LikedQuotes.created_at.desc()
+        ).all()
+
+        for like, quote, book in liked_quotes_query:
+            # Fix Windows-1252 encoding issues (common in imported data)
+            quote_text = quote.quote_text
+            # Map common Windows-1252 characters to proper Unicode
+            replacements = {
+                '\u0092': "'",  # Right single quotation mark
+                '\u0093': '"',  # Left double quotation mark
+                '\u0094': '"',  # Right double quotation mark
+                '\u0096': '—',  # Em dash
+                '\u0097': '—',  # Em dash (alternative)
+                '\u0091': "'",  # Left single quotation mark
+            }
+            for old, new in replacements.items():
+                quote_text = quote_text.replace(old, new)
+
+            liked_quotes.append({
+                'id': quote.id,
+                'text': quote_text,
+                'page_number': quote.page_number,
+                'book_title': book.title,
+                'book_author': book.author,
+                'book_id': book.id
+            })
+
     # Get database statistics for admins
     stats = {}
     all_users = []
     if current_user.is_admin:
-        from app.books.models import Books
         from app.movies.models import Movies
         from app.shows.models import TVShows
         from app.music.models import Playlists
@@ -150,6 +196,8 @@ def index():
     return render_template('account/index.html',
                          liked_artworks=liked_artworks,
                          liked_count=liked_count,
+                         liked_quotes=liked_quotes,
+                         liked_quotes_count=len(liked_quotes),
                          stats=stats,
                          all_users=all_users)
 
@@ -303,10 +351,10 @@ def import_goodreads():
 
         if result.returncode != 0:
             # Import failed - database was automatically rolled back by the ETL script
-            error_msg = (result.stderr or 'Unknown error occurred').strip()
+            sanitize_error_message(result.stderr)  # Logs the actual error
             return jsonify({
                 'success': False,
-                'error': f'Import failed and was rolled back. Error: {error_msg}',
+                'error': 'Import failed and was rolled back. Please check the file format.',
                 'rolled_back': True
             }), 500
 
@@ -417,10 +465,10 @@ def import_letterboxd():
 
         if result.returncode != 0:
             # Import failed - database was automatically rolled back by the ETL script
-            error_msg = (result.stderr or 'Unknown error occurred').strip()
+            sanitize_error_message(result.stderr)  # Logs the actual error
             return jsonify({
                 'success': False,
-                'error': f'Import failed and was rolled back. Error: {error_msg}',
+                'error': 'Import failed and was rolled back. Please check the file format.',
                 'rolled_back': True
             }), 500
 
@@ -540,7 +588,8 @@ def import_boredom_killer():
             )
 
             if result.returncode != 0:
-                raise Exception(f"Movies import failed: {result.stderr}")
+                sanitize_error_message(result.stderr)
+                raise Exception("Movies import failed")
 
             for line in result.stdout.split('\n'):
                 if 'Movies added:' in line or 'added' in line.lower():
@@ -558,7 +607,8 @@ def import_boredom_killer():
             )
 
             if result.returncode != 0:
-                raise Exception(f"Documentaries import failed: {result.stderr}")
+                sanitize_error_message(result.stderr)
+                raise Exception("Documentaries import failed")
 
             for line in result.stdout.split('\n'):
                 if 'Movies added:' in line or 'Documentaries added:' in line or 'added' in line.lower():
@@ -576,7 +626,8 @@ def import_boredom_killer():
             )
 
             if result.returncode != 0:
-                raise Exception(f"TV shows import failed: {result.stderr}")
+                sanitize_error_message(result.stderr)
+                raise Exception("TV shows import failed")
 
             for line in result.stdout.split('\n'):
                 if 'Shows added:' in line or 'TV shows added:' in line or 'added' in line.lower():
@@ -594,7 +645,8 @@ def import_boredom_killer():
             )
 
             if result.returncode != 0:
-                raise Exception(f"Docuseries import failed: {result.stderr}")
+                sanitize_error_message(result.stderr)
+                raise Exception("Docuseries import failed")
 
             for line in result.stdout.split('\n'):
                 if 'Shows added:' in line or 'Docuseries added:' in line or 'added' in line.lower():
@@ -680,9 +732,10 @@ def import_shows():
         os.unlink(temp_file.name)
 
         if result.returncode != 0:
+            sanitize_error_message(result.stderr)  # Logs the actual error
             return jsonify({
                 'success': False,
-                'error': f'Import failed: {result.stderr}'
+                'error': 'Import failed. Please check the file format.'
             }), 500
 
         # Parse output for statistics
@@ -727,9 +780,10 @@ def refresh_spotify():
         )
 
         if result.returncode != 0:
+            sanitize_error_message(result.stderr)  # Logs the actual error
             return jsonify({
                 'success': False,
-                'error': f'Refresh failed: {result.stderr}'
+                'error': 'Spotify refresh failed. Please try again.'
             }), 500
 
         # Parse output for statistics

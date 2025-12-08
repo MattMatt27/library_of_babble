@@ -170,6 +170,14 @@
   margin-bottom: var(--space-5);
   padding-left: var(--space-4);
   border-left: 3px solid var(--accent-blue);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.quote-content {
+  flex: 1;
 }
 
 .quote-text {
@@ -183,6 +191,116 @@
 .quote-page {
   color: var(--text-tertiary);
   font-size: var(--font-sm);
+}
+
+/* Quote like button styles */
+.quote-like-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-2);
+  color: var(--text-tertiary);
+  font-size: var(--font-lg);
+  transition: all var(--transition-fast);
+  border-radius: var(--radius-base);
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quote-like-btn:hover {
+  color: var(--accent-blue);
+  background: rgba(88, 166, 255, 0.1);
+}
+
+.quote-like-btn.liked {
+  color: var(--accent-blue);
+}
+
+.quote-like-btn.liked:hover {
+  color: var(--accent-blue-hover);
+}
+
+/* Quote editing tabs */
+.quote-tabs {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.quote-tab {
+  background: none;
+  border: none;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-sm);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: var(--radius-base);
+  transition: all var(--transition-fast);
+}
+
+.quote-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.quote-tab.active {
+  color: var(--accent-blue);
+  background: rgba(88, 166, 255, 0.1);
+}
+
+.quote-form {
+  flex: 1;
+}
+
+.quote-edit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.quote-textarea {
+  width: 100%;
+  font-style: italic;
+  resize: vertical;
+}
+
+.quote-edit-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.quote-page-label {
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+}
+
+.quote-page-input {
+  width: 80px;
+}
+
+.quote-like-btn:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+.quote-like-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Animation for like action */
+@keyframes heartBeat {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.2); }
+  30% { transform: scale(1); }
+}
+
+.quote-like-btn.animating {
+  animation: heartBeat 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .no-content {
@@ -419,6 +537,7 @@
 
         <div id="quoteFormContainer" class="quote-form-container">
             <form class="form-group" action="{{ url_for('books.add_quote', book_id=book.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="form-group">
                     <label class="form-label" for="quoteText">Quote Text</label>
                     <textarea id="quoteText" name="quote_text" class="form-textarea" rows="4" required></textarea>
@@ -439,8 +558,42 @@
         {% if quotes %}
             {% for quote in quotes %}
                 <div class="quote-item">
-                    <div class="quote-text">"{{ quote.text }}"</div>
-                    <div class="quote-page">Page {{ quote.page_number }}</div>
+                    <form action="{{ url_for('books.update_quote', quote_id=quote.id) }}" method="POST" class="quote-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="quote-content">
+                            {% if current_user.is_authenticated and current_user.is_admin %}
+                            <div class="quote-tabs">
+                                <button type="button" class="quote-tab active" data-tab="preview" data-quote-id="{{ quote.id }}">Preview</button>
+                                <button type="button" class="quote-tab" data-tab="write" data-quote-id="{{ quote.id }}">Edit</button>
+                            </div>
+                            {% endif %}
+
+                            <div class="quote-preview" id="quote-preview-{{ quote.id }}">
+                                <div class="quote-text">"{{ quote.text }}"</div>
+                                <div class="quote-page">Page {{ quote.page_number }}</div>
+                            </div>
+
+                            {% if current_user.is_authenticated and current_user.is_admin %}
+                            <div class="quote-edit" id="quote-edit-{{ quote.id }}" style="display: none;">
+                                <textarea name="quote_text" class="form-textarea quote-textarea" rows="3">{{ quote.text }}</textarea>
+                                <div class="quote-edit-row">
+                                    <label class="quote-page-label">Page:</label>
+                                    <input type="number" name="page_number" class="form-input quote-page-input" value="{{ quote.page_number }}" min="1">
+                                    <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </form>
+                    {% if current_user.is_authenticated %}
+                    <button class="quote-like-btn {{ 'liked' if quote.is_liked else '' }}"
+                            data-quote-id="{{ quote.id }}"
+                            aria-label="{{ 'Unlike this quote' if quote.is_liked else 'Like this quote' }}"
+                            aria-pressed="{{ 'true' if quote.is_liked else 'false' }}"
+                            onclick="toggleQuoteLike(this, {{ quote.id }})">
+                        <i class="{{ 'fa-solid' if quote.is_liked else 'fa-regular' }} fa-heart"></i>
+                    </button>
+                    {% endif %}
                 </div>
             {% endfor %}
         {% else %}
@@ -457,6 +610,7 @@
                 <button class="modal-close" onclick="closeCoverUrlModal()">&times;</button>
             </div>
             <form action="{{ url_for('books.update_cover_url', book_id=book.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body">
                     <p style="color: var(--text-secondary); margin-bottom: var(--space-4);">
                         Enter the URL of the book cover image:
@@ -481,6 +635,60 @@
 
 {% block extra_scripts %}
 <script>
+    // Get CSRF token from meta tag
+    function getCSRFToken() {
+        return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    }
+
+    // Toggle quote like
+    async function toggleQuoteLike(button, quoteId) {
+        // Prevent double-clicking
+        if (button.disabled) return;
+        button.disabled = true;
+
+        try {
+            const response = await fetch('{{ url_for("books.like_quote") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({ quote_id: quoteId })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to toggle like');
+            }
+
+            const data = await response.json();
+            const icon = button.querySelector('i');
+
+            // Update button state
+            if (data.liked) {
+                button.classList.add('liked');
+                icon.classList.remove('fa-regular');
+                icon.classList.add('fa-solid');
+                button.setAttribute('aria-pressed', 'true');
+                button.setAttribute('aria-label', 'Unlike this quote');
+            } else {
+                button.classList.remove('liked');
+                icon.classList.remove('fa-solid');
+                icon.classList.add('fa-regular');
+                button.setAttribute('aria-pressed', 'false');
+                button.setAttribute('aria-label', 'Like this quote');
+            }
+
+            // Trigger animation
+            button.classList.add('animating');
+            setTimeout(() => button.classList.remove('animating'), 400);
+
+        } catch (error) {
+            console.error('Error toggling quote like:', error);
+        } finally {
+            button.disabled = false;
+        }
+    }
+
     function toggleQuoteForm() {
         const formContainer = document.getElementById("quoteFormContainer");
         formContainer.classList.toggle('active');
@@ -521,6 +729,30 @@
                     closeCoverUrlModal();
                 }
             }
+        });
+
+        // Quote tab switching (Preview/Edit)
+        document.querySelectorAll('.quote-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const quoteId = this.dataset.quoteId;
+                const tabType = this.dataset.tab;
+                const preview = document.getElementById(`quote-preview-${quoteId}`);
+                const edit = document.getElementById(`quote-edit-${quoteId}`);
+                const tabs = this.parentElement.querySelectorAll('.quote-tab');
+
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                // Toggle preview/edit view
+                if (tabType === 'preview') {
+                    preview.style.display = 'block';
+                    edit.style.display = 'none';
+                } else {
+                    preview.style.display = 'none';
+                    edit.style.display = 'block';
+                }
+            });
         });
     });
 </script>

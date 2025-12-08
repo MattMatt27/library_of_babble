@@ -67,6 +67,7 @@ def register_blueprints(app):
 
     # Import blueprints here to avoid circular imports
     from app.auth import auth_bp
+    from app.reading import reading_bp
     from app.books import books_bp
     from app.movies import movies_bp
     from app.watching import watching_bp
@@ -80,6 +81,7 @@ def register_blueprints(app):
     # Register blueprints
     app.register_blueprint(main_bp)  # No prefix, root routes
     app.register_blueprint(auth_bp)
+    app.register_blueprint(reading_bp, url_prefix='/reading')
     app.register_blueprint(books_bp, url_prefix='/books')
     app.register_blueprint(movies_bp, url_prefix='/movies')
     app.register_blueprint(watching_bp, url_prefix='/watching')
@@ -92,6 +94,17 @@ def register_blueprints(app):
 
 def register_error_handlers(app):
     """Register error handlers"""
+
+    @app.errorhandler(403)
+    def forbidden_error(error):
+        # Get list of generative art images for background
+        lunacy_path = os.path.join(app.static_folder, 'images/creating/lunacy')
+        images = []
+        if os.path.exists(lunacy_path):
+            images = [f for f in os.listdir(lunacy_path)
+                     if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
+                     and not f.startswith('.')]
+        return render_template('403.html', images=images), 403
 
     @app.errorhandler(404)
     def not_found_error(error):
@@ -141,7 +154,7 @@ def register_context_processors(app):
     def inject_nav_items():
         """Inject navigation items and active page into all templates"""
         from flask import request
-        from app.main.services import get_user_nav_items
+        from app.main.services import get_user_nav_items, can_access_page
 
         # Auto-detect active page based on URL path
         path = request.path
@@ -166,8 +179,28 @@ def register_context_processors(app):
 
         return {
             'nav_items': get_user_nav_items(),
-            'active_page': active_page
+            'active_page': active_page,
+            'can_access_page': can_access_page
         }
+
+    @app.context_processor
+    def inject_static_url():
+        """Inject static_url helper for images that may be on S3 or local"""
+        def static_url(path):
+            """
+            Returns the full URL for a static asset.
+            In development: /static/path
+            In production: https://bucket.s3.amazonaws.com/path
+            """
+            base_url = app.config.get('STATIC_STORAGE_URL', '')
+            if base_url:
+                # Production: serve from S3
+                return f"{base_url}/{path}"
+            else:
+                # Development: serve from local /static folder
+                return f"/static/{path}"
+
+        return {'static_url': static_url}
 
 
 def register_security_headers(app):

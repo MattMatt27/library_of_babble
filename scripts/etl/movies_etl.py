@@ -23,13 +23,47 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from app import create_app
 from app.extensions import db
 from app.movies.models import Movies
-from app.common.models import Reviews, Collections
+from app.common.models import Reviews, Collection, CollectionItem
 
 # Configure paths
 CSV_FOLDER = Path('data/staging/')
 LETTERBOXD_FOLDER = Path('data/staging/letterboxd/')
 LOADED_FOLDER = Path('data/loaded/')
 REPORTS_FOLDER = Path('data/reports/')
+
+
+def add_item_to_collection(collection_name, item_type, item_id):
+    """
+    Add an item to a collection. Creates the collection if it doesn't exist.
+    Returns True if item was added, False if it already existed.
+    """
+    # Get or create the collection
+    collection = Collection.query.filter_by(collection_name=collection_name).first()
+    if not collection:
+        collection = Collection(
+            collection_name=collection_name,
+            site_approved=False  # New collections default to not approved
+        )
+        db.session.add(collection)
+        db.session.flush()  # Get the ID
+
+    # Check if item already exists in this collection
+    existing_item = CollectionItem.query.filter_by(
+        collection_id=collection.id,
+        item_type=item_type,
+        item_id=item_id
+    ).first()
+
+    if not existing_item:
+        collection_item = CollectionItem(
+            collection_id=collection.id,
+            item_type=item_type,
+            item_id=item_id
+        )
+        db.session.add(collection_item)
+        return True
+
+    return False
 
 
 def generate_conflict_report(source_file, import_type, conflicts):
@@ -191,22 +225,12 @@ def load_boredom_killer_movies(csv_file='Boredom Killer - Movies.csv', csv_folde
 
             # Update collections (always incremental, even for watched movies)
             if data.get('collections'):
-                existing_collections = set(
-                    collection.collection_name for collection in
-                    Collections.query.filter_by(item_type='Movie', item_id=tmdb_id).all()
-                )
-
                 collection_list = data['collections'].split('|')
                 for collection_name in collection_list:
                     collection_name = collection_name.strip()
-                    if collection_name and collection_name not in existing_collections:
-                        collection = Collections(
-                            collection_name=collection_name,
-                            item_type='Movie',
-                            item_id=tmdb_id
-                        )
-                        db.session.add(collection)
-                        collections_added += 1
+                    if collection_name:
+                        if add_item_to_collection(collection_name, 'Movie', tmdb_id):
+                            collections_added += 1
         else:
             # Create new movie record
             new_movie = Movies(**data)
@@ -219,13 +243,8 @@ def load_boredom_killer_movies(csv_file='Boredom Killer - Movies.csv', csv_folde
                 for collection_name in collection_list:
                     collection_name = collection_name.strip()
                     if collection_name:
-                        collection = Collections(
-                            collection_name=collection_name,
-                            item_type='Movie',
-                            item_id=tmdb_id
-                        )
-                        db.session.add(collection)
-                        collections_added += 1
+                        if add_item_to_collection(collection_name, 'Movie', tmdb_id):
+                            collections_added += 1
 
     # Commit all changes
     db.session.commit()
@@ -302,6 +321,13 @@ def load_letterboxd_export(letterboxd_folder=None):
                 'date_watched': parse_date(row['Watched Date'])
             })
 
+    # Helper function to clean <br> tags
+    def clean_br_tags(text):
+        """Remove <br> tags and replace with newlines"""
+        if not text:
+            return text
+        return text.replace('<br>', '\n').replace('<br/>', '\n').replace('<br />', '\n')
+
     # Process combined data
     movies_updated = 0
     reviews_added = 0
@@ -313,31 +339,15 @@ def load_letterboxd_export(letterboxd_folder=None):
         # Sort reviews by date_watched descending
         reviews = sorted(data['reviews'], key=lambda x: x['date_watched'], reverse=True) if data['reviews'] else []
 
-        # Use the most recent rating
+        # Use the most recent rating for Movies table
         my_rating = ratings[0]['my_rating'] if ratings else None
         date_watched = reviews[0]['date_watched'] if reviews else None
 
         # Prioritize letterboxd_id from ratings
         letterboxd_id = ratings[0]['letterboxd_id'] if ratings else (reviews[0]['letterboxd_id'] if reviews else None)
 
-        # Format reviews (combine multiple reviews with dates)
-        # Also clean <br> tags from review text
-        def clean_br_tags(text):
-            """Remove <br> tags and replace with newlines"""
-            if not text:
-                return text
-            return text.replace('<br>', '\n').replace('<br/>', '\n').replace('<br />', '\n')
-
-        if len(reviews) > 1:
-            sorted_reviews = sorted(reviews, key=lambda x: x['date_watched'], reverse=True)
-            my_review = "\n\n".join([
-                f"{review['date_watched'].strftime('%m/%d/%Y')}\n{clean_br_tags(review['review'])}"
-                for review in sorted_reviews
-            ])
-        elif reviews:
-            my_review = clean_br_tags(reviews[0]['review'])
-        else:
-            my_review = None
+        # For Movies table, use most recent review text
+        my_review = clean_br_tags(reviews[0]['review']) if reviews else None
 
         # Check if movie exists in database
         existing_movie = Movies.query.filter_by(letterboxd_id=letterboxd_id).first()
@@ -358,28 +368,43 @@ def load_letterboxd_export(letterboxd_folder=None):
                 db.session.add(existing_movie)
                 movies_updated += 1
 
-            # Add reviews (incremental)
-            if date_watched and (my_rating or my_review):
+            # Add EACH review as a separate record (incremental)
+            for review_data in reviews:
+                review_date = review_data['date_watched']
+                review_text = clean_br_tags(review_data['review'])
+
+                # Try to find matching rating by letterboxd_id
+                review_rating = None
+                for rating_data in ratings:
+                    if rating_data['letterboxd_id'] == review_data['letterboxd_id']:
+                        review_rating = rating_data['my_rating']
+                        break
+
+                # If no matching rating found, use the most recent rating
+                if not review_rating and ratings:
+                    review_rating = ratings[0]['my_rating']
+
+                # Check if this specific review already exists
                 existing_review = Reviews.query.filter_by(
                     item_type='Movie',
                     item_id=existing_movie.tmdb_id,
-                    date_reviewed=date_watched.strftime('%Y-%m-%d')
+                    date_reviewed=review_date.strftime('%Y-%m-%d')
                 ).first()
 
                 if existing_review:
                     # Only update empty fields
-                    if not existing_review.rating and my_rating:
-                        existing_review.rating = float(my_rating) if my_rating else None
-                    if not existing_review.review_text and my_review:
-                        existing_review.review_text = my_review
+                    if not existing_review.rating and review_rating:
+                        existing_review.rating = float(review_rating) if review_rating else None
+                    if not existing_review.review_text and review_text:
+                        existing_review.review_text = review_text
                 else:
-                    # Create new review
+                    # Create new review record for this specific watch
                     review = Reviews(
                         item_type='Movie',
                         item_id=existing_movie.tmdb_id,
-                        rating=float(my_rating) if my_rating else None,
-                        review_text=my_review,
-                        date_reviewed=date_watched.strftime('%Y-%m-%d')
+                        rating=float(review_rating) if review_rating else None,
+                        review_text=review_text,
+                        date_reviewed=review_date.strftime('%Y-%m-%d')
                     )
                     db.session.add(review)
                     reviews_added += 1
@@ -399,8 +424,10 @@ def load_letterboxd_export(letterboxd_folder=None):
     print(f"  Movies not found: {len(movies_not_found)}")
 
     if movies_not_found:
-        print(f"\n⚠️  {len(movies_not_found)} movies from Letterboxd not found in database")
-        print("   (Import Boredom Killer CSV first to add these movies)")
+        print(f"\n⚠️  {len(movies_not_found)} movies from Letterboxd not found in database:")
+        print("   (Import Boredom Killer CSV first to add these movies)\n")
+        for movie in movies_not_found:
+            print(f"   - {movie['title']} ({movie['year']}) - Letterboxd ID: {movie['letterboxd_id']}")
 
     # Move processed files (only in interactive mode, not for web uploads)
     if letterboxd_folder is None:

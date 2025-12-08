@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="home-content" style="background-image: url('{{ url_for('static', filename='images/home/IMG_4712.JPG') }}');">
+<div class="home-content" style="background-image: url('{{ static_url('images/home/IMG_4712.JPG') }}');">
     <div class="hero-section">
         <h1>Matt Flathers</h1>
     </div>
@@ -25,6 +25,7 @@
 {% block extra_scripts %}
 <script type="text/javascript">
     document.addEventListener('DOMContentLoaded', function() {
+        const STATIC_BASE_URL = "{{ static_url('') }}";
         const images = [
             '20190817_065826308_iOS.jpg',
             '20190322_012125224_iOS.jpg',
@@ -36,7 +37,7 @@
         let currentIndex = 0;
 
         function changeBackground() {
-            document.querySelector('.home-content').style.backgroundImage = `url('{{ url_for('static', filename='images/home/') }}${images[currentIndex]}')`;
+            document.querySelector('.home-content').style.backgroundImage = `url('${STATIC_BASE_URL}images/home/${images[currentIndex]}')`;
             currentIndex = (currentIndex + 1) % images.length;
         }
 

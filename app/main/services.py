@@ -55,6 +55,7 @@ def get_user_nav_items():
     """
     Get navigation items based on user role using page permissions config.
     Returns list of navigation items with name, url, and active_page.
+    Only includes pages where show_in_navbar is true.
     """
     permissions = load_page_permissions()
     user_role = current_user.role if current_user.is_authenticated else None
@@ -62,6 +63,10 @@ def get_user_nav_items():
     nav_items = []
 
     for page in permissions.get('pages', []):
+        # Only show pages that should appear in navbar
+        if not page.get('show_in_navbar', False):
+            continue
+
         # Check if this page should be visible to the current user
         if is_page_visible(page['page_name'], user_role):
             nav_items.append({
@@ -71,3 +76,18 @@ def get_user_nav_items():
             })
 
     return nav_items
+
+
+def can_access_page(page_name):
+    """
+    Template helper function to check if current user can access a page.
+    Returns True if user has permission to view the page.
+
+    Args:
+        page_name: Name of the page (e.g., 'books', 'movies')
+
+    Returns:
+        Boolean indicating if current user can access the page
+    """
+    user_role = current_user.role if current_user.is_authenticated else None
+    return is_page_visible(page_name, user_role)

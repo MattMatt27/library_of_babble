@@ -2,12 +2,13 @@
 Music/Spotify Business Logic and Helper Functions
 """
 import os
-import pandas as pd
+import re
 import spotipy
 from datetime import datetime, timedelta
 from spotipy.oauth2 import SpotifyClientCredentials
 from app.extensions import db
 from app.music.models import Playlists
+from app.common.models import Collection, CollectionItem
 
 # Initialize Spotify client
 SPOTIPY_CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
@@ -24,10 +25,10 @@ spotify = spotipy.Spotify(
 )
 
 
-def generate_monthly_playlists_df():
+def generate_monthly_playlists():
     """
-    Generate DataFrame of monthly playlists and mark them as site-approved.
-    Returns DataFrame with playlist_id, playlist_name, playlist_art columns.
+    Generate list of monthly playlists and mark them as site-approved.
+    Returns list of dicts with playlist_id, playlist_name, playlist_art keys.
     """
     # Define month format used in playlist names
     month_format = {
@@ -52,42 +53,60 @@ def generate_monthly_playlists_df():
 
     # Find matching playlists
     matching_playlists = []
+    matched_playlist_ids = set()
+
     for playlist in all_playlists:
-        if any(month in playlist.name for month in month_list):
-            matching_playlists.append({
-                'playlist_id': playlist.id,
-                'playlist_name': playlist.name,
-                'playlist_art': playlist.album_art
-            })
-            # Mark as site-approved
-            playlist.site_approved = True
+        # Match exact pattern (Month YY) - ensure no dash/space between month and year
+        matched = False
+        for month in month_list:
+            # Build pattern: opening paren, month name, single space, 2-digit year, closing paren
+            # Extract month and year from the month string like "(Feb 19)"
+            month_parts = month.strip('()').split()  # ['Feb', '19']
+            if len(month_parts) == 2:
+                month_name, year = month_parts
+                # Match opening paren, month, single space, year, closing paren
+                exact_pattern = rf'\({month_name}\s+{year}\)'
+                if re.search(exact_pattern, playlist.name):
+                    matching_playlists.append({
+                        'playlist_id': playlist.id,
+                        'playlist_name': playlist.name,
+                        'playlist_art': playlist.album_art
+                    })
+                    # Mark as site-approved
+                    playlist.site_approved = True
+                    matched_playlist_ids.add(playlist.id)
+                    matched = True
+                    break  # Stop checking other months once we find a match
+
+        # If playlist has a date-like pattern but didn't match, ensure it's not approved
+        if not matched and playlist.id not in matched_playlist_ids:
+            # Check if it looks like a date playlist (has parentheses with month name)
+            month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            for month_name in month_names:
+                if f'({month_name}' in playlist.name or f'({month_name.lower()}' in playlist.name:
+                    # This looks like a date playlist but didn't match our pattern
+                    playlist.site_approved = False
+                    break
 
     # Commit changes
     db.session.commit()
 
-    # Return as DataFrame
-    return pd.DataFrame(matching_playlists)
+    return matching_playlists
 
 
-def select_playlist(monthly_playlists_df, search_term):
+def select_playlist(monthly_playlists, search_term):
     """
     Select a specific playlist from monthly playlists based on search term.
     Returns tuple of (playlist_id, playlist_art, playlist_name) or (None, None, None)
     """
     selected_suffix = f'({search_term})'
 
-    # Filter DataFrame based on selected suffix
-    selected_playlist = monthly_playlists_df[
-        monthly_playlists_df['playlist_name'].str.contains(selected_suffix, na=False)
-    ]
+    # Find first matching playlist
+    for playlist in monthly_playlists:
+        if selected_suffix in playlist['playlist_name']:
+            return playlist['playlist_id'], playlist['playlist_art'], playlist['playlist_name']
 
-    if not selected_playlist.empty:
-        playlist_id = selected_playlist.iloc[0]['playlist_id']
-        playlist_art = selected_playlist.iloc[0]['playlist_art']
-        playlist_name = selected_playlist.iloc[0]['playlist_name']
-        return playlist_id, playlist_art, playlist_name
-    else:
-        return None, None, None
+    return None, None, None
 
 
 def get_tracks_artists(playlist_id):
@@ -120,3 +139,42 @@ def get_site_approved_playlists():
         'album_art': playlist.album_art,
         'description': playlist.description
     } for playlist in playlists]
+
+
+def get_approved_playlist_collections():
+    """
+    Get all approved collections that contain playlists.
+    Returns dict: {collection_name: {description, playlists: [...]}}
+    """
+    # Get all approved collections
+    collections = Collection.query.filter_by(site_approved=True).all()
+
+    result = {}
+    for collection in collections:
+        # Get playlist items in this collection
+        playlist_items = CollectionItem.query.filter_by(
+            collection_id=collection.id,
+            item_type='Playlist'
+        ).all()
+
+        if not playlist_items:
+            continue  # Skip collections with no playlists
+
+        playlists = []
+        for item in playlist_items:
+            playlist = Playlists.query.get(item.item_id)
+            if playlist:
+                playlists.append({
+                    'id': playlist.id,
+                    'name': playlist.name,
+                    'album_art': playlist.album_art,
+                    'description': playlist.description
+                })
+
+        if playlists:  # Only include if we found actual playlists
+            result[collection.collection_name] = {
+                'description': collection.description,
+                'playlists': playlists
+            }
+
+    return result

@@ -9,11 +9,38 @@ import json
 from pathlib import Path
 from typing import List, Union, Tuple
 from urllib.parse import urlparse, urljoin
-from flask import request, abort
-from flask_login import current_user
+from flask import request, abort, jsonify
+from flask_login import current_user, login_required
 from functools import wraps
 from markupsafe import Markup
 import bleach
+
+
+# ==============================================================================
+# Authorization Decorators
+# ==============================================================================
+
+def admin_required(f):
+    """
+    Decorator to require admin access for a route.
+    Use for admin-only API endpoints (user management, data imports, etc.)
+
+    Note: For page-level access control based on the 4-tier role hierarchy
+    (public -> viewer -> user -> admin), use can_access_page() instead.
+
+    Usage:
+        @app.route('/admin-only')
+        @admin_required
+        def admin_page():
+            ...
+    """
+    @wraps(f)
+    @login_required
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_admin:
+            return jsonify({'error': 'Admin access required'}), 403
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 # ==============================================================================
@@ -127,10 +154,13 @@ def sanitize_path(path: Union[str, Path]) -> str:
     """
     path = Path(path).resolve()
     # Ensure path is within expected directories
+    import tempfile
     allowed_bases = [
         Path.cwd() / 'static',
         Path.cwd() / 'scripts',
-        Path('/tmp'),
+        Path.cwd() / 'data',
+        Path('/tmp').resolve(),
+        Path(tempfile.gettempdir()).resolve(),  # System temp directory (e.g., /private/var/folders on macOS)
     ]
     if not any(path.is_relative_to(base) for base in allowed_bases):
         raise ValueError(f"Path {path} is outside allowed directories")
@@ -246,17 +276,21 @@ def run_pg_dump(db_uri: str, output_path: str) -> subprocess.CompletedProcess:
 
     # Use environment variable for password instead of URI
     import os
+    import getpass
     env = os.environ.copy()
     if parsed.password:
         env['PGPASSWORD'] = parsed.password
 
     # Build safe command
+    # If no username in URI, use current system user (PostgreSQL default behavior)
+    username = parsed.username if parsed.username else getpass.getuser()
+
     cmd = [
         'pg_dump',
         '-Fc',
         '-h', parsed.hostname or 'localhost',
         '-p', str(parsed.port or 5432),
-        '-U', parsed.username or 'postgres',
+        '-U', username,
         '-d', parsed.path.lstrip('/'),
         '-f', output_path
     ]
@@ -444,7 +478,7 @@ def page_visible(page_name):
                     permissions = json.load(file)
             except FileNotFoundError:
                 # If config doesn't exist, only allow admins
-                if not current_user.is_authenticated or current_user.role != 'admin':
+                if not current_user.is_authenticated or not current_user.is_admin:
                     abort(403)
                 return f(*args, **kwargs)
 
@@ -457,7 +491,7 @@ def page_visible(page_name):
 
             # If page not in config, default to admin-only
             if not page_config:
-                if not current_user.is_authenticated or current_user.role != 'admin':
+                if not current_user.is_authenticated or not current_user.is_admin:
                     abort(403)
                 return f(*args, **kwargs)
 

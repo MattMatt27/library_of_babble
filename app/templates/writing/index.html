@@ -31,7 +31,7 @@
         <div class="writing-section-header">
             <h2>Creative</h2>
             <p>Outside of work, I enjoy hanging out with my cat Salad Dressing, scouring library used book sales, and making unnecessary spreadsheets. My writing explores neurodivergence, generative AI, and American history/politics. Distilled further, my writing orbits the central theme: miscommunication.</p>
-            <p style="margin-top: var(--space-3);">To see what I have been reading lately, check out the <a href="{{ url_for('books.reading') }}" style="color: var(--accent-blue);">Reading</a> section of my website.</p>
+            <p style="margin-top: var(--space-3);">To see what I have been reading lately, check out the <a href="{{ url_for('reading.index') }}" style="color: var(--accent-blue);">Reading</a> section of my website.</p>
         </div>
 
         {% for category, pubs in creative_pubs.items() %}

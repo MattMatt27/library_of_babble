@@ -6,6 +6,7 @@
 
 {% block extra_styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/account.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/galleries.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -30,7 +31,7 @@
     </div>
 
     <!-- Liked Artworks Section -->
-    {% if current_user.can_view_artworks %}
+    {% if can_access_page('pondering') %}
     <div class="gallery-section">
         <div class="gallery-section-header">
             <h2>Your Liked Artworks <span class="gallery-count">({{ liked_count }})</span></h2>
@@ -46,9 +47,16 @@
         <div class="gallery-row">
             {% for artwork in liked_artworks %}
             <div class="gallery-item">
-                <img src="{{ url_for('static', filename='images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
+                <img src="{{ static_url('images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
                      alt="{{ artwork.title }}"
-                     data-artwork-id="{{ artwork.id }}">
+                     data-img-id="{{ artwork.id }}"
+                     data-full-img="{{ static_url('images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
+                     data-title="{{ artwork.title }}"
+                     data-artist="{{ artwork.artist }}"
+                     data-year="{{ artwork.year }}"
+                     data-location="{{ artwork.location }}"
+                     data-medium="{{ artwork.medium }}"
+                     data-description="{{ artwork.description }}">
             </div>
             {% endfor %}
         </div>
@@ -56,6 +64,48 @@
         <div class="empty-state">
             <p>You haven't liked any artworks yet.</p>
             <a href="{{ url_for('artworks.pondering') }}" class="btn btn-primary">Explore Artworks</a>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Liked Quotes Section -->
+    {% if can_access_page('book-detail') %}
+    <div class="quotes-section">
+        <div class="quotes-section-header">
+            <h2>Your Liked Quotes <span class="quote-count">({{ liked_quotes_count }})</span></h2>
+            {% if liked_quotes_count > 0 %}
+            <a href="{{ url_for('reading.index') }}" class="btn btn-secondary">Browse Books</a>
+            {% endif %}
+        </div>
+
+        {% if liked_quotes %}
+        <div class="quotes-grid" id="quotesGrid">
+            {% for quote in liked_quotes %}
+            <div class="liked-quote-card" onclick="openQuoteModal({{ loop.index0 }})">
+                <div class="liked-quote-text">"{{ quote.text }}"</div>
+                <div class="liked-quote-meta">
+                    <div class="liked-quote-book">{{ quote.book_title }}</div>
+                    <div class="liked-quote-author">by {{ quote.book_author }}</div>
+                    <div class="liked-quote-page">Page {{ quote.page_number }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="quotes-pagination">
+            <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)" disabled>
+                <i class="fa-solid fa-chevron-left"></i> Previous
+            </button>
+            <span class="pagination-info" id="pageInfo">Page 1</span>
+            <button class="pagination-btn" id="nextBtn" onclick="changePage(1)">
+                Next <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>You haven't liked any quotes yet.</p>
+            <a href="{{ url_for('reading.index') }}" class="btn btn-primary">Explore Books</a>
         </div>
         {% endif %}
     </div>
@@ -74,25 +124,25 @@
             <div class="tool-grid">
                 <button class="tool-button" onclick="openModal('goodreadsModal')">
                     <span class="tool-icon">
-                        <img src="{{ url_for('static', filename='images/logos/goodreads.png') }}" alt="Goodreads">
+                        <img src="{{ static_url('images/logos/goodreads.png') }}" alt="Goodreads">
                     </span>
                     <span class="tool-label">Import Goodreads</span>
                 </button>
                 <button class="tool-button" onclick="openModal('bkModal')">
                     <span class="tool-icon">
-                        <img src="{{ url_for('static', filename='images/logos/plex.png') }}" alt="Plex">
+                        <img src="{{ static_url('images/logos/plex.png') }}" alt="Plex">
                     </span>
                     <span class="tool-label">Import Boredom Killer</span>
                 </button>
                 <button class="tool-button" onclick="openModal('letterboxdModal')">
                     <span class="tool-icon">
-                        <img src="{{ url_for('static', filename='images/logos/letterboxd.png') }}" alt="Letterboxd">
+                        <img src="{{ static_url('images/logos/letterboxd.png') }}" alt="Letterboxd">
                     </span>
                     <span class="tool-label">Import Letterboxd</span>
                 </button>
                 <button class="tool-button" onclick="openModal('spotifyModal')">
                     <span class="tool-icon">
-                        <img src="{{ url_for('static', filename='images/logos/spotify.png') }}" alt="Spotify">
+                        <img src="{{ static_url('images/logos/spotify.png') }}" alt="Spotify">
                     </span>
                     <span class="tool-label">Refresh Spotify</span>
                 </button>
@@ -156,11 +206,342 @@
     {% endif %}
 </div>
 
+<!-- Artwork Image Viewer -->
+<div id="image-viewer" class="image-viewer">
+    <button id="close-viewer" class="close-viewer">&times;</button>
+    <button class="like-button" data-artwork-id="">
+        <img src="{{ static_url('images/assets/hearts/heart_filled.png') }}" alt="Heart Icon" class="heart-icon">
+    </button>
+    <button id="prev-image" class="nav-arrow prev-arrow">&lt;</button>
+    <button id="next-image" class="nav-arrow next-arrow">&gt;</button>
+    <div class="image-viewer-content">
+        <div class="viewer-image-container">
+            <img id="viewer-image" src="" alt="Artwork">
+            <button class="viewer-details-toggle" id="viewer-details-toggle" aria-label="Toggle details"></button>
+        </div>
+        <div class="viewer-details">
+            <div class="viewer-details-content">
+                <h2 id="viewer-title"></h2>
+                <p class="artist-name"><strong>Artist:</strong> <a href="#" id="viewer-artist" class="artist-link"></a></p>
+                <p><strong>Year:</strong> <span id="viewer-year"></span></p>
+                <p><strong>Medium:</strong> <span id="viewer-medium"></span></p>
+                <p><strong>Location:</strong> <span id="viewer-location"></span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quote Detail Modal -->
+<div class="modal-overlay" id="quoteModal">
+    <div class="modal quote-modal">
+        <div class="modal-header">
+            <h3>Quote Details</h3>
+            <button class="modal-close" onclick="closeQuoteModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="quote-modal-text" id="quoteModalText"></div>
+            <div class="quote-modal-meta">
+                <div class="quote-modal-book" id="quoteModalBook"></div>
+                <div class="quote-modal-author" id="quoteModalAuthor"></div>
+                <div class="quote-modal-page" id="quoteModalPage"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeQuoteModal()">Close</button>
+            <a href="#" class="btn btn-primary" id="quoteModalLink">View Book</a>
+        </div>
+    </div>
+</div>
+
 <!-- Modals will go here -->
 {% include 'account/modals.html' %}
 
 {% endblock %}
 
 {% block extra_scripts %}
+<script>
+// Artwork viewer
+const STATIC_BASE_URL = "{{ static_url('') }}";
+
+(function() {
+    const viewer = document.getElementById('image-viewer');
+    if (!viewer) return;
+
+    const viewerImage = document.getElementById('viewer-image');
+    const viewerTitle = document.getElementById('viewer-title');
+    const viewerArtist = document.getElementById('viewer-artist');
+    const viewerYear = document.getElementById('viewer-year');
+    const viewerMedium = document.getElementById('viewer-medium');
+    const viewerLocation = document.getElementById('viewer-location');
+    const closeViewerButton = document.getElementById('close-viewer');
+    const prevArrow = document.getElementById('prev-image');
+    const nextArrow = document.getElementById('next-image');
+    const likeButton = viewer.querySelector('.like-button');
+    const heartIcon = likeButton.querySelector('.heart-icon');
+
+    const images = Array.from(document.querySelectorAll('.gallery-section .gallery-item img'));
+    let currentIndex = 0;
+    let currentArtworkId = null;
+
+    function openImageViewer(index) {
+        currentIndex = index;
+        const imgElement = images[currentIndex];
+
+        const fullImgSrc = imgElement.getAttribute('data-full-img');
+        const imgId = imgElement.getAttribute('data-img-id');
+        const title = imgElement.getAttribute('data-title');
+        const artist = imgElement.getAttribute('data-artist');
+        const year = imgElement.getAttribute('data-year');
+        const medium = imgElement.getAttribute('data-medium');
+        const location = imgElement.getAttribute('data-location');
+
+        viewerImage.src = fullImgSrc;
+        viewerTitle.textContent = title || "Unknown Title";
+        viewerArtist.textContent = artist || "Unknown Artist";
+        viewerArtist.href = artist ? `/artworks/pondering?artist=${encodeURIComponent(artist)}` : '#';
+        viewerYear.textContent = year || "Unknown";
+        viewerMedium.textContent = medium || "Unknown Medium";
+        viewerLocation.textContent = location || "Unknown Location";
+
+        currentArtworkId = imgId;
+        likeButton.setAttribute('data-artwork-id', imgId);
+
+        // All artworks here are liked, so always show filled heart
+        heartIcon.src = `${STATIC_BASE_URL}images/assets/hearts/heart_filled.png`;
+
+        viewer.style.display = 'flex';
+    }
+
+    function closeImageViewer() {
+        viewer.style.display = 'none';
+    }
+
+    function showPrevImage() {
+        currentIndex = (currentIndex - 1 + images.length) % images.length;
+        openImageViewer(currentIndex);
+    }
+
+    function showNextImage() {
+        currentIndex = (currentIndex + 1) % images.length;
+        openImageViewer(currentIndex);
+    }
+
+    function getCSRFToken() {
+        return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    }
+
+    // Unlike functionality - removes from liked artworks
+    likeButton.addEventListener('click', function() {
+        if (!currentArtworkId) return;
+
+        fetch('/artworks/like_artwork', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ artwork_id: currentArtworkId }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.liked) {
+                // Artwork was unliked - remove from display and close viewer
+                const imgToRemove = images[currentIndex];
+                const galleryItem = imgToRemove.closest('.gallery-item');
+                if (galleryItem) {
+                    galleryItem.remove();
+                }
+                // Update images array
+                images.splice(currentIndex, 1);
+
+                // Update count in header
+                const countSpan = document.querySelector('.gallery-section .gallery-count');
+                if (countSpan) {
+                    const currentCount = parseInt(countSpan.textContent.match(/\d+/)[0]);
+                    countSpan.textContent = `(${currentCount - 1})`;
+                }
+
+                if (images.length === 0) {
+                    closeImageViewer();
+                    // Show empty state
+                    const galleryRow = document.querySelector('.gallery-section .gallery-row');
+                    if (galleryRow) {
+                        galleryRow.outerHTML = `<div class="empty-state">
+                            <p>You haven't liked any artworks yet.</p>
+                            <a href="{{ url_for('artworks.pondering') }}" class="btn btn-primary">Explore Artworks</a>
+                        </div>`;
+                    }
+                } else {
+                    // Show next image (or previous if at end)
+                    if (currentIndex >= images.length) {
+                        currentIndex = images.length - 1;
+                    }
+                    openImageViewer(currentIndex);
+                }
+            }
+        })
+        .catch(error => console.error('Error toggling like state:', error));
+    });
+
+    images.forEach((img, index) => {
+        img.addEventListener('click', () => openImageViewer(index));
+    });
+
+    closeViewerButton.addEventListener('click', closeImageViewer);
+    prevArrow.addEventListener('click', showPrevImage);
+    nextArrow.addEventListener('click', showNextImage);
+
+    viewer.addEventListener('click', (e) => {
+        if (e.target === viewer) {
+            closeImageViewer();
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (viewer.style.display === 'flex') {
+            if (e.key === 'Escape') closeImageViewer();
+            if (e.key === 'ArrowLeft') showPrevImage();
+            if (e.key === 'ArrowRight') showNextImage();
+        }
+    });
+
+    // Toggle viewer details minimize/maximize
+    const viewerDetailsToggle = document.getElementById('viewer-details-toggle');
+    const viewerDetails = document.querySelector('.viewer-details');
+
+    if (viewerDetailsToggle) {
+        viewerDetailsToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            viewerDetails.classList.toggle('minimized');
+            viewer.classList.toggle('details-minimized');
+        });
+    }
+})();
+
+// Quote data for modal
+const likedQuotes = {{ liked_quotes | tojson }};
+
+function openQuoteModal(index) {
+    const quote = likedQuotes[index];
+
+    // Populate modal with quote data
+    document.getElementById('quoteModalText').textContent = `"${quote.text}"`;
+    document.getElementById('quoteModalBook').textContent = quote.book_title;
+    document.getElementById('quoteModalAuthor').textContent = `by ${quote.book_author}`;
+    document.getElementById('quoteModalPage').textContent = `Page ${quote.page_number}`;
+    document.getElementById('quoteModalLink').href = `/books/${quote.book_id}`;
+
+    // Show modal
+    const modal = document.getElementById('quoteModal');
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeQuoteModal() {
+    const modal = document.getElementById('quoteModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// Pagination state
+let currentPage = 1;
+let cardsPerPage = 9; // 3 rows × 3 cards (default)
+let totalCards = 0;
+
+function calculateCardsPerPage() {
+    const grid = document.getElementById('quotesGrid');
+    if (!grid) return;
+
+    const cards = grid.querySelectorAll('.liked-quote-card');
+    if (cards.length === 0) return;
+
+    // Get the computed grid columns
+    const gridStyle = window.getComputedStyle(grid);
+    const gridTemplateColumns = gridStyle.gridTemplateColumns.split(' ').length;
+
+    // 3 rows × number of columns
+    cardsPerPage = gridTemplateColumns * 3;
+    totalCards = cards.length;
+}
+
+function showPage(page) {
+    const grid = document.getElementById('quotesGrid');
+    if (!grid) return;
+
+    const cards = grid.querySelectorAll('.liked-quote-card');
+    const startIndex = (page - 1) * cardsPerPage;
+    const endIndex = startIndex + cardsPerPage;
+
+    cards.forEach((card, index) => {
+        if (index >= startIndex && index < endIndex) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    // Update pagination controls
+    const totalPages = Math.ceil(totalCards / cardsPerPage);
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const pageInfo = document.getElementById('pageInfo');
+
+    if (prevBtn) prevBtn.disabled = page === 1;
+    if (nextBtn) nextBtn.disabled = page >= totalPages;
+    if (pageInfo) pageInfo.textContent = `Page ${page} of ${totalPages}`;
+}
+
+function changePage(direction) {
+    const totalPages = Math.ceil(totalCards / cardsPerPage);
+    currentPage += direction;
+
+    if (currentPage < 1) currentPage = 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    showPage(currentPage);
+
+    // Scroll to top of quotes section
+    const quotesSection = document.querySelector('.quotes-section');
+    if (quotesSection) {
+        quotesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// Close modal on overlay click
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('quoteModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeQuoteModal();
+            }
+        });
+    }
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const activeModal = document.querySelector('.modal-overlay.active');
+            if (activeModal && activeModal.id === 'quoteModal') {
+                closeQuoteModal();
+            }
+        }
+    });
+
+    // Initialize pagination
+    calculateCardsPerPage();
+    showPage(1);
+
+    // Recalculate on window resize
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            calculateCardsPerPage();
+            showPage(currentPage);
+        }, 250);
+    });
+});
+</script>
 <script type="module" src="{{ url_for('static', filename='js/account/main.js') }}"></script>
 {% endblock %}

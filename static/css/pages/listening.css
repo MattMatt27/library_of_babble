@@ -302,14 +302,14 @@ body {
 }
 
 .playlist-title {
-  font-size: var(--font-3xl);
+  font-size: var(--font-xl);
   font-weight: var(--font-bold);
   color: var(--text-primary);
   margin: 0 0 var(--space-2) 0;
 }
 
 .playlist-description {
-  font-size: var(--font-lg);
+  font-size: var(--font-base);
   color: var(--text-secondary);
   margin: 0;
 }

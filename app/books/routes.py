@@ -1,45 +1,20 @@
 """
 Books Routes
 """
-from flask import render_template, request, redirect, url_for, jsonify, flash
+from flask import render_template, request, redirect, url_for, jsonify, flash, current_app
 from flask_login import login_required, current_user
 from app.books import books_bp
-from app.books.models import Books, BookQuote
-from app.books.services import (
-    get_recently_read_books,
-    read_books_from_db,
-    get_books_from_bookshelf,
-    truncate_title
-)
+from app.books.models import Books, BookQuote, LikedQuotes
+from app.books.services import truncate_title
 from app.common.models import Reviews
 from app.extensions import db
+from app.utils.security import page_visible
 from app.utils.security import sanitize_html
-
-
-@books_bp.route('/')
-def index():
-    """List all books"""
-    books_data = read_books_from_db()
-    return render_template('books/index.html', books=books_data)
-
-
-@books_bp.route('/reading')
-def reading():
-    """Reading page with recently read and recommendations"""
-    recently_read_books = get_recently_read_books()
-    recommended_fiction_books = get_books_from_bookshelf('matts-recommended-fiction')
-    recommended_nonfiction_books = get_books_from_bookshelf('matts-recommended-nonfiction')
-
-    return render_template(
-        'books/reading.html',
-        recently_read_books=recently_read_books,
-        recommended_fiction_books=recommended_fiction_books,
-        recommended_nonfiction_books=recommended_nonfiction_books,
-        current_user=current_user
-    )
+import html
 
 
 @books_bp.route('/<int:book_id>')
+@page_visible('book-detail')
 def detail(book_id):
     """Individual book detail page with reviews and quotes"""
     # Get book details from the database
@@ -77,10 +52,34 @@ def detail(book_id):
         book_id=str(book_id)
     ).order_by(BookQuote.page_number).all()
 
+    # Get user's liked quotes (if authenticated)
+    liked_quote_ids = set()
+    if current_user.is_authenticated:
+        liked_quotes = LikedQuotes.query.filter_by(
+            user_id=current_user.id
+        ).all()
+        liked_quote_ids = {like.quote_id for like in liked_quotes}
+
     for quote in quote_records:
+        # Fix Windows-1252 encoding issues (common in imported data)
+        quote_text = quote.quote_text
+        # Map common Windows-1252 characters to proper Unicode
+        replacements = {
+            '\u0092': "'",  # Right single quotation mark
+            '\u0093': '"',  # Left double quotation mark
+            '\u0094': '"',  # Right double quotation mark
+            '\u0096': '—',  # Em dash
+            '\u0097': '—',  # Em dash (alternative)
+            '\u0091': "'",  # Left single quotation mark
+        }
+        for old, new in replacements.items():
+            quote_text = quote_text.replace(old, new)
+
         quotes.append({
-            'text': quote.quote_text,
-            'page_number': quote.page_number if quote.page_number else "N/A"
+            'id': quote.id,
+            'text': quote_text,
+            'page_number': quote.page_number if quote.page_number else "N/A",
+            'is_liked': quote.id in liked_quote_ids
         })
 
     return render_template(
@@ -95,7 +94,7 @@ def detail(book_id):
 @login_required
 def update_review(book_id):
     """Update book review (admin only)"""
-    if current_user.role != 'admin':
+    if not current_user.is_admin:
         return jsonify({'error': 'Permission denied'}), 403
 
     book = Books.query.get_or_404(book_id)
@@ -137,7 +136,7 @@ def update_review(book_id):
 @login_required
 def add_quote(book_id):
     """Add a quote to a book (admin only)"""
-    if current_user.role != 'admin':
+    if not current_user.is_admin:
         return jsonify({'error': 'Permission denied'}), 403
 
     quote_text = request.form.get('quote_text')
@@ -155,11 +154,30 @@ def add_quote(book_id):
     return redirect(url_for('books.detail', book_id=book_id))
 
 
+@books_bp.route('/update_quote/<int:quote_id>', methods=['POST'])
+@login_required
+def update_quote(quote_id):
+    """Update a quote (admin only)"""
+    if not current_user.is_admin:
+        return jsonify({'error': 'Permission denied'}), 403
+
+    quote = BookQuote.query.get_or_404(quote_id)
+    quote_text = request.form.get('quote_text')
+    page_number = request.form.get('page_number')
+
+    if quote_text:
+        quote.quote_text = quote_text
+        quote.page_number = int(page_number) if page_number else None
+        db.session.commit()
+
+    return redirect(url_for('books.detail', book_id=quote.book_id))
+
+
 @books_bp.route('/update_cover_url/<int:book_id>', methods=['POST'])
 @login_required
 def update_cover_url(book_id):
     """Update the cover image URL for a book (admin only)"""
-    if current_user.role != 'admin':
+    if not current_user.is_admin:
         return jsonify({'error': 'Permission denied'}), 403
 
     book = Books.query.get_or_404(book_id)
@@ -181,7 +199,7 @@ def update_cover_url(book_id):
 @login_required
 def update_rating(book_id):
     """Update book rating via AJAX (admin only)"""
-    if current_user.role != 'admin':
+    if not current_user.is_admin:
         return jsonify({'error': 'Permission denied'}), 403
 
     try:
@@ -222,3 +240,51 @@ def update_rating(book_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+
+@books_bp.route('/like_quote', methods=['POST'])
+@login_required
+def like_quote():
+    """Toggle quote like (API endpoint)"""
+    # Input validation
+    quote_id = request.json.get('quote_id')
+    if not quote_id:
+        return jsonify({'error': 'Quote ID is required'}), 400
+
+    # Validate quote_id is an integer
+    try:
+        quote_id = int(quote_id)
+    except (ValueError, TypeError):
+        return jsonify({'error': 'Invalid quote ID'}), 400
+
+    # Verify quote exists
+    quote = BookQuote.query.get(quote_id)
+    if not quote:
+        return jsonify({'error': 'Quote not found'}), 404
+
+    try:
+        # Check if already liked
+        liked = LikedQuotes.query.filter_by(
+            user_id=current_user.id,
+            quote_id=quote_id
+        ).first()
+
+        if liked:
+            # Unlike: remove the like
+            db.session.delete(liked)
+            db.session.commit()
+            return jsonify({'liked': False})
+        else:
+            # Like: add the like
+            new_like = LikedQuotes(
+                user_id=current_user.id,
+                quote_id=quote_id
+            )
+            db.session.add(new_like)
+            db.session.commit()
+            return jsonify({'liked': True})
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error toggling quote like: {str(e)}", exc_info=True)
+        return jsonify({'error': 'An error occurred'}), 500

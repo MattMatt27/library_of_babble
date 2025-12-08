@@ -6,9 +6,11 @@ from flask import render_template
 from app.watching import watching_bp
 from app.shows.services import get_shows_from_collection
 from app.movies.services import get_recently_watched_movies, get_movies_from_collection
+from app.utils.security import page_visible
 
 
 @watching_bp.route('/')
+@page_visible('watching')
 def index():
     """Watching page - recently watched movies and TV shows"""
     # Get movie data

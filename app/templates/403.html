@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}🔒 Access Forbidden{% endblock %}
+
+{% set active_page = '403' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/error.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="error-background">
+        {% for image in images %}
+            <img src="{{ static_url('images/creating/lunacy/' ~ image) }}" alt="Generative Art">
+        {% endfor %}
+    </div>
+
+    <div class="error-content">
+        <div class="error-card">
+            <div class="error-code">403</div>
+            <h1 class="error-title">Access Forbidden</h1>
+            <p class="error-message">You don't have permission to view this page. This content requires a different user role.</p>
+            <div class="error-actions">
+                <a href="{{ url_for('main.home') }}" class="error-action">Return Home</a>
+                {% if current_user.is_authenticated %}
+                    <a href="mailto:contact@example.com?subject=Access Request" class="error-action secondary">Request Access</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // JavaScript to rotate generative art images
+    const images = document.querySelectorAll('.error-background img');
+    let currentIndex = 0;
+
+    function rotateImages() {
+        images[currentIndex].classList.remove('active');
+        currentIndex = (currentIndex + 1) % images.length;
+        images[currentIndex].classList.add('active');
+    }
+
+    // Rotate every 5 seconds
+    setInterval(rotateImages, 5000);
+
+    // Initial activation of the first image
+    if (images.length > 0) {
+        images[currentIndex].classList.add('active');
+    }
+</script>
+{% endblock %}

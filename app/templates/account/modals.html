@@ -227,9 +227,10 @@
                     </div>
 
                     <!-- Artist Name -->
-                    <div class="form-group">
+                    <div class="form-group" style="position: relative;">
                         <label for="artworkArtist">Artist Name (Required)</label>
-                        <input type="text" id="artworkArtist" name="artist" class="form-input">
+                        <input type="text" id="artworkArtist" name="artist" class="form-input" autocomplete="off">
+                        <div id="artistSuggestions" class="autocomplete-suggestions" style="display: none;"></div>
                     </div>
 
                     <!-- Artwork Title -->

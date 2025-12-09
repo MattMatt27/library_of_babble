@@ -18,7 +18,7 @@ import { submitLetterboxdImport } from './watching/letterboxd.js';
 import { submitSpotifyRefresh } from './listening/spotify.js';
 
 // Pondering modules
-import { switchUploadMode, submitArtworkUpload } from './pondering/artworkManager.js';
+import { switchUploadMode, submitArtworkUpload, initArtistAutocomplete } from './pondering/artworkManager.js';
 
 // Writing modules
 import {
@@ -43,6 +43,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize publications
     initializePublications();
+
+    // Initialize artist autocomplete for artwork upload
+    initArtistAutocomplete();
 });
 
 /**

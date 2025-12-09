@@ -211,3 +211,35 @@ def is_liked():
     ).first()
 
     return jsonify({'liked': bool(liked)})
+
+
+@artworks_bp.route('/api/artists', methods=['GET'])
+@login_required
+def get_artists():
+    """
+    Get list of unique artists.
+
+    Query params:
+        q (optional): Search query to filter artists (case-insensitive, partial match)
+
+    Returns:
+        JSON array of artist names, sorted alphabetically
+    """
+    query = request.args.get('q', '').strip()
+
+    # Base query for distinct artists
+    artists_query = db.session.query(Artworks.artist).filter(
+        Artworks.artist.isnot(None),
+        Artworks.artist != ''
+    ).distinct()
+
+    # Apply search filter if provided
+    if query:
+        artists_query = artists_query.filter(
+            Artworks.artist.ilike(f'%{query}%')
+        )
+
+    # Execute and format results
+    artists = artists_query.order_by(Artworks.artist).limit(50).all()
+
+    return jsonify([artist[0] for artist in artists])

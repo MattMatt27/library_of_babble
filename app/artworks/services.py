@@ -101,12 +101,13 @@ def get_approved_artworks_from_db(page=1, per_page=100, sort_order='asc',
     # Build base query
     query = Artworks.query.filter(Artworks.site_approved == True)
 
-    # Apply collection filter
+    # Apply collection filter (AND logic - artwork must be in ALL selected collections)
     if collection_filter:
         from flask_login import current_user
         from app.artworks.models import LikedArtworks
 
-        artwork_ids = set()
+        # Collect artwork ID sets for each collection
+        collection_sets = []
 
         # Handle "my_likes" specially
         if 'my_likes' in collection_filter:
@@ -114,20 +115,32 @@ def get_approved_artworks_from_db(page=1, per_page=100, sort_order='asc',
                 liked_ids = db.session.query(LikedArtworks.artwork_id).filter(
                     LikedArtworks.user_id == current_user.id
                 ).all()
-                artwork_ids.update([lid[0] for lid in liked_ids])
+                collection_sets.append(set(lid[0] for lid in liked_ids))
+            else:
+                # User not authenticated but requested my_likes - empty set
+                collection_sets.append(set())
 
-        # Get other collection galleries
+        # Get artwork IDs for each gallery collection separately
         other_collections = [c for c in collection_filter if c != 'my_likes']
-        if other_collections:
+        for collection_id in other_collections:
             gallery_artwork_ids = db.session.query(ArtworkGalleryItem.artwork_id).filter(
-                ArtworkGalleryItem.gallery_id.in_(other_collections)
-            ).distinct().all()
-            artwork_ids.update([aid[0] for aid in gallery_artwork_ids])
+                ArtworkGalleryItem.gallery_id == collection_id
+            ).all()
+            collection_sets.append(set(aid[0] for aid in gallery_artwork_ids))
 
-        if artwork_ids:
-            query = query.filter(Artworks.id.in_(list(artwork_ids)))
+        # Intersect all sets (AND logic)
+        if collection_sets:
+            artwork_ids = collection_sets[0]
+            for s in collection_sets[1:]:
+                artwork_ids = artwork_ids.intersection(s)
+
+            if artwork_ids:
+                query = query.filter(Artworks.id.in_(list(artwork_ids)))
+            else:
+                # No artworks match ALL collections, return empty
+                return [], 0, all_artists
         else:
-            # No artworks match the collection filter, return empty
+            # No valid collections to filter by
             return [], 0, all_artists
 
     # Apply artist filter

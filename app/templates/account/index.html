@@ -47,10 +47,10 @@
         <div class="gallery-row">
             {% for artwork in liked_artworks %}
             <div class="gallery-item">
-                <img src="{{ static_url('images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
+                <img src="{{ static_url('images/artists/' + artwork.filesystem_artist + '/' + artwork.file_name) }}"
                      alt="{{ artwork.title }}"
                      data-img-id="{{ artwork.id }}"
-                     data-full-img="{{ static_url('images/artists/' + artwork.artist + '/' + artwork.file_name) }}"
+                     data-full-img="{{ static_url('images/artists/' + artwork.filesystem_artist + '/' + artwork.file_name) }}"
                      data-title="{{ artwork.title }}"
                      data-artist="{{ artwork.artist }}"
                      data-year="{{ artwork.year }}"

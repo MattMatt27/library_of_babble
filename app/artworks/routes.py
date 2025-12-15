@@ -163,6 +163,7 @@ def artwork_to_dict(artwork):
         'id': artwork.id,
         'title': artwork.title,
         'artist': artwork.artist,
+        'filesystem_artist': artwork.artist or '',
         'year': artwork.year,
         'file_name': artwork.file_name,
         'location': artwork.location,

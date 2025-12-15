@@ -9,7 +9,7 @@ from app.extensions import db
 from app.artworks.models import Artworks, LikedArtworks
 from app.books.models import LikedQuotes, BookQuote, Books
 from app.auth.models import User
-from app.utils.security import run_etl_script, run_pg_dump, sanitize_path, sanitize_directory_name, validate_file_path, admin_required
+from app.utils.security import run_etl_script, run_pg_dump, sanitize_path, sanitize_directory_name, sanitize_artist_name, validate_file_path, admin_required
 import json
 import csv
 import tempfile
@@ -131,7 +131,19 @@ def index():
 
         # Get artwork details (limit to 24 for preview)
         if liked_ids:
-            liked_artworks = Artworks.query.filter(Artworks.id.in_(liked_ids)).limit(24).all()
+            artworks_query = Artworks.query.filter(Artworks.id.in_(liked_ids)).limit(24).all()
+            # Convert to dicts with filesystem_artist for image path construction
+            liked_artworks = [{
+                'id': a.id,
+                'title': a.title,
+                'artist': a.artist,
+                'filesystem_artist': a.artist or '',  # Same as artist for Option A (Unicode preserved)
+                'year': a.year,
+                'file_name': a.file_name,
+                'location': a.location,
+                'medium': a.medium,
+                'description': a.description
+            } for a in artworks_query]
             liked_count = len(liked_ids)
 
     # Get user's liked quotes if they have permission
@@ -862,8 +874,8 @@ def upload_artwork():
         original_filename = secure_filename(file.filename)
         file_ext = Path(original_filename).suffix
 
-        # Sanitize artist name to prevent path traversal
-        safe_artist = sanitize_directory_name(artist)
+        # Sanitize artist name for filesystem (preserves Unicode, removes path traversal chars)
+        safe_artist = sanitize_artist_name(artist)
         if not safe_artist:
             return jsonify({
                 'success': False,
@@ -875,7 +887,7 @@ def upload_artwork():
         safe_title = "".join(c for c in title if c.isalnum() or c in (' ', '-', '_', ',')).strip()
         new_filename = f"{safe_title} ({year}){file_ext}"
 
-        # Create artist directory if it doesn't exist (with sanitized name)
+        # Create artist directory if it doesn't exist (with Unicode name preserved)
         base_dir = Path('static/images/artists')
         artist_dir = base_dir / safe_artist
         artist_dir.mkdir(parents=True, exist_ok=True)
@@ -900,11 +912,11 @@ def upload_artwork():
 
         file.save(str(file_path))
 
-        # Create artwork database entry (use sanitized artist name)
+        # Create artwork database entry (store sanitized artist name - same as folder)
         artwork = Artworks(
             id=artwork_id,
             title=title,
-            artist=safe_artist,  # Use sanitized artist name
+            artist=safe_artist,  # Sanitized name (Unicode preserved, path chars removed)
             year=year,
             medium=medium or None,
             location=location or None,
@@ -997,8 +1009,8 @@ def import_artworks_csv():
                         skipped += 1
                         continue
 
-                    # Sanitize artist name to prevent path traversal
-                    safe_artist = sanitize_directory_name(artist)
+                    # Sanitize artist name (preserves Unicode, removes path traversal chars)
+                    safe_artist = sanitize_artist_name(artist)
                     if not safe_artist:
                         errors.append(f'Row {row_num}: Invalid artist name "{artist}"')
                         skipped += 1
@@ -1013,18 +1025,18 @@ def import_artworks_csv():
                     site_approved_str = row.get('site_approved', '').strip().lower()
                     site_approved = site_approved_str in ('true', '1', 'yes', 'y')
 
-                    # Check if artwork already exists (by artist + title, using sanitized artist)
-                    existing = Artworks.query.filter_by(artist=safe_artist, title=title).first()
+                    # Check if artwork already exists (by artist + title)
+                    existing = Artworks.query.filter_by(artist=artist, title=title).first()
                     if existing:
-                        errors.append(f'Row {row_num}: Artwork "{title}" by {safe_artist} already exists')
+                        errors.append(f'Row {row_num}: Artwork "{title}" by {artist} already exists')
                         skipped += 1
                         continue
 
-                    # Create new artwork (use sanitized artist name)
+                    # Create new artwork (store sanitized artist name - same as folder)
                     import uuid
                     artwork = Artworks(
                         id=str(uuid.uuid4()),
-                        artist=safe_artist,  # Use sanitized artist name
+                        artist=safe_artist,  # Sanitized name (Unicode preserved, path chars removed)
                         title=title,
                         year=year,
                         medium=medium,

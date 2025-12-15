@@ -186,19 +186,27 @@ def register_context_processors(app):
     @app.context_processor
     def inject_static_url():
         """Inject static_url helper for images that may be on S3 or local"""
+        from urllib.parse import quote
+
         def static_url(path):
             """
             Returns the full URL for a static asset.
             In development: /static/path
             In production: https://bucket.s3.amazonaws.com/path
+
+            Encodes special characters (like #) in path segments to ensure valid URLs.
             """
+            # Encode each path segment to handle special chars like #
+            # safe='/' preserves directory separators
+            encoded_path = quote(path, safe='/')
+
             base_url = app.config.get('STATIC_STORAGE_URL', '')
             if base_url:
                 # Production: serve from S3
-                return f"{base_url}/{path}"
+                return f"{base_url}/{encoded_path}"
             else:
                 # Development: serve from local /static folder
-                return f"/static/{path}"
+                return f"/static/{encoded_path}"
 
         return {'static_url': static_url}
 

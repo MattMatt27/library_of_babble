@@ -139,6 +139,29 @@ def sanitize_directory_name(name: str) -> str:
     return name
 
 
+def sanitize_artist_name(name: str) -> str:
+    """
+    Sanitize artist name for safe filesystem and database use.
+    Preserves Unicode characters but removes path traversal risks.
+
+    Args:
+        name: Artist name to sanitize
+
+    Returns:
+        Sanitized name safe for filesystem (with Unicode preserved)
+    """
+    if not name:
+        return ''
+
+    # Remove path separators and parent directory references
+    name = name.replace('/', '').replace('\\', '').replace('..', '')
+
+    # Remove leading/trailing whitespace and dots
+    name = name.strip().strip('.')
+
+    return name
+
+
 def sanitize_path(path: Union[str, Path]) -> str:
     """
     Sanitize file paths for subprocess calls.

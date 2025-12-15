@@ -149,7 +149,7 @@ def get_approved_artworks_from_db(page=1, per_page=100, sort_order='asc',
 
     # For date filtering, we need to handle the complex year normalization
     # For now, we'll apply simple filtering (can be enhanced later)
-    # This is a simplified version - the original used complex SQL CASE statements
+    # This is a simplified version - my original manula approach used complex SQL CASE statements
 
     # Get total count for pagination before sorting
     total_items = query.count()
@@ -202,10 +202,12 @@ def get_approved_artworks_from_db(page=1, per_page=100, sort_order='asc',
     # Process results
     artworks = []
     for artwork in artworks_query:
+        artist_display = unquote(artwork.artist).strip() if artwork.artist else ''
         artworks.append({
             'id': artwork.id,
             'title': artwork.title if artwork.title else f"From the {artwork.series} series",
-            'artist': unquote(artwork.artist).strip() if artwork.artist else '',
+            'artist': artist_display,
+            'filesystem_artist': artist_display, 
             'year': artwork.year,
             'file_name': unquote(artwork.file_name) if artwork.file_name else 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg',
             'series': artwork.series,
@@ -223,10 +225,12 @@ def get_all_artworks():
 
     artworks = []
     for artwork in artworks_query:
+        artist_display = unquote(artwork.artist).strip() if artwork.artist else ''
         artworks.append({
             'id': artwork.id,
             'title': f"{artwork.title} ({artwork.year})" if artwork.title else f"From the {artwork.series} series ({artwork.year})",
-            'artist': unquote(artwork.artist).strip() if artwork.artist else '',
+            'artist': artist_display,
+            'filesystem_artist': artist_display, 
             'year': artwork.year,
             'file_name': unquote(artwork.file_name) if artwork.file_name else 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg',
             'series': artwork.series,

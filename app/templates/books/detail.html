@@ -282,6 +282,19 @@
   width: 80px;
 }
 
+.quote-chapter-input {
+  width: 180px;
+}
+
+.form-row {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
 .quote-like-btn:focus-visible {
   outline: 2px solid var(--accent-blue);
   outline-offset: 2px;
@@ -543,9 +556,15 @@
                     <textarea id="quoteText" name="quote_text" class="form-textarea" rows="4" required></textarea>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="pageNumber">Page Number</label>
-                    <input type="number" id="pageNumber" name="page_number" class="form-input" min="1">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="chapter">Chapter / Poem Title</label>
+                        <input type="text" id="chapter" name="chapter" class="form-input" placeholder="e.g., Chapter 3 or The Road Not Taken">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="pageNumber">Page Number</label>
+                        <input type="number" id="pageNumber" name="page_number" class="form-input" min="1">
+                    </div>
                 </div>
 
                 <div class="flex gap-3">
@@ -570,13 +589,23 @@
 
                             <div class="quote-preview" id="quote-preview-{{ quote.id }}">
                                 <div class="quote-text">"{{ quote.text }}"</div>
-                                <div class="quote-page">Page {{ quote.page_number }}</div>
+                                <div class="quote-page">
+                                    {%- if quote.chapter and quote.page_number -%}
+                                        {{ quote.chapter }}, p. {{ quote.page_number }}
+                                    {%- elif quote.chapter -%}
+                                        {{ quote.chapter }}
+                                    {%- elif quote.page_number -%}
+                                        Page {{ quote.page_number }}
+                                    {%- endif -%}
+                                </div>
                             </div>
 
                             {% if current_user.is_authenticated and current_user.is_admin %}
                             <div class="quote-edit" id="quote-edit-{{ quote.id }}" style="display: none;">
                                 <textarea name="quote_text" class="form-textarea quote-textarea" rows="3">{{ quote.text }}</textarea>
                                 <div class="quote-edit-row">
+                                    <label class="quote-page-label">Chapter:</label>
+                                    <input type="text" name="chapter" class="form-input quote-chapter-input" value="{{ quote.chapter or '' }}" placeholder="Chapter / Poem">
                                     <label class="quote-page-label">Page:</label>
                                     <input type="number" name="page_number" class="form-input quote-page-input" value="{{ quote.page_number }}" min="1">
                                     <button type="submit" class="btn btn-primary btn-sm">Save</button>

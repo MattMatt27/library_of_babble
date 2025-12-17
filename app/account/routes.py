@@ -180,6 +180,7 @@ def index():
                 'id': quote.id,
                 'text': quote_text,
                 'page_number': quote.page_number,
+                'chapter': quote.chapter,
                 'book_title': book.title,
                 'book_author': book.author,
                 'book_id': book.id

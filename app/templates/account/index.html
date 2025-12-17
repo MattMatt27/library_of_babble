@@ -87,7 +87,15 @@
                 <div class="liked-quote-meta">
                     <div class="liked-quote-book">{{ quote.book_title }}</div>
                     <div class="liked-quote-author">by {{ quote.book_author }}</div>
-                    <div class="liked-quote-page">Page {{ quote.page_number }}</div>
+                    <div class="liked-quote-page">
+                        {%- if quote.chapter and quote.page_number -%}
+                            {{ quote.chapter }}, p. {{ quote.page_number }}
+                        {%- elif quote.chapter -%}
+                            {{ quote.chapter }}
+                        {%- elif quote.page_number -%}
+                            Page {{ quote.page_number }}
+                        {%- endif -%}
+                    </div>
                 </div>
             </div>
             {% endfor %}
@@ -243,7 +251,7 @@
             <div class="quote-modal-meta">
                 <div class="quote-modal-book" id="quoteModalBook"></div>
                 <div class="quote-modal-author" id="quoteModalAuthor"></div>
-                <div class="quote-modal-page" id="quoteModalPage"></div>
+                <div class="quote-modal-location" id="quoteModalLocation"></div>
             </div>
         </div>
         <div class="modal-footer">
@@ -428,7 +436,18 @@ function openQuoteModal(index) {
     document.getElementById('quoteModalText').textContent = `"${quote.text}"`;
     document.getElementById('quoteModalBook').textContent = quote.book_title;
     document.getElementById('quoteModalAuthor').textContent = `by ${quote.book_author}`;
-    document.getElementById('quoteModalPage').textContent = `Page ${quote.page_number}`;
+
+    // Build location string (chapter and/or page)
+    let locationText = '';
+    if (quote.chapter && quote.page_number) {
+        locationText = `${quote.chapter}, p. ${quote.page_number}`;
+    } else if (quote.chapter) {
+        locationText = quote.chapter;
+    } else if (quote.page_number) {
+        locationText = `Page ${quote.page_number}`;
+    }
+    document.getElementById('quoteModalLocation').textContent = locationText;
+
     document.getElementById('quoteModalLink').href = `/books/${quote.book_id}`;
 
     // Show modal

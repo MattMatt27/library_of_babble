@@ -53,6 +53,7 @@ class BookQuote(db.Model):
     book_id = db.Column(db.String(50), nullable=False)
     quote_text = db.Column(db.Text, nullable=False)
     page_number = db.Column(db.Integer)
+    chapter = db.Column(db.String(200))  # Chapter name or poem title
 
     def __repr__(self):
         return f'<BookQuote from book {self.book_id}>'

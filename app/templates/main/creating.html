@@ -11,16 +11,16 @@
 {% block content %}
 <div class="container">
     <!-- Vision/Mission Section -->
+    {% if page_header and page_header.title %}
     <section class="creating-hero">
-        <h1 class="hero-title">Creating</h1>
+        <h1 class="hero-title">{{ page_header.title }}</h1>
+        {% if page_header.subtitle %}
         <div class="hero-content">
-            <p class="vision-text">
-                I am interestd in artifacts. Across all mediums I am drawn to things that are formally strange, layered, with a variety
-                of possible interpretations. This applies to my writing, my research, and all other creative endeavors. I am particularly
-                interested in exploring themes of communication and latent space across projects.
-            </p>
+            <p class="vision-text">{{ page_header.subtitle }}</p>
         </div>
+        {% endif %}
     </section>
+    {% endif %}
 
     <!-- Museum Interpolations Section -->
     <section class="creating-section creating-section-split">

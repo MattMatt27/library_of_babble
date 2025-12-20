@@ -1,0 +1,41 @@
+{
+  "_comment": "Site settings configuration. Edit these values before deployment.",
+  "settings": [
+    {
+      "key": "site_title",
+      "value": "Library of Babble",
+      "type": "string",
+      "description": "Main site title shown in browser tab"
+    },
+    {
+      "key": "site_owner_name",
+      "value": "Matt Flathers",
+      "type": "string",
+      "description": "Owner name for display on home page"
+    },
+    {
+      "key": "contact_email",
+      "value": "MattFlathers27@gmail.com",
+      "type": "string",
+      "description": "Contact email for inquiries"
+    },
+    {
+      "key": "home_background_images",
+      "value": [
+        "images/home/20190817_065826308_iOS.jpg",
+        "images/home/20190322_012125224_iOS.jpg",
+        "images/home/DSC_0825.jpg",
+        "images/home/IMG_6649.JPG",
+        "images/home/IMG_4712.JPG"
+      ],
+      "type": "json",
+      "description": "List of background image paths for home page rotation"
+    },
+    {
+      "key": "home_background_interval",
+      "value": 10000,
+      "type": "integer",
+      "description": "Milliseconds between background image changes"
+    }
+  ]
+}

@@ -43,6 +43,9 @@ def create_app(config_name=None):
     migrate.init_app(app, db)
     csrf.init_app(app)
 
+    # Import all models so Alembic can detect them for migrations
+    from app import models  # noqa: F401
+
     # Configure login manager
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Please log in to access this page.'
@@ -181,6 +184,41 @@ def register_context_processors(app):
             'nav_items': get_user_nav_items(),
             'active_page': active_page,
             'can_access_page': can_access_page
+        }
+
+    @app.context_processor
+    def inject_site_settings():
+        """Inject site settings and page headers into all templates"""
+        from flask import request
+        from app.services.settings import get_setting
+        from app.services.page_headers import get_page_header
+
+        # Detect page slug from URL path
+        path = request.path
+        page_slug = None
+
+        if path == '/':
+            page_slug = 'home'
+        elif path.startswith('/writing'):
+            page_slug = 'writing'
+        elif path.startswith('/reading') or path.startswith('/books'):
+            page_slug = 'reading'
+        elif path.startswith('/watching'):
+            page_slug = 'watching'
+        elif path.startswith('/creating'):
+            page_slug = 'creating'
+        elif path.startswith('/listening'):
+            page_slug = 'listening'
+        elif path.startswith('/collecting'):
+            page_slug = 'collecting'
+        elif path.startswith('/artworks'):
+            page_slug = 'pondering'
+
+        return {
+            'site_title': get_setting('site_title', 'Library of Babble'),
+            'site_owner': get_setting('site_owner_name', ''),
+            'contact_email': get_setting('contact_email', 'contact@example.com'),
+            'page_header': get_page_header(page_slug) if page_slug else None,
         }
 
     @app.context_processor

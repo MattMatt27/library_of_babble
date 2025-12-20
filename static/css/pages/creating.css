@@ -2,6 +2,75 @@
  * Creating Page Styles
  */
 
+/* Category Sections */
+.creating-category {
+  margin-bottom: var(--space-12);
+}
+
+.category-header {
+  margin-bottom: var(--space-8);
+  padding-bottom: var(--space-4);
+  border-bottom: 2px solid var(--border-primary);
+  text-align: center;
+}
+
+.category-title {
+  font-size: var(--font-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.category-title i {
+  margin-right: var(--space-2);
+  color: var(--accent-blue);
+}
+
+.category-description {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-xs);
+  font-weight: var(--font-medium);
+  margin-left: var(--space-2);
+  vertical-align: middle;
+}
+
+.status-development {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+}
+
+.status-archived {
+  background: rgba(156, 163, 175, 0.2);
+  color: #9ca3af;
+}
+
+/* Tech Stack */
+.tech-stack {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  margin: var(--space-4) 0;
+  padding: var(--space-3);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-base);
+}
+
+/* Project Links */
+.project-links {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  flex-wrap: wrap;
+}
+
 /* Hero/Vision Section */
 .creating-hero {
   text-align: center;

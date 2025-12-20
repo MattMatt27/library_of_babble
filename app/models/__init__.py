@@ -12,6 +12,7 @@ from app.music.models import Playlists
 from app.artworks.models import Artworks, LikedArtworks, GeneratedImages
 from app.common.models import Reviews, Collection
 from app.collecting.models import Pin, AlcoholLabel
+from app.creating.models import ProjectCategory, Project, ProjectImage
 
 # Site-level configuration models
 from app.models.site_settings import SiteSetting
@@ -31,6 +32,9 @@ __all__ = [
     'Collection',
     'Pin',
     'AlcoholLabel',
+    'ProjectCategory',
+    'Project',
+    'ProjectImage',
     'SiteSetting',
     'PageHeader',
 ]

@@ -1,0 +1,576 @@
+{% extends "base.html" %}
+
+{% block title %}🛠️ Creating{% endblock %}
+
+{% set active_page = 'creating' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/creating.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if page_header and page_header.title %}
+    <div class="page-header">
+        <h1>{{ page_header.title }}</h1>
+        {% if page_header.subtitle %}
+        <p class="page-subtitle">{{ page_header.subtitle }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Database-driven Projects by Category -->
+    {% for category, projects in projects_by_category.items() %}
+    <section class="creating-category" id="category-{{ category.slug }}">
+        <div class="category-header">
+            <h2 class="category-title">
+                {% if category.icon %}<i class="{{ category.icon }}"></i> {% endif %}
+                {{ category.name }}
+            </h2>
+            {% if category.description %}
+            <p class="category-description">{{ category.description }}</p>
+            {% endif %}
+        </div>
+
+        {% for project in projects %}
+        <div class="creating-section {% if project.layout_type == 'split' %}creating-section-split{% endif %}"
+             id="project-{{ project.slug }}">
+
+            {% if project.layout_type == 'split' and project.hero_image %}
+            <div class="section-image">
+                <img src="{{ static_url(project.hero_image) }}"
+                     alt="{{ project.hero_image_alt or project.title }}">
+            </div>
+            {% endif %}
+
+            <div class="section-content">
+                <h2>
+                    {{ project.title }}
+                    {% if project.status == 'in_development' %}
+                    <span class="status-badge status-development">In Development</span>
+                    {% elif project.status == 'archived' %}
+                    <span class="status-badge status-archived">Archived</span>
+                    {% endif %}
+                </h2>
+
+                {{ project.full_description | safe }}
+
+                {% if project.tech_stack %}
+                <div class="tech-stack">
+                    <strong>Tech Stack:</strong> {{ project.tech_stack }}
+                </div>
+                {% endif %}
+
+                {% if project.project_url or project.github_url %}
+                <div class="project-links">
+                    {% if project.project_url %}
+                    <a href="{{ project.project_url }}" class="btn btn-primary btn-sm" target="_blank">
+                        <i class="fa-solid fa-external-link"></i> View Project
+                    </a>
+                    {% endif %}
+                    {% if project.github_url %}
+                    <a href="{{ project.github_url }}" class="btn btn-secondary btn-sm" target="_blank">
+                        <i class="fa-brands fa-github"></i> GitHub
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if project.images.count() > 0 %}
+                <div class="image-container">
+                    {% for image in project.images %}
+                    <img src="{{ static_url(image.image_path) }}"
+                         alt="{{ image.alt_text or project.title }}">
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Special handling for Lunacy interactive section -->
+            {% if project.layout_type == 'interactive' and project.slug == 'generative-art' %}
+            <div class="section-header">
+                <h3>Lunacy</h3>
+                <p>Lunacy is my first full series using this approach. The prompts are minimal: the string "Lunacy by " followed by a string of artist names. I chose the term for its etymology: lunaticus, moonstruck, the old belief that the moon periodically causes madness. That connection to both lunar imagery and disordered perception anchors the series in a visual space I find compelling, one that lets the different artist styles shine through while giving them common ground.</p>
+                <p style="margin-top: var(--space-3);">Select artists below to explore the collection.</p>
+            </div>
+            <div id="artist-selection">
+                <div id="selected-artists"></div>
+                <div id="artist-options"></div>
+            </div>
+            <div id="image-display">
+                <div class="generated-image" style="display: none;">
+                    <img src="" alt="Generated Image">
+                    <div class="combined-info">
+                        <p class="model-name"></p>
+                        <p class="prompt-text"></p>
+                    </div>
+                </div>
+                <div id="selected-artists-display"></div>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </section>
+    {% endfor %}
+
+    <!-- Fallback: Show hardcoded content if no database projects exist -->
+    {% if not projects_by_category %}
+    <!-- Museum Interpolations Section -->
+    <section class="creating-section creating-section-split">
+        <div class="section-image">
+            <img src="{{ static_url('images/creating/interpolations/Terminal Sump.png') }}" alt="Museum Interpolations">
+        </div>
+        <div class="section-content">
+            <h2>Museum Interpolations</h2>
+            <p>This project uses image models to generate visual paths between artifacts in museum collections. Taking high-resolution photographs of two objects, say a bronze vessel and a ceramic figure or a textile and a carved relief, and it produces the intermediate steps: images that sit between them, inheriting features from both.</p>
+            <p>We developed the methodology to work with any documented collection of artifacts. The Harvard CAMLab has generously supported us as we build out the project, but the code and processes are designed to be generalizable.</p>
+            <p>The interpolated artifacts aren't invented by the process so much as revealed by it. The original objects, by existing, define a space of possible intermediates; the model traverses that space and renders what it finds. We display the results as single path progressions as grid projections, where diagonal paths create artifacts that sit between multiple pairs of sources at once.</p>
+            <p>What emerges are objects no culture actually produced, but that carry recognizable traces of the cultures that did. Allowing for speculative archaeology.</p>
+        </div>
+    </section>
+
+    <!-- Books on Tape Section -->
+    <section class="creating-section">
+        <h2>Books on Tape <span class="status-badge status-development">In Development</span></h2>
+        <p>This installation is built from CRT monitors, hollowed-out VCRs fitted with NFC readers, and a library of
+            tagged paperback books. You select books, insert them into the VCR slots, and the system identifies what
+            you've chosen. Working with language models behind the scenes, it generates a literary artifact that draws on the styles,
+            themes, and structures of your inputs. The result displays on the CRT, and the output is viewable and downloadable online.</p>
+        <p>VCRs and CRTs, early-generation technologies in a then-new media format, were chosen to engage with the idea
+            that language models are in a similarly early stage of technological development. The temptation is to sell AI
+            as distinctly modern and novel, but in this piece we aim to challenge viewers to consider the opposite. That this
+            is merely the beginning.</p>
+        <div class="image-container">
+            <img src="{{ static_url('images/creating/books-on-tape/Origins.jpg') }}" alt="Books on Tape - Origins">
+            <img src="{{ static_url('images/creating/books-on-tape/Books.jpg') }}" alt="Books on Tape - Books">
+            <img src="{{ static_url('images/creating/books-on-tape/Sample_stack.jpg') }}" alt="Books on Tape - Sample Stack">
+        </div>
+    </section>
+
+    <!-- Generative Art Section -->
+    <section class="creating-section">
+        <h2>Generative Art</h2>
+        <p>When thinking about making art with generative image models I treat artists as my palette. I find painters,
+            illustrators, photographers, designers, etc. whose work the image model has absorbed well enough to interpolate coherently.
+            Then I combine them in prompts, as if they were fictional co-authors of images that exist in the spaces
+            between their styles.</p>
+        <p>These images aren't collaborations with the named artists, but they're also not conjured from nothing. And
+            I certainly would not claim any kind of creative ownership of the work for myself alone. The
+            artists' bodies of work, by existing in the training data, define a space of possible combinations. The images
+            were always latent there; the prompt is what makes them visible. I am exercising more curatorial and exploratory skills
+            to identify images that move me, images that the original artists unknowingly made possible.</p>
+        <div class="section-header">
+            <h3>Lunacy</h3>
+            <p>Lunacy is my first full series using this approach. The prompts are minimal: the string "Lunacy by " followed by a
+                string of artist names. I chose the term for its etymology: lunaticus, moonstruck, the old belief that the moon
+                periodically causes madness. That connection to both lunar imagery and disordered perception anchors the
+                series in a visual space I find compelling, one that lets the different artist styles shine through while
+                giving them common ground.</p>
+            <p style="margin-top: var(--space-3);">Select artists below to explore the collection.</p>
+        </div>
+
+        <div id="artist-selection">
+            <div id="selected-artists"></div>
+            <div id="artist-options"></div>
+        </div>
+
+        <div id="image-display">
+            <div class="generated-image" style="display: none;">
+                <img src="" alt="Generated Image">
+                <div class="combined-info">
+                    <p class="model-name"></p>
+                    <p class="prompt-text"></p>
+                </div>
+            </div>
+            <div id="selected-artists-display"></div>
+        </div>
+    </section>
+    {% endif %}
+</div>
+
+<!-- Zoomable Image Overlay -->
+<div class="image-zoom-overlay" id="imageZoomOverlay">
+    <button class="zoom-close" id="zoomClose">&times;</button>
+    <div class="zoom-hint">Drag to pan, scroll to zoom</div>
+    <div class="image-zoom-container" id="zoomContainer">
+        <img src="" alt="Zoomed image" id="zoomImage">
+    </div>
+    <div class="image-zoom-controls">
+        <button class="zoom-btn" id="zoomOut">-</button>
+        <button class="zoom-btn" id="zoomReset">Reset</button>
+        <button class="zoom-btn" id="zoomIn">+</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script type="text/javascript">
+    const STATIC_BASE_URL = "{{ static_url('') }}";
+    let allGeneratedImages = {{ generated_images | tojson | safe }};
+    let selectedArtists = [];
+    let currentGeneratedImageIndex = 0;
+
+    // Extract unique artist names from generated_images
+    let allArtists = [...new Set(allGeneratedImages.flatMap(img => img.artist_palette))].map(name => {
+        // Find all images for this artist from the artists data
+        let artistImages = {{ artists | tojson | safe }}.filter(a => a.name === name).map(a => a.image);
+        return {
+            name,
+            images: artistImages
+        };
+    });
+
+    function initializeApp() {
+        displayArtistOptions();
+        updateDisplay();
+
+        setInterval(updateGeneratedImageDisplay, 20000);
+    }
+
+    function displayArtistOptions() {
+        const artistOptions = document.getElementById('artist-options');
+        if (!artistOptions) return;
+        artistOptions.innerHTML = '';
+
+        const availableArtists = getAvailableArtists();
+
+        availableArtists.forEach(artist => {
+            const artistElement = document.createElement('div');
+            artistElement.classList.add('artist-option');
+            artistElement.textContent = artist.name;
+            artistElement.onclick = () => selectArtist(artist);
+            artistOptions.appendChild(artistElement);
+        });
+    }
+
+    function getAvailableArtists() {
+        if (selectedArtists.length === 0) {
+            return allArtists;
+        }
+
+        const validCombinations = new Set();
+        allGeneratedImages.forEach(image => {
+            if (selectedArtists.every(selected => image.artist_palette.includes(selected.name))) {
+                image.artist_palette.forEach(artist => validCombinations.add(artist));
+            }
+        });
+
+        return allArtists.filter(artist =>
+            validCombinations.has(artist.name) && !selectedArtists.some(selected => selected.name === artist.name)
+        );
+    }
+
+    function selectArtist(artist) {
+        if (selectedArtists.length < 5 && !selectedArtists.some(selected => selected.name === artist.name)) {
+            selectedArtists.push(artist);
+            updateSelectedArtistsDisplay();
+            displayArtistOptions();
+            updateDisplay();
+            updateGeneratedImageDisplay();
+        }
+    }
+
+    function updateSelectedArtistsDisplay() {
+        const selectedArtistsElement = document.getElementById('selected-artists');
+        if (!selectedArtistsElement) return;
+        selectedArtistsElement.innerHTML = '';
+
+        selectedArtists.forEach((artist, index) => {
+            const artistElement = document.createElement('span');
+            artistElement.classList.add('selected-artist');
+            artistElement.innerHTML = `${artist.name} <span class="remove" onclick="removeArtist(${index})">×</span>`;
+            selectedArtistsElement.appendChild(artistElement);
+        });
+    }
+
+    function removeArtist(index) {
+        selectedArtists.splice(index, 1);
+        updateSelectedArtistsDisplay();
+        displayArtistOptions();
+        updateDisplay();
+        updateGeneratedImageDisplay();
+        currentGeneratedImageIndex = 0;
+    }
+
+    function isValidAspectRatio(img) {
+        return new Promise((resolve) => {
+            img.onload = function() {
+                const aspectRatio = this.width / this.height;
+                resolve(aspectRatio >= 0.95 && aspectRatio <= 1.75);
+            };
+            img.onerror = () => resolve(false);
+        });
+    }
+
+    function updateDisplay() {
+        const selectedArtistsDisplay = document.getElementById('selected-artists-display');
+        if (!selectedArtistsDisplay) return;
+        selectedArtistsDisplay.innerHTML = '';
+
+        selectedArtists.forEach((artist) => {
+            const artistElement = document.createElement('div');
+            artistElement.classList.add('artist');
+            artistElement.innerHTML = `
+                <div class="artist-image-container">
+                    <img src="" alt="${artist.name}" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg';">
+                </div>
+                <div class="artist-info">
+                    <h3 class="artist-name">${artist.name}</h3>
+                    <p class="piece-name"></p>
+                </div>
+            `;
+            selectedArtistsDisplay.appendChild(artistElement);
+
+            cycleArtistImages(artist, artistElement);
+        });
+
+        updateGeneratedImageDisplay();
+    }
+
+    async function cycleArtistImages(artist, artistElement) {
+        const imgElement = artistElement.querySelector('img');
+        const pieceNameElement = artistElement.querySelector('.piece-name');
+        let currentIndex = 0;
+        const validImages = [];
+
+        for (const imageSrc of artist.images) {
+            const img = new Image();
+            img.src = imageSrc;
+            if (await isValidAspectRatio(img)) {
+                validImages.push(imageSrc);
+            }
+        }
+
+        if (validImages.length === 0) {
+            imgElement.src = 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg';
+            pieceNameElement.textContent = 'No valid images found';
+            return;
+        }
+
+        function updateImage() {
+            imgElement.src = validImages[currentIndex];
+            const fileName = validImages[currentIndex].split('/').pop();
+            const decodedFileName = decodeURIComponent(fileName.replace(/\+/g, ' '));
+            pieceNameElement.textContent = decodedFileName.replace(/\.[^/.]+$/, '');
+            currentIndex = (currentIndex + 1) % validImages.length;
+        }
+
+        updateImage();
+        setInterval(updateImage, 5000);
+    }
+
+    function updateGeneratedImageDisplay() {
+        const generatedImageContainer = document.querySelector('.generated-image');
+        const generatedImageElement = document.querySelector('.generated-image img');
+        const promptText = document.querySelector('.prompt-text');
+        const modelText = document.querySelector('.model-name');
+
+        if (!generatedImageContainer) return;
+
+        if (selectedArtists.length > 0) {
+            const relevantImages = allGeneratedImages.filter(image =>
+                image.artist_palette.length === selectedArtists.length &&
+                selectedArtists.every(artist => image.artist_palette.includes(artist.name))
+            );
+
+            if (relevantImages.length > 0) {
+                if (currentGeneratedImageIndex >= relevantImages.length) {
+                    currentGeneratedImageIndex = 0;
+                }
+                const image = relevantImages[currentGeneratedImageIndex];
+                generatedImageElement.src = `${STATIC_BASE_URL}images/creating/lunacy/${image.file_name}`;
+                promptText.textContent = `Prompt: ${image.prompt}`;
+                modelText.textContent = `${image.model} v${image.model_version}`;
+                generatedImageContainer.style.display = 'block';
+
+                currentGeneratedImageIndex = (currentGeneratedImageIndex + 1) % relevantImages.length;
+            } else {
+                clearGeneratedImageDisplay();
+            }
+        } else {
+            clearGeneratedImageDisplay();
+        }
+    }
+
+    function clearGeneratedImageDisplay() {
+        const generatedImageContainer = document.querySelector('.generated-image');
+        const generatedImageElement = document.querySelector('.generated-image img');
+        const promptText = document.querySelector('.prompt-text');
+        const modelText = document.querySelector('.model-name');
+
+        if (!generatedImageContainer) return;
+
+        generatedImageElement.src = "";
+        promptText.textContent = "";
+        modelText.textContent = "";
+        generatedImageContainer.style.display = 'none';
+    }
+
+    initializeApp();
+
+    // ========================================
+    // Zoomable Image Viewer
+    // ========================================
+    (function() {
+        const overlay = document.getElementById('imageZoomOverlay');
+        const zoomImage = document.getElementById('zoomImage');
+        const zoomContainer = document.getElementById('zoomContainer');
+        const zoomClose = document.getElementById('zoomClose');
+        const zoomIn = document.getElementById('zoomIn');
+        const zoomOut = document.getElementById('zoomOut');
+        const zoomReset = document.getElementById('zoomReset');
+
+        if (!overlay) return;
+
+        let scale = 1;
+        let baseScale = 1;
+        let posX = 0;
+        let posY = 0;
+        let isDragging = false;
+        let startX, startY;
+
+        // Open zoom overlay when clicking zoomable images
+        document.querySelectorAll('.section-image img').forEach(img => {
+            img.addEventListener('click', function() {
+                zoomImage.src = this.src;
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+
+                if (zoomImage.complete) {
+                    fitImageToScreen();
+                } else {
+                    zoomImage.onload = fitImageToScreen;
+                }
+            });
+        });
+
+        function fitImageToScreen() {
+            const viewportWidth = window.innerWidth * 0.9;
+            const viewportHeight = window.innerHeight * 0.85;
+            const imgWidth = zoomImage.naturalWidth;
+            const imgHeight = zoomImage.naturalHeight;
+
+            const scaleX = viewportWidth / imgWidth;
+            const scaleY = viewportHeight / imgHeight;
+            baseScale = Math.min(scaleX, scaleY, 1);
+
+            scale = baseScale;
+            posX = 0;
+            posY = 0;
+            updateTransform();
+        }
+
+        function resetZoom() {
+            scale = baseScale;
+            posX = 0;
+            posY = 0;
+            updateTransform();
+        }
+
+        function updateTransform() {
+            zoomContainer.style.transform = `translate(calc(-50% + ${posX}px), calc(-50% + ${posY}px)) scale(${scale})`;
+        }
+
+        function closeOverlay() {
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        zoomClose.addEventListener('click', closeOverlay);
+
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                closeOverlay();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && overlay.classList.contains('active')) {
+                closeOverlay();
+            }
+        });
+
+        zoomIn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            scale = Math.min(scale * 1.3, 10);
+            updateTransform();
+        });
+
+        zoomOut.addEventListener('click', function(e) {
+            e.stopPropagation();
+            scale = Math.max(scale / 1.3, 0.1);
+            updateTransform();
+        });
+
+        zoomReset.addEventListener('click', function(e) {
+            e.stopPropagation();
+            resetZoom();
+        });
+
+        overlay.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            scale = Math.min(Math.max(scale * delta, 0.1), 10);
+            updateTransform();
+        });
+
+        zoomContainer.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            startX = e.clientX - posX;
+            startY = e.clientY - posY;
+            overlay.classList.add('grabbing');
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            posX = e.clientX - startX;
+            posY = e.clientY - startY;
+            updateTransform();
+        });
+
+        document.addEventListener('mouseup', function() {
+            isDragging = false;
+            overlay.classList.remove('grabbing');
+        });
+
+        let lastTouchDistance = 0;
+
+        zoomContainer.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                startX = e.touches[0].clientX - posX;
+                startY = e.touches[0].clientY - posY;
+            } else if (e.touches.length === 2) {
+                lastTouchDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+            }
+        });
+
+        document.addEventListener('touchmove', function(e) {
+            if (e.touches.length === 1 && isDragging) {
+                posX = e.touches[0].clientX - startX;
+                posY = e.touches[0].clientY - startY;
+                updateTransform();
+            } else if (e.touches.length === 2) {
+                e.preventDefault();
+                const distance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                if (lastTouchDistance > 0) {
+                    scale = Math.min(Math.max(scale * (distance / lastTouchDistance), 0.1), 10);
+                    updateTransform();
+                }
+                lastTouchDistance = distance;
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchend', function() {
+            isDragging = false;
+            lastTouchDistance = 0;
+        });
+    })();
+</script>
+{% endblock %}

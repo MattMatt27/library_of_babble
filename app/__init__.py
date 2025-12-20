@@ -77,6 +77,7 @@ def register_blueprints(app):
     from app.music import music_bp
     from app.artworks import artworks_bp
     from app.collecting import collecting_bp
+    from app.creating import creating_bp
     from app.account import account_bp
     from app.writing import writing_bp
     from app.main import main_bp
@@ -91,6 +92,7 @@ def register_blueprints(app):
     app.register_blueprint(music_bp, url_prefix='/listening')
     app.register_blueprint(artworks_bp, url_prefix='/artworks')
     app.register_blueprint(collecting_bp, url_prefix='/collecting')
+    app.register_blueprint(creating_bp, url_prefix='/creating')
     app.register_blueprint(writing_bp, url_prefix='/writing')
     app.register_blueprint(account_bp)
 

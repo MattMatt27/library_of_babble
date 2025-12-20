@@ -426,6 +426,7 @@
 
 .btn-primary:hover:not(:disabled) {
   background: var(--accent-blue-hover);
+  color: #ffffff;
   box-shadow: var(--shadow-md);
   transform: translateY(-1px);
   text-decoration: none;

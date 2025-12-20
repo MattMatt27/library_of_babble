@@ -410,9 +410,10 @@
   color: var(--text-secondary);
 }
 
-.quote-modal-page {
-  font-size: var(--font-sm);
+.quote-modal-location {
+  font-size: var(--font-xs);
   color: var(--text-tertiary);
+  margin-top: var(--space-1);
 }
 
 /* Admin tools section */

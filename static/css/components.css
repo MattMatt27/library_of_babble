@@ -818,3 +818,43 @@
   border-left-color: var(--info);
   color: var(--info);
 }
+
+/* ============================================
+   PAGE HEADER
+   ============================================ */
+
+.page-header {
+  margin-top: var(--space-8);
+  margin-bottom: var(--space-12);
+  text-align: center;
+}
+
+.page-header h1 {
+  font-size: var(--font-3xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-5) 0;
+  line-height: var(--leading-tight);
+}
+
+.page-header .page-subtitle {
+  font-size: var(--font-md);
+  color: var(--text-secondary);
+  max-width: 800px;
+  margin: 0 auto;
+  line-height: var(--leading-relaxed);
+}
+
+@media screen and (max-width: 768px) {
+  .page-header {
+    margin-bottom: var(--space-8);
+  }
+
+  .page-header h1 {
+    font-size: var(--font-2xl);
+  }
+
+  .page-header .page-subtitle {
+    font-size: var(--font-base);
+  }
+}

@@ -11,6 +11,14 @@
 
 {% block content %}
 <div class="pondering-page">
+    {% if page_header and page_header.title %}
+    <div class="page-header">
+        <h1>{{ page_header.title }}</h1>
+        {% if page_header.subtitle %}
+        <p class="page-subtitle">{{ page_header.subtitle }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
     <div class="pondering-controls">
         <div class="controls-row">
             <div class="control-item">

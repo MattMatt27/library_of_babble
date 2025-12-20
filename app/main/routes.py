@@ -14,8 +14,20 @@ from app.extensions import db
 @main_bp.route('/')
 def home():
     """Home page"""
+    from app.services.settings import get_setting
+
     nav_items = get_user_nav_items()
-    return render_template('main/home.html', nav_items=nav_items)
+
+    # Get background images and interval from settings
+    home_backgrounds = get_setting('home_background_images', [])
+    background_interval = get_setting('home_background_interval', 15000)
+
+    return render_template(
+        'main/home.html',
+        nav_items=nav_items,
+        home_backgrounds=home_backgrounds,
+        background_interval=background_interval
+    )
 
 
 @main_bp.route('/writing')

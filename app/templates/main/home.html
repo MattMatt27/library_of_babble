@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="home-content" style="background-image: url('{{ static_url('images/home/IMG_4712.JPG') }}');">
+<div class="home-content" {% if home_backgrounds %}style="background-image: url('{{ static_url(home_backgrounds[0]) }}');"{% endif %}>
     <div class="hero-section">
         <h1>{{ site_owner }}</h1>
     </div>
@@ -23,25 +23,28 @@
 {% endblock %}
 
 {% block extra_scripts %}
+{% if home_backgrounds and home_backgrounds|length > 1 %}
 <script type="text/javascript">
     document.addEventListener('DOMContentLoaded', function() {
         const STATIC_BASE_URL = "{{ static_url('') }}";
-        const images = [
-            '20190817_065826308_iOS.jpg',
-            '20190322_012125224_iOS.jpg',
-            'DSC_0825.jpg',
-            'IMG_6649.JPG',
-            'IMG_4712.JPG',
-        ];
+        const images = {{ home_backgrounds | tojson }};
+        const interval = {{ background_interval }};
 
         let currentIndex = 0;
 
+        // Preload images
+        images.forEach(function(img) {
+            const preload = new Image();
+            preload.src = STATIC_BASE_URL + img;
+        });
+
         function changeBackground() {
-            document.querySelector('.home-content').style.backgroundImage = `url('${STATIC_BASE_URL}images/home/${images[currentIndex]}')`;
             currentIndex = (currentIndex + 1) % images.length;
+            document.querySelector('.home-content').style.backgroundImage = `url('${STATIC_BASE_URL}${images[currentIndex]}')`;
         }
 
-        setInterval(changeBackground, 15000); // Change background every 15 seconds (15000 milliseconds)
+        setInterval(changeBackground, interval);
     });
 </script>
+{% endif %}
 {% endblock %}

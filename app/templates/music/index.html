@@ -12,9 +12,12 @@
 {% block content %}
 <div class="listening-container">
     <div class="playlist-browser" id="playlist-browser">
+        {% if page_header %}
         <div class="playlist-section introduction">
-            <p class="section-description">As a data engineer and an archaeologist by education, classification and curation are hobbies of mine. I have no musical ability of my own but I get a lot of joy out of sorting songs and curating playlists. My public playlist profile on Spotify is a wasteland that is impossible to navigate, so I created this page to highlight some of my personal favorites hidden in the mass of abandoned playlists. Hope you enjoy.</p>
+            {% if page_header.title %}<h1 class="section-title">{{ page_header.title }}</h1>{% endif %}
+            {% if page_header.subtitle %}<p class="section-description">{{ page_header.subtitle }}</p>{% endif %}
         </div>
+        {% endif %}
         <div class="selected-playlist">
             <div class="selected-playlist-content">
                 <div class="playlist-art">

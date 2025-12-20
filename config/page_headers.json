@@ -22,31 +22,31 @@
     {
       "slug": "reading",
       "tab_title": "Reading",
-      "title": "Reading",
+      "title": null,
       "subtitle": null
     },
     {
       "slug": "watching",
       "tab_title": "Watching",
-      "title": "Watching",
+      "title": null,
       "subtitle": null
     },
     {
       "slug": "listening",
       "tab_title": "Listening",
       "title": null,
-      "subtitle": null
+      "subtitle": "As a data engineer and an archaeologist by education, classification and curation are hobbies of mine. I have no musical ability of my own but I get a lot of joy out of sorting songs and curating playlists. My public playlist profile on Spotify is a wasteland that is impossible to navigate, so I created this page to highlight some of my personal favorites hidden in the mass of abandoned playlists. Hope you enjoy."
     },
     {
       "slug": "writing",
       "tab_title": "Writing",
-      "title": "Writing",
+      "title": null,
       "subtitle": null
     },
     {
       "slug": "pondering",
       "tab_title": "Pondering",
-      "title": "Pondering",
+      "title": null,
       "subtitle": null
     }
   ]

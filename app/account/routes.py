@@ -1088,6 +1088,371 @@ def import_artworks_csv():
         }), 500
 
 
+# =============================================================================
+# Playlist and Collection Management Routes
+# =============================================================================
+
+@account_bp.route('/account/playlists', methods=['GET'])
+@admin_required
+def get_playlists():
+    """Get all playlists with their collection assignments"""
+    from app.music.models import Playlists
+    from app.common.models import Collection, CollectionItem
+    import os
+
+    try:
+        # Check for mine_only filter
+        mine_only = request.args.get('mine_only', 'false').lower() == 'true'
+
+        # Get playlists (optionally filtered by owner)
+        query = Playlists.query
+        if mine_only:
+            spotify_username = os.environ.get('SPOTIPY_USERNAME', '')
+            if spotify_username:
+                # Filter by playlist_owner (display name) or user_id (username)
+                # Try both since they might differ
+                query = query.filter(
+                    db.or_(
+                        Playlists.user_id == spotify_username,
+                        Playlists.playlist_owner == spotify_username
+                    )
+                )
+
+        playlists = query.order_by(Playlists.name).all()
+
+        # Get music collections (containing playlists OR marked as Playlist type)
+        playlist_collection_ids = db.session.query(CollectionItem.collection_id).filter_by(
+            item_type='Playlist'
+        ).distinct().subquery()
+
+        collections = Collection.query.filter(
+            db.or_(
+                Collection.id.in_(playlist_collection_ids),
+                Collection.collection_type == 'Playlist'
+            )
+        ).order_by(Collection.sort_order, Collection.collection_name).all()
+
+        # Build collection assignment map
+        collection_items = CollectionItem.query.filter_by(item_type='Playlist').all()
+        playlist_collections = {}
+        for item in collection_items:
+            playlist_collections[item.item_id] = item.collection_id
+
+        playlists_data = [{
+            'id': p.id,
+            'name': p.name,
+            'album_art': p.album_art,
+            'description': p.description,
+            'site_approved': p.site_approved,
+            'playlist_owner': p.playlist_owner,
+            'collection_id': playlist_collections.get(p.id)
+        } for p in playlists]
+
+        collections_data = [{
+            'id': c.id,
+            'name': c.collection_name,
+            'description': c.description,
+            'site_approved': c.site_approved,
+            'sort_order': c.sort_order
+        } for c in collections]
+
+        return jsonify({
+            'success': True,
+            'playlists': playlists_data,
+            'collections': collections_data
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@account_bp.route('/account/playlists/<playlist_id>/toggle-approval', methods=['POST'])
+@admin_required
+def toggle_playlist_approval(playlist_id):
+    """Toggle site_approved status for a playlist"""
+    from app.music.models import Playlists
+
+    try:
+        playlist = Playlists.query.get(playlist_id)
+        if not playlist:
+            return jsonify({'success': False, 'error': 'Playlist not found'}), 404
+
+        playlist.site_approved = not playlist.site_approved
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'site_approved': playlist.site_approved
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@account_bp.route('/account/playlists/<playlist_id>/collection', methods=['POST'])
+@admin_required
+def update_playlist_collection(playlist_id):
+    """Add or remove a playlist from a collection"""
+    from app.music.models import Playlists
+    from app.common.models import Collection, CollectionItem
+
+    try:
+        data = request.get_json()
+        collection_id = data.get('collection_id')  # None means remove from all collections
+
+        playlist = Playlists.query.get(playlist_id)
+        if not playlist:
+            return jsonify({'success': False, 'error': 'Playlist not found'}), 404
+
+        # Remove from any existing collection
+        CollectionItem.query.filter_by(
+            item_type='Playlist',
+            item_id=playlist_id
+        ).delete()
+
+        # Add to new collection if specified
+        if collection_id:
+            collection = Collection.query.get(collection_id)
+            if not collection:
+                return jsonify({'success': False, 'error': 'Collection not found'}), 404
+
+            # Get max order in collection
+            max_order = db.session.query(db.func.max(CollectionItem.item_order)).filter_by(
+                collection_id=collection_id
+            ).scalar() or 0
+
+            new_item = CollectionItem(
+                collection_id=collection_id,
+                item_type='Playlist',
+                item_id=playlist_id,
+                item_order=max_order + 1
+            )
+            db.session.add(new_item)
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'collection_id': collection_id
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@account_bp.route('/account/collections', methods=['GET'])
+@admin_required
+def get_collections():
+    """Get all collections ordered by sort_order"""
+    from app.common.models import Collection, CollectionItem
+
+    try:
+        # Check for type filter (e.g., ?type=music for playlist collections only)
+        collection_type = request.args.get('type', '')
+
+        if collection_type == 'music':
+            # Get collections that contain playlists OR are marked as Playlist type
+            playlist_collection_ids = db.session.query(CollectionItem.collection_id).filter_by(
+                item_type='Playlist'
+            ).distinct().subquery()
+
+            collections = Collection.query.filter(
+                db.or_(
+                    Collection.id.in_(playlist_collection_ids),
+                    Collection.collection_type == 'Playlist'
+                )
+            ).order_by(Collection.sort_order, Collection.id).all()
+        else:
+            collections = Collection.query.order_by(Collection.sort_order, Collection.id).all()
+
+        collections_data = []
+        for c in collections:
+            item_count = CollectionItem.query.filter_by(collection_id=c.id).count()
+            collections_data.append({
+                'id': c.id,
+                'name': c.collection_name,
+                'description': c.description,
+                'site_approved': c.site_approved,
+                'sort_order': c.sort_order,
+                'item_count': item_count
+            })
+
+        return jsonify({
+            'success': True,
+            'collections': collections_data
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@account_bp.route('/account/collections', methods=['POST'])
+@admin_required
+def create_collection():
+    """Create a new collection"""
+    from app.common.models import Collection
+
+    try:
+        data = request.get_json()
+        name = data.get('name', '').strip()
+        description = data.get('description', '').strip() or None
+        collection_type = data.get('type')  # Optional: 'Playlist', 'Book', etc.
+
+        if not name:
+            return jsonify({'success': False, 'error': 'Collection name is required'}), 400
+
+        # Check for duplicate name
+        existing = Collection.query.filter_by(collection_name=name).first()
+        if existing:
+            return jsonify({'success': False, 'error': 'Collection with this name already exists'}), 400
+
+        # Get max sort_order
+        max_order = db.session.query(db.func.max(Collection.sort_order)).scalar() or 0
+
+        collection = Collection(
+            collection_name=name,
+            description=description,
+            collection_type=collection_type,
+            site_approved=True,
+            sort_order=max_order + 1
+        )
+        db.session.add(collection)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'collection': {
+                'id': collection.id,
+                'name': collection.collection_name,
+                'description': collection.description,
+                'site_approved': collection.site_approved,
+                'sort_order': collection.sort_order
+            }
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@account_bp.route('/account/collections/<int:collection_id>', methods=['DELETE'])
+@admin_required
+def delete_collection(collection_id):
+    """Delete a collection (items are removed but not deleted)"""
+    from app.common.models import Collection
+
+    try:
+        collection = Collection.query.get(collection_id)
+        if not collection:
+            return jsonify({'success': False, 'error': 'Collection not found'}), 404
+
+        db.session.delete(collection)  # Cascade will delete CollectionItems
+        db.session.commit()
+
+        return jsonify({'success': True})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@account_bp.route('/account/collections/<int:collection_id>', methods=['PUT'])
+@admin_required
+def update_collection(collection_id):
+    """Update a collection's name and description"""
+    from app.common.models import Collection
+
+    try:
+        data = request.get_json()
+        name = data.get('name', '').strip()
+        description = data.get('description', '').strip() or None
+
+        if not name:
+            return jsonify({'success': False, 'error': 'Collection name is required'}), 400
+
+        collection = Collection.query.get(collection_id)
+        if not collection:
+            return jsonify({'success': False, 'error': 'Collection not found'}), 404
+
+        # Check for duplicate name (excluding current collection)
+        existing = Collection.query.filter(
+            Collection.collection_name == name,
+            Collection.id != collection_id
+        ).first()
+        if existing:
+            return jsonify({'success': False, 'error': 'Another collection with this name already exists'}), 400
+
+        collection.collection_name = name
+        collection.description = description
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'collection': {
+                'id': collection.id,
+                'name': collection.collection_name,
+                'description': collection.description
+            }
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@account_bp.route('/account/collections/<int:collection_id>/toggle-approval', methods=['POST'])
+@admin_required
+def toggle_collection_approval(collection_id):
+    """Toggle site_approved status for a collection"""
+    from app.common.models import Collection
+
+    try:
+        collection = Collection.query.get(collection_id)
+        if not collection:
+            return jsonify({'success': False, 'error': 'Collection not found'}), 404
+
+        collection.site_approved = not collection.site_approved
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'site_approved': collection.site_approved
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@account_bp.route('/account/collections/reorder', methods=['POST'])
+@admin_required
+def reorder_collections():
+    """Reorder collections by updating sort_order"""
+    from app.common.models import Collection
+
+    try:
+        data = request.get_json()
+        order = data.get('order', [])  # List of collection IDs in new order
+
+        if not order:
+            return jsonify({'success': False, 'error': 'Order list is required'}), 400
+
+        for index, collection_id in enumerate(order):
+            collection = Collection.query.get(collection_id)
+            if collection:
+                collection.sort_order = index
+
+        db.session.commit()
+
+        return jsonify({'success': True})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @account_bp.route('/account/page-permissions', methods=['GET'])
 @admin_required
 def get_page_permissions():

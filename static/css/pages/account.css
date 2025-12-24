@@ -554,6 +554,11 @@
   font-size: var(--font-xl);
 }
 
+.tool-icon[data-type="playlists"]::before {
+  content: '♫';
+  font-size: var(--font-xl);
+}
+
 .tool-button:hover .tool-icon[data-type]::before {
   color: var(--accent-blue);
 }

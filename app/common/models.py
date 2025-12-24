@@ -37,6 +37,9 @@ class Collection(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     collection_name = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.Text, nullable=True)
+    # Optional type hint for filtering (e.g., 'Playlist', 'Book'). Collections can still
+    # contain mixed items - this just helps with filtering empty/new collections.
+    collection_type = db.Column(db.String(20), nullable=True)
     site_approved = db.Column(db.Boolean, default=False, nullable=False)
     sort_order = db.Column(db.Integer, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)

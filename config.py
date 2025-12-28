@@ -23,10 +23,12 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
 
-    # Static Storage
-    # In development: serves from local /static folder (None or empty)
-    # In production: serves from S3 bucket URL
+    # Static Storage / S3 Configuration
+    # In development: serves from local /static folder (empty STATIC_STORAGE_URL)
+    # In production: serves from CloudFront URL
     STATIC_STORAGE_URL = os.getenv('STATIC_STORAGE_URL', '')
+    S3_BUCKET_NAME = os.getenv('S3_BUCKET_NAME', '')
+    AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
 
     # Spotify API
     SPOTIPY_CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')

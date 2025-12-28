@@ -46,6 +46,7 @@ migrations/versions/*.pyc
 ARCHITECTURE.md
 docs/ignore/
 archive/
+static/archive
 
 # ============================================================================
 # Internal Scripts

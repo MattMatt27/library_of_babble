@@ -831,9 +831,10 @@ def refresh_spotify():
 @account_bp.route('/account/upload_artwork', methods=['POST'])
 @admin_required
 def upload_artwork():
-    """Upload a new artwork with metadata"""
+    """Upload a new artwork with metadata - supports local and S3 storage"""
     import uuid
     from werkzeug.utils import secure_filename
+    from app.services.storage import storage
 
     # Validate required fields
     if 'artwork_file' not in request.files:
@@ -888,30 +889,24 @@ def upload_artwork():
         safe_title = "".join(c for c in title if c.isalnum() or c in (' ', '-', '_', ',')).strip()
         new_filename = f"{safe_title} ({year}){file_ext}"
 
-        # Create artist directory if it doesn't exist (with Unicode name preserved)
-        base_dir = Path('static/images/artists')
-        artist_dir = base_dir / safe_artist
-        artist_dir.mkdir(parents=True, exist_ok=True)
-
-        # Save the file
-        file_path = artist_dir / new_filename
-
-        # Validate that final path is within allowed directory (defense in depth)
-        if not validate_file_path(base_dir, file_path):
-            return jsonify({
-                'success': False,
-                'error': 'Invalid file path'
-            }), 400
+        # Build relative path for storage (works for both local and S3)
+        relative_path = f"images/artists/{safe_artist}/{new_filename}"
 
         # Check if file already exists
-        if file_path.exists():
+        if storage.file_exists(relative_path):
             # Add timestamp to make filename unique
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             safe_title_for_timestamp = safe_title.replace(' ', '_')
             new_filename = f"{safe_title_for_timestamp}_{timestamp}{file_ext}"
-            file_path = artist_dir / new_filename
+            relative_path = f"images/artists/{safe_artist}/{new_filename}"
 
-        file.save(str(file_path))
+        # Save file using storage service (handles both local and S3)
+        result = storage.save_file(file, relative_path)
+        if not result['success']:
+            return jsonify({
+                'success': False,
+                'error': f'Upload failed: {result.get("error", "Unknown error")}'
+            }), 500
 
         # Create artwork database entry (store sanitized artist name - same as folder)
         artwork = Artworks(
@@ -936,15 +931,15 @@ def upload_artwork():
             'artist': artist,
             'title': title,
             'filename': new_filename,
-            'path': str(file_path),
+            'path': relative_path,
             'message': 'Artwork uploaded successfully'
         })
 
     except Exception as e:
         db.session.rollback()
         # Clean up file if it was saved
-        if 'file_path' in locals() and file_path.exists():
-            file_path.unlink()
+        if 'relative_path' in locals():
+            storage.delete_file(relative_path)
         return jsonify({
             'success': False,
             'error': f'Upload failed: {str(e)}'

@@ -507,10 +507,17 @@
   transform: scale(1.1);
 }
 
-.like-button {
+/* Viewer action buttons container */
+.viewer-actions {
   position: absolute;
   top: 20px;
   left: 20px;
+  display: flex;
+  gap: var(--space-2);
+  z-index: 1001;
+}
+
+.like-button {
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(10px);
   border: 1px solid var(--border-primary);
@@ -613,7 +620,8 @@
   }
 
   .close-viewer,
-  .like-button {
+  .like-button,
+  .edit-button {
     width: 36px;
     height: 36px;
   }
@@ -623,7 +631,7 @@
     right: 10px;
   }
 
-  .like-button {
+  .viewer-actions {
     top: 10px;
     left: 10px;
   }
@@ -680,4 +688,163 @@
   background: var(--accent-blue) !important;
   color: white !important;
   border-color: var(--accent-blue) !important;
+}
+
+/* Edit button */
+.edit-button {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-full);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: var(--font-xl);
+  color: var(--text-primary);
+}
+
+.edit-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-blue);
+  transform: scale(1.1);
+}
+
+/* Edit Artwork Modal */
+.edit-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 3000;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-modal-content {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: var(--space-6);
+}
+
+.edit-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.edit-modal-header h2 {
+  margin: 0;
+  font-size: var(--font-xl);
+  color: var(--text-primary);
+}
+
+.edit-modal-close {
+  background: none;
+  border: none;
+  font-size: var(--font-2xl);
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.edit-modal-close:hover {
+  color: var(--text-primary);
+}
+
+#edit-artwork-form .form-group {
+  margin-bottom: var(--space-4);
+}
+
+#edit-artwork-form label {
+  display: block;
+  font-size: var(--font-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+#edit-artwork-form input[type="text"],
+#edit-artwork-form textarea {
+  width: 100%;
+  padding: var(--space-3);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-base);
+  color: var(--text-primary);
+  font-size: var(--font-base);
+  font-family: var(--font-primary);
+}
+
+#edit-artwork-form input[type="text"]:focus,
+#edit-artwork-form textarea:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+}
+
+#edit-artwork-form .checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+#edit-artwork-form .checkbox-group input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-primary);
+}
+
+.btn-cancel,
+.btn-save {
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-base);
+  font-size: var(--font-base);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-cancel {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-secondary);
+}
+
+.btn-cancel:hover {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.btn-save {
+  background: var(--accent-blue);
+  border: 1px solid var(--accent-blue);
+  color: white;
+}
+
+.btn-save:hover {
+  background: var(--accent-blue-hover, #2563eb);
 }

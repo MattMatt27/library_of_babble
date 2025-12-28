@@ -136,9 +136,16 @@
 
 <div id="image-viewer" class="image-viewer">
     <button id="close-viewer" class="close-viewer">&times;</button>
-    <button class="like-button" data-artwork-id="">
-        <img src="{{ static_url('images/assets/hearts/heart_outline.png') }}" alt="Heart Icon" class="heart-icon">
-    </button>
+    <div class="viewer-actions">
+        <button class="like-button" data-artwork-id="">
+            <img src="{{ static_url('images/assets/hearts/heart_outline.png') }}" alt="Heart Icon" class="heart-icon">
+        </button>
+        {% if current_user.is_authenticated and current_user.is_admin %}
+        <button class="edit-button" id="edit-artwork-btn" title="Edit Artwork">
+            ✎
+        </button>
+        {% endif %}
+    </div>
     <button id="prev-image" class="nav-arrow prev-arrow">&lt;</button>
     <button id="next-image" class="nav-arrow next-arrow">&gt;</button>
     <div class="image-viewer-content">
@@ -157,6 +164,59 @@
         </div>
     </div>
 </div>
+
+{% if current_user.is_authenticated and current_user.is_admin %}
+<!-- Edit Artwork Modal -->
+<div id="edit-artwork-modal" class="edit-modal">
+    <div class="edit-modal-content">
+        <div class="edit-modal-header">
+            <h2>Edit Artwork</h2>
+            <button class="edit-modal-close">&times;</button>
+        </div>
+        <form id="edit-artwork-form">
+            <input type="hidden" id="edit-artwork-id" name="artwork_id">
+            <div class="form-group">
+                <label for="edit-title">Title</label>
+                <input type="text" id="edit-title" name="title" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-artist">Artist</label>
+                <input type="text" id="edit-artist" name="artist" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-year">Year</label>
+                <input type="text" id="edit-year" name="year" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-medium">Medium</label>
+                <input type="text" id="edit-medium" name="medium">
+            </div>
+            <div class="form-group">
+                <label for="edit-location">Location</label>
+                <input type="text" id="edit-location" name="location">
+            </div>
+            <div class="form-group">
+                <label for="edit-series">Series</label>
+                <input type="text" id="edit-series" name="series">
+            </div>
+            <div class="form-group">
+                <label for="edit-description">Description</label>
+                <textarea id="edit-description" name="description" rows="3"></textarea>
+            </div>
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" id="edit-site-approved" name="site_approved">
+                    Site Approved
+                </label>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+                <button type="submit" class="btn-save">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_scripts %}
@@ -499,4 +559,124 @@
         });
     });
 </script>
+{% if current_user.is_authenticated and current_user.is_admin %}
+<script>
+    // Edit artwork functionality
+    const editModal = document.getElementById('edit-artwork-modal');
+    const editBtn = document.getElementById('edit-artwork-btn');
+    const editForm = document.getElementById('edit-artwork-form');
+    const editModalClose = document.querySelector('.edit-modal-close');
+
+    function openEditModal() {
+        // Get current artwork data from the viewer
+        const artworkId = document.querySelector('.like-button').getAttribute('data-artwork-id');
+
+        // Fetch full artwork data from server
+        fetch(`/artworks/get_artwork?artwork_id=${artworkId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('edit-artwork-id').value = data.artwork.id;
+                    document.getElementById('edit-title').value = data.artwork.title || '';
+                    document.getElementById('edit-artist').value = data.artwork.artist || '';
+                    document.getElementById('edit-year').value = data.artwork.year || '';
+                    document.getElementById('edit-medium').value = data.artwork.medium || '';
+                    document.getElementById('edit-location').value = data.artwork.location || '';
+                    document.getElementById('edit-series').value = data.artwork.series || '';
+                    document.getElementById('edit-description').value = data.artwork.description || '';
+                    document.getElementById('edit-site-approved').checked = data.artwork.site_approved;
+                    editModal.style.display = 'flex';
+                } else {
+                    alert('Failed to load artwork data');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to load artwork data');
+            });
+    }
+
+    function closeEditModal() {
+        editModal.style.display = 'none';
+    }
+
+    if (editBtn) {
+        editBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            openEditModal();
+        });
+    }
+
+    if (editModalClose) {
+        editModalClose.addEventListener('click', closeEditModal);
+    }
+
+    // Close on outside click
+    if (editModal) {
+        editModal.addEventListener('click', function(e) {
+            if (e.target === editModal) {
+                closeEditModal();
+            }
+        });
+    }
+
+    // Handle form submission
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = {
+                artwork_id: document.getElementById('edit-artwork-id').value,
+                title: document.getElementById('edit-title').value,
+                artist: document.getElementById('edit-artist').value,
+                year: document.getElementById('edit-year').value,
+                medium: document.getElementById('edit-medium').value,
+                location: document.getElementById('edit-location').value,
+                series: document.getElementById('edit-series').value,
+                description: document.getElementById('edit-description').value,
+                site_approved: document.getElementById('edit-site-approved').checked
+            };
+
+            fetch('/artworks/update_artwork', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the viewer display
+                    document.getElementById('viewer-title').textContent = formData.title;
+                    document.getElementById('viewer-artist').textContent = formData.artist;
+                    document.getElementById('viewer-year').textContent = formData.year;
+                    document.getElementById('viewer-medium').textContent = formData.medium || 'Unknown Medium';
+                    document.getElementById('viewer-location').textContent = formData.location || 'Unknown Location';
+
+                    // Also update the data attributes on the image
+                    const currentImg = document.querySelector(`img[data-img-id="${formData.artwork_id}"]`);
+                    if (currentImg) {
+                        currentImg.setAttribute('data-title', formData.title);
+                        currentImg.setAttribute('data-artist', formData.artist);
+                        currentImg.setAttribute('data-year', formData.year);
+                        currentImg.setAttribute('data-medium', formData.medium);
+                        currentImg.setAttribute('data-location', formData.location);
+                        currentImg.setAttribute('data-description', formData.description);
+                    }
+
+                    closeEditModal();
+                } else {
+                    alert('Failed to save: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to save changes');
+            });
+        });
+    }
+</script>
+{% endif %}
 {% endblock %}

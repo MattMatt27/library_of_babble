@@ -148,9 +148,15 @@
     </div>
     <button id="prev-image" class="nav-arrow prev-arrow">&lt;</button>
     <button id="next-image" class="nav-arrow next-arrow">&gt;</button>
+    <div class="zoom-controls">
+        <button id="zoom-out" class="zoom-btn" title="Zoom out">−</button>
+        <span id="zoom-level">100%</span>
+        <button id="zoom-in" class="zoom-btn" title="Zoom in">+</button>
+        <button id="zoom-reset" class="zoom-btn" title="Fit to screen">⟲</button>
+    </div>
     <div class="image-viewer-content">
-        <div class="viewer-image-container">
-            <img id="viewer-image" src="" alt="Artwork">
+        <div class="viewer-image-container" id="viewer-image-container">
+            <img id="viewer-image" src="" alt="Artwork" draggable="false">
             <button class="viewer-details-toggle" id="viewer-details-toggle" aria-label="Toggle details"></button>
         </div>
         <div class="viewer-details">
@@ -411,6 +417,180 @@
         let currentIndex = 0; // Track the current image index
         let currentArtworkId = null;
 
+        // Zoom state
+        // The approach: CSS fits the image to container (zoom=1). We can zoom out smaller
+        // or zoom in to see more detail up to native resolution (maxZoom).
+        const imageContainer = document.getElementById('viewer-image-container');
+        const zoomLevelDisplay = document.getElementById('zoom-level');
+        const zoomInBtn = document.getElementById('zoom-in');
+        const zoomOutBtn = document.getElementById('zoom-out');
+        const zoomResetBtn = document.getElementById('zoom-reset');
+
+        let currentZoom = 1;  // 1 = CSS-fitted size (baseline)
+        let minZoom = 0.25;   // Can zoom out to 25% of fit size
+        let maxZoom = 1;      // Ratio to reach native resolution
+        let panX = 0;
+        let panY = 0;
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+
+        function calculateZoomLimits() {
+            // Wait for image to load and render
+            if (!viewerImage.naturalWidth || !viewerImage.offsetWidth) return;
+
+            // The image is already CSS-fitted. Calculate how much we can zoom
+            // to reach native resolution.
+            const displayedWidth = viewerImage.offsetWidth;
+            const displayedHeight = viewerImage.offsetHeight;
+
+            // maxZoom = ratio of native size to displayed size
+            const zoomToNativeX = viewerImage.naturalWidth / displayedWidth;
+            const zoomToNativeY = viewerImage.naturalHeight / displayedHeight;
+
+            // Use the smaller ratio to ensure we don't exceed native res in either dimension
+            maxZoom = Math.max(1, Math.min(zoomToNativeX, zoomToNativeY));
+
+            // minZoom allows zooming out to 25% of the CSS-fitted size
+            minZoom = 0.25;
+        }
+
+        function updateZoom() {
+            // Clamp zoom between min and max
+            currentZoom = Math.max(minZoom, Math.min(maxZoom, currentZoom));
+
+            // Update display - percentage toward native resolution
+            const displayPercent = Math.round((currentZoom / maxZoom) * 100);
+            zoomLevelDisplay.textContent = displayPercent + '%';
+
+            // Always apply transform (scale from CSS-fitted size)
+            viewerImage.style.transform = `scale(${currentZoom}) translate(${panX / currentZoom}px, ${panY / currentZoom}px)`;
+
+            // Update cursor - can pan when zoomed in past fit
+            if (currentZoom > 1) {
+                viewerImage.style.cursor = isDragging ? 'grabbing' : 'grab';
+                constrainPan();
+            } else {
+                viewerImage.style.cursor = 'default';
+                panX = 0;
+                panY = 0;
+            }
+        }
+
+        function constrainPan() {
+            if (currentZoom <= 1) {
+                panX = 0;
+                panY = 0;
+                return;
+            }
+
+            const containerRect = imageContainer.getBoundingClientRect();
+            const displayedWidth = viewerImage.offsetWidth;
+            const displayedHeight = viewerImage.offsetHeight;
+            const scaledWidth = displayedWidth * currentZoom;
+            const scaledHeight = displayedHeight * currentZoom;
+
+            const maxPanX = Math.max(0, (scaledWidth - containerRect.width) / 2);
+            const maxPanY = Math.max(0, (scaledHeight - containerRect.height) / 2);
+
+            panX = Math.max(-maxPanX, Math.min(maxPanX, panX));
+            panY = Math.max(-maxPanY, Math.min(maxPanY, panY));
+        }
+
+        function resetZoom() {
+            currentZoom = 1;
+            panX = 0;
+            panY = 0;
+            updateZoom();
+        }
+
+        function zoomIn() {
+            const step = (maxZoom - minZoom) / 8;
+            currentZoom = Math.min(maxZoom, currentZoom + Math.max(step, 0.15));
+            updateZoom();
+        }
+
+        function zoomOut() {
+            const step = (maxZoom - minZoom) / 8;
+            currentZoom = Math.max(minZoom, currentZoom - Math.max(step, 0.15));
+            updateZoom();
+        }
+
+        // Mouse wheel zoom
+        imageContainer.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            const zoomRange = maxZoom - minZoom;
+            currentZoom += delta * Math.max(zoomRange * 0.15, 0.1);
+            updateZoom();
+        }, { passive: false });
+
+        // Double-click to toggle zoom
+        viewerImage.addEventListener('dblclick', function(e) {
+            e.preventDefault();
+            if (Math.abs(currentZoom - 1) > 0.01) {
+                // If not at fit, go to fit
+                resetZoom();
+            } else {
+                // If at fit, go to max zoom
+                currentZoom = maxZoom;
+                updateZoom();
+            }
+        });
+
+        // Drag to pan
+        viewerImage.addEventListener('mousedown', function(e) {
+            if (currentZoom <= 1) return;
+            e.preventDefault();
+            isDragging = true;
+            dragStartX = e.clientX - panX;
+            dragStartY = e.clientY - panY;
+            viewerImage.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            panX = e.clientX - dragStartX;
+            panY = e.clientY - dragStartY;
+            updateZoom();
+        });
+
+        document.addEventListener('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+                if (currentZoom > 1) {
+                    viewerImage.style.cursor = 'grab';
+                }
+            }
+        });
+
+        // Touch support for mobile
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let initialPanX = 0;
+        let initialPanY = 0;
+
+        viewerImage.addEventListener('touchstart', function(e) {
+            if (currentZoom <= 1 || e.touches.length !== 1) return;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            initialPanX = panX;
+            initialPanY = panY;
+        }, { passive: true });
+
+        viewerImage.addEventListener('touchmove', function(e) {
+            if (currentZoom <= 1 || e.touches.length !== 1) return;
+            e.preventDefault();
+            panX = initialPanX + (e.touches[0].clientX - touchStartX);
+            panY = initialPanY + (e.touches[0].clientY - touchStartY);
+            updateZoom();
+        }, { passive: false });
+
+        // Zoom button handlers
+        zoomInBtn.addEventListener('click', zoomIn);
+        zoomOutBtn.addEventListener('click', zoomOut);
+        zoomResetBtn.addEventListener('click', resetZoom);
+
         // Function to open the image viewer
         function openImageViewer(index) {
             currentIndex = index;
@@ -423,6 +603,12 @@
             const year = imgElement.getAttribute('data-year');
             const medium = imgElement.getAttribute('data-medium');
             const location = imgElement.getAttribute('data-location');
+
+            // Reset zoom state before loading new image
+            currentZoom = 1;
+            panX = 0;
+            panY = 0;
+            viewerImage.style.transform = '';
 
             viewerImage.src = fullImgSrc;
             viewerTitle.textContent = title || "Unknown Title";
@@ -438,11 +624,18 @@
             updateLikeButtonState(imgId);
 
             viewer.style.display = 'flex'; // Show the viewer
+
+            // Calculate zoom limits after image loads
+            viewerImage.onload = function() {
+                calculateZoomLimits();
+                resetZoom();
+            };
         }
 
         // Function to close the image viewer
         function closeImageViewer() {
             viewer.style.display = 'none'; // Hide the viewer
+            resetZoom();
         }
 
         // Function to navigate to the previous image

@@ -352,8 +352,8 @@
 
 .image-viewer-content {
   position: relative;
-  max-width: 90vw;
-  max-height: 90vh;
+  width: 90vw;
+  height: 90vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -361,8 +361,8 @@
 
 .viewer-image-container {
   position: relative;
-  max-width: 100%;
-  max-height: 90vh;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -372,7 +372,7 @@
 
 .image-viewer img {
   max-width: 100%;
-  max-height: 90vh;
+  max-height: 100%;
   object-fit: contain;
   display: block;
 }
@@ -847,4 +847,85 @@
 
 .btn-save:hover {
   background: var(--accent-blue-hover, #2563eb);
+}
+
+/* Zoom controls - vertical sidebar on right */
+.zoom-controls {
+  position: absolute;
+  right: 80px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-primary);
+  z-index: 2001;
+}
+
+.zoom-btn {
+  background: transparent;
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-base);
+  color: var(--text-primary);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: var(--font-lg);
+  transition: all var(--transition-fast);
+}
+
+.zoom-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-blue);
+}
+
+#zoom-level {
+  color: var(--text-primary);
+  font-size: var(--font-xs);
+  text-align: center;
+  padding: var(--space-1) 0;
+}
+
+/* Ensure image container handles overflow for zoom */
+.viewer-image-container {
+  overflow: hidden;
+}
+
+#viewer-image {
+  transform-origin: center center;
+  transition: transform 0.1s ease-out;
+  max-width: 100%;
+  max-height: 100%;
+  user-select: none;
+}
+
+#viewer-image.zoomed {
+  max-width: none;
+  max-height: none;
+}
+
+/* Mobile adjustments for zoom controls */
+@media (max-width: 768px) {
+  .zoom-controls {
+    right: 56px;
+    padding: var(--space-2);
+  }
+
+  .zoom-btn {
+    width: 30px;
+    height: 30px;
+    font-size: var(--font-base);
+  }
+
+  #zoom-level {
+    font-size: 10px;
+  }
 }

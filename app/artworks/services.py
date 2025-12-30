@@ -23,7 +23,8 @@ def normalize_year(year):
     if not year:
         return None
 
-    year_str = str(year).strip()
+    # Strip all whitespace including non-breaking spaces, and normalize internal spaces
+    year_str = ' '.join(str(year).split())
 
     # Handle BCE year ranges (e.g., "664-332 BCE") - must check before general BCE
     bce_range_match = re.match(r"(\d+)\s*[-–]\s*\d+\s*BCE", year_str, re.IGNORECASE)
@@ -42,9 +43,9 @@ def normalize_year(year):
     if bce_match:
         return -int(bce_match.group(1))
 
-    # Handle multi-century format (e.g., "18-19th century", "5-6th Century", "19th-20th Century")
-    # This regex needs to match both "5-6th" and "19th-20th" patterns
-    multi_century_match = re.match(r"(\d+)(?:st|nd|rd|th)?-(\d+)(st|nd|rd|th)\s+[Cc]entury", year_str)
+    # Handle multi-century format (e.g., "18-19th century", "5-6th Century", "19th-20th Century", "19th - 20th Century")
+    # This regex needs to match both "5-6th" and "19th-20th" patterns, with optional spaces around dash
+    multi_century_match = re.match(r"(\d+)(?:st|nd|rd|th)?\s*[-–]\s*(\d+)(st|nd|rd|th)\s+[Cc]entury", year_str)
     if multi_century_match:
         # Use the earlier century
         century = int(multi_century_match.group(1))

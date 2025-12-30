@@ -13,6 +13,28 @@ from app.utils.security import sanitize_html
 import html
 
 
+def normalize_quote_text(text):
+    """Normalize quote text to fix encoding issues before saving.
+
+    Fixes Windows-1252 characters that may appear when copying from PDFs or Word docs.
+    """
+    if not text:
+        return text
+    replacements = {
+        '\u0091': "'",   # Left single quote
+        '\u0092': "'",   # Right single quote
+        '\u0093': '"',   # Left double quote
+        '\u0094': '"',   # Right double quote
+        '\u0095': '•',   # Bullet
+        '\u0096': '–',   # En dash
+        '\u0097': '—',   # Em dash
+        '\u0085': '…',   # Ellipsis
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    return text
+
+
 @books_bp.route('/<int:book_id>')
 @page_visible('book-detail')
 def detail(book_id):
@@ -140,7 +162,7 @@ def add_quote(book_id):
     if not current_user.is_admin:
         return jsonify({'error': 'Permission denied'}), 403
 
-    quote_text = request.form.get('quote_text')
+    quote_text = normalize_quote_text(request.form.get('quote_text'))
     page_number = request.form.get('page_number')
     chapter = request.form.get('chapter', '').strip()
 
@@ -165,7 +187,7 @@ def update_quote(quote_id):
         return jsonify({'error': 'Permission denied'}), 403
 
     quote = BookQuote.query.get_or_404(quote_id)
-    quote_text = request.form.get('quote_text')
+    quote_text = normalize_quote_text(request.form.get('quote_text'))
     page_number = request.form.get('page_number')
     chapter = request.form.get('chapter', '').strip()
 

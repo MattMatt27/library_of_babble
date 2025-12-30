@@ -227,9 +227,10 @@
                     </div>
 
                     <!-- Artist Name -->
-                    <div class="form-group">
+                    <div class="form-group" style="position: relative;">
                         <label for="artworkArtist">Artist Name (Required)</label>
-                        <input type="text" id="artworkArtist" name="artist" class="form-input">
+                        <input type="text" id="artworkArtist" name="artist" class="form-input" autocomplete="off">
+                        <div id="artistSuggestions" class="autocomplete-suggestions" style="display: none;"></div>
                     </div>
 
                     <!-- Artwork Title -->
@@ -833,6 +834,762 @@ document.addEventListener('DOMContentLoaded', function() {
             // Small delay to ensure modal is open
             setTimeout(() => {
                 loadPagePermissions();
+            }, 100);
+        });
+    });
+});
+</script>
+
+<!-- Manage Playlists Modal -->
+<div class="modal-overlay" id="managePlaylistsModal">
+    <div class="modal modal-large">
+        <div class="modal-header">
+            <h3>Manage Playlists & Collections</h3>
+            <button class="modal-close" onclick="closeModal('managePlaylistsModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="review-tabs">
+                <button class="review-tab active" data-tab="playlistsTab" onclick="switchPlaylistTab('playlistsTab')">Playlists</button>
+                <button class="review-tab" data-tab="collectionsTab" onclick="switchPlaylistTab('collectionsTab')">Collections</button>
+            </div>
+
+            <!-- Playlists Tab -->
+            <div id="playlistsTab" class="tab-content active">
+                <div style="margin-bottom: var(--space-4); display: flex; gap: var(--space-3); align-items: center;">
+                    <input type="text" id="playlistSearch" class="form-input" placeholder="Search playlists..." oninput="filterPlaylists()" style="flex: 1;">
+                    <label class="filter-toggle">
+                        <input type="checkbox" id="mineOnlyFilter" onchange="loadPlaylists()">
+                        <span>My playlists only</span>
+                    </label>
+                </div>
+                <div class="playlists-list" id="playlistsList">
+                    <p>Loading playlists...</p>
+                </div>
+            </div>
+
+            <!-- Collections Tab -->
+            <div id="collectionsTab" class="tab-content" style="display: none;">
+                <div class="new-collection-form" style="margin-bottom: var(--space-4);">
+                    <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-2);">
+                        <input type="text" id="newCollectionName" class="form-input" placeholder="New collection name..." style="flex: 1;">
+                        <button class="btn btn-primary" onclick="createCollection()">Add</button>
+                    </div>
+                    <textarea id="newCollectionDesc" class="form-input" placeholder="Description (optional)..." rows="2" style="width: 100%; resize: vertical;"></textarea>
+                </div>
+                <p style="color: var(--text-secondary); font-size: var(--font-sm); margin-bottom: var(--space-4);">
+                    Drag to reorder. Click the edit button to change name/description.
+                </p>
+                <div class="collections-list" id="collectionsList">
+                    <p>Loading collections...</p>
+                </div>
+            </div>
+
+            <div id="managePlaylistsStatus" style="margin-top: var(--space-4);"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('managePlaylistsModal')">Close</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.playlists-list {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.playlist-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-base);
+    margin-bottom: var(--space-2);
+    background: var(--bg-tertiary);
+}
+
+.playlist-item:hover {
+    border-color: var(--accent-blue);
+}
+
+.playlist-art {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+    background: var(--bg-primary);
+}
+
+.playlist-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.playlist-name {
+    font-weight: var(--font-medium);
+    color: var(--text-primary);
+    line-height: var(--leading-snug);
+    word-break: break-word;
+}
+
+.playlist-owner {
+    font-size: var(--font-xs);
+    color: var(--text-tertiary);
+    margin-top: 2px;
+}
+
+.playlist-desc {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    line-height: var(--leading-snug);
+    word-break: break-word;
+}
+
+.playlist-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-shrink: 0;
+}
+
+.approval-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.toggle-switch {
+    position: relative;
+    width: 40px;
+    height: 20px;
+    background: var(--bg-primary);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    border: 1px solid var(--border-primary);
+}
+
+.toggle-switch.active {
+    background: var(--accent-green);
+    border-color: var(--accent-green);
+}
+
+.toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    background: var(--text-primary);
+    border-radius: 50%;
+    transition: transform var(--transition-fast);
+}
+
+.toggle-switch.active::after {
+    transform: translateX(20px);
+    background: white;
+}
+
+.collection-select {
+    min-width: 150px;
+    padding: var(--space-1) var(--space-2);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-base);
+    color: var(--text-primary);
+    font-size: var(--font-sm);
+}
+
+.filter-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    cursor: pointer;
+    white-space: nowrap;
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+}
+
+.filter-toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent-blue);
+    cursor: pointer;
+}
+
+.filter-toggle:hover {
+    color: var(--text-primary);
+}
+
+.collections-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.collection-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-base);
+    margin-bottom: var(--space-2);
+    background: var(--bg-tertiary);
+    cursor: grab;
+}
+
+.collection-item:active {
+    cursor: grabbing;
+}
+
+.collection-item.dragging {
+    opacity: 0.5;
+    border-style: dashed;
+}
+
+.collection-item:hover {
+    border-color: var(--accent-blue);
+}
+
+.drag-handle {
+    color: var(--text-tertiary);
+    cursor: grab;
+    font-size: var(--font-lg);
+}
+
+.collection-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.collection-name {
+    font-weight: var(--font-medium);
+    color: var(--text-primary);
+}
+
+.collection-desc {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    margin-top: 2px;
+}
+
+.collection-meta {
+    font-size: var(--font-xs);
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.btn-edit {
+    color: var(--text-tertiary);
+    font-size: var(--font-base);
+}
+
+.btn-edit:hover {
+    color: var(--accent-blue);
+}
+
+.btn-sm {
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--font-sm);
+}
+
+.collection-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.collection-edit-form .form-input {
+    padding: var(--space-2);
+    font-size: var(--font-sm);
+}
+
+.collection-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.btn-icon-sm {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-base);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-icon-sm:hover {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+}
+
+.btn-icon-sm.btn-delete:hover {
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+}
+</style>
+
+<script>
+// Playlist management state
+let allPlaylists = [];
+let allCollections = [];
+
+function switchPlaylistTab(tabName) {
+    document.querySelectorAll('#managePlaylistsModal .tab-content').forEach(tab => {
+        tab.style.display = 'none';
+    });
+    document.querySelectorAll('#managePlaylistsModal .review-tab').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    document.getElementById(tabName).style.display = 'block';
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+    if (tabName === 'collectionsTab') {
+        loadCollections();
+    }
+}
+
+async function loadPlaylistsData() {
+    const listEl = document.getElementById('playlistsList');
+    listEl.innerHTML = '<p>Loading playlists...</p>';
+
+    try {
+        // Check if mine_only filter is enabled
+        const mineOnly = document.getElementById('mineOnlyFilter')?.checked || false;
+        const url = mineOnly ? '/account/playlists?mine_only=true' : '/account/playlists';
+
+        const response = await fetch(url, {
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to load playlists');
+        }
+
+        allPlaylists = data.playlists;
+        allCollections = data.collections;
+        renderPlaylists();
+
+    } catch (error) {
+        listEl.innerHTML = `<p style="color: var(--accent-red);">Error: ${error.message}</p>`;
+    }
+}
+
+// Alias for checkbox onchange handler
+function loadPlaylists() {
+    loadPlaylistsData();
+}
+
+function renderPlaylists() {
+    const listEl = document.getElementById('playlistsList');
+    const searchTerm = (document.getElementById('playlistSearch')?.value || '').toLowerCase();
+
+    const filtered = allPlaylists.filter(p =>
+        p.name.toLowerCase().includes(searchTerm) ||
+        (p.description && p.description.toLowerCase().includes(searchTerm))
+    );
+
+    if (filtered.length === 0) {
+        listEl.innerHTML = '<p style="color: var(--text-secondary);">No playlists found.</p>';
+        return;
+    }
+
+    listEl.innerHTML = filtered.map(playlist => `
+        <div class="playlist-item" data-id="${playlist.id}">
+            <img src="${playlist.album_art || 'https://via.placeholder.com/50'}" alt="" class="playlist-art">
+            <div class="playlist-info">
+                <div class="playlist-name">${escapeHtml(playlist.name)}</div>
+                <div class="playlist-owner">by ${escapeHtml(playlist.playlist_owner || 'Unknown')}</div>
+                <div class="playlist-desc">${escapeHtml(playlist.description || '')}</div>
+            </div>
+            <div class="playlist-controls">
+                <div class="approval-toggle">
+                    <span style="font-size: var(--font-sm); color: var(--text-secondary);">Approved</span>
+                    <div class="toggle-switch ${playlist.site_approved ? 'active' : ''}"
+                         onclick="togglePlaylistApproval('${playlist.id}', this)"></div>
+                </div>
+                <select class="collection-select" onchange="updatePlaylistCollection('${playlist.id}', this.value)">
+                    <option value="">No collection</option>
+                    ${allCollections.map(c => `
+                        <option value="${c.id}" ${playlist.collection_id === c.id ? 'selected' : ''}>${escapeHtml(c.name)}</option>
+                    `).join('')}
+                </select>
+            </div>
+        </div>
+    `).join('');
+}
+
+function filterPlaylists() {
+    renderPlaylists();
+}
+
+async function togglePlaylistApproval(playlistId, toggleEl) {
+    try {
+        const response = await fetch(`/account/playlists/${playlistId}/toggle-approval`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            }
+        });
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to toggle approval');
+        }
+
+        toggleEl.classList.toggle('active', data.site_approved);
+
+        // Update local state
+        const playlist = allPlaylists.find(p => p.id === playlistId);
+        if (playlist) playlist.site_approved = data.site_approved;
+
+    } catch (error) {
+        showPlaylistStatus('Error: ' + error.message, 'error');
+    }
+}
+
+async function updatePlaylistCollection(playlistId, collectionId) {
+    try {
+        const response = await fetch(`/account/playlists/${playlistId}/collection`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ collection_id: collectionId || null })
+        });
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to update collection');
+        }
+
+        // Update local state
+        const playlist = allPlaylists.find(p => p.id === playlistId);
+        if (playlist) playlist.collection_id = collectionId ? parseInt(collectionId) : null;
+
+    } catch (error) {
+        showPlaylistStatus('Error: ' + error.message, 'error');
+        loadPlaylistsData(); // Reload to reset state
+    }
+}
+
+async function loadCollections() {
+    const listEl = document.getElementById('collectionsList');
+    listEl.innerHTML = '<p>Loading collections...</p>';
+
+    try {
+        // Load music collections (containing playlists OR marked as Playlist type)
+        const response = await fetch('/account/collections?type=music', {
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to load collections');
+        }
+
+        renderCollections(data.collections);
+
+    } catch (error) {
+        listEl.innerHTML = `<p style="color: var(--accent-red);">Error: ${error.message}</p>`;
+    }
+}
+
+function renderCollections(collections) {
+    const listEl = document.getElementById('collectionsList');
+
+    if (collections.length === 0) {
+        listEl.innerHTML = '<p style="color: var(--text-secondary);">No collections yet. Create one above.</p>';
+        return;
+    }
+
+    listEl.innerHTML = collections.map(collection => `
+        <div class="collection-item" data-id="${collection.id}" draggable="true">
+            <span class="drag-handle">≡</span>
+            <div class="collection-info">
+                <div class="collection-name">${escapeHtml(collection.name)}</div>
+                ${collection.description ? `<div class="collection-desc">${escapeHtml(collection.description)}</div>` : ''}
+                <div class="collection-meta">${collection.item_count} playlist${collection.item_count !== 1 ? 's' : ''}</div>
+            </div>
+            <div class="collection-controls">
+                <button class="btn-icon-sm btn-edit" onclick="editCollection(${collection.id})" title="Edit">✎</button>
+                <div class="toggle-switch ${collection.site_approved ? 'active' : ''}"
+                     onclick="toggleCollectionApproval(${collection.id}, this)"
+                     title="Toggle visibility"></div>
+                <button class="btn-icon-sm btn-delete" onclick="deleteCollection(${collection.id})" title="Delete">×</button>
+            </div>
+        </div>
+    `).join('');
+
+    // Initialize drag and drop
+    initCollectionDragDrop();
+}
+
+function initCollectionDragDrop() {
+    const listEl = document.getElementById('collectionsList');
+    let draggedItem = null;
+
+    listEl.querySelectorAll('.collection-item').forEach(item => {
+        item.addEventListener('dragstart', (e) => {
+            draggedItem = item;
+            item.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+
+        item.addEventListener('dragend', () => {
+            item.classList.remove('dragging');
+            draggedItem = null;
+            saveCollectionOrder();
+        });
+
+        item.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+
+            if (draggedItem && draggedItem !== item) {
+                const rect = item.getBoundingClientRect();
+                const midY = rect.top + rect.height / 2;
+
+                if (e.clientY < midY) {
+                    item.parentNode.insertBefore(draggedItem, item);
+                } else {
+                    item.parentNode.insertBefore(draggedItem, item.nextSibling);
+                }
+            }
+        });
+    });
+}
+
+async function saveCollectionOrder() {
+    const items = document.querySelectorAll('#collectionsList .collection-item');
+    const order = Array.from(items).map(item => parseInt(item.dataset.id));
+
+    try {
+        const response = await fetch('/account/collections/reorder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ order })
+        });
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to save order');
+        }
+
+    } catch (error) {
+        showPlaylistStatus('Error saving order: ' + error.message, 'error');
+    }
+}
+
+async function createCollection() {
+    const nameInput = document.getElementById('newCollectionName');
+    const descInput = document.getElementById('newCollectionDesc');
+    const name = nameInput.value.trim();
+    const description = descInput.value.trim();
+
+    if (!name) {
+        showPlaylistStatus('Please enter a collection name', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/account/collections', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ name, description, type: 'Playlist' })
+        });
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to create collection');
+        }
+
+        nameInput.value = '';
+        descInput.value = '';
+        loadCollections();
+        loadPlaylistsData(); // Refresh playlists to show new collection in dropdowns
+
+        showPlaylistStatus('Collection created!', 'success');
+
+    } catch (error) {
+        showPlaylistStatus('Error: ' + error.message, 'error');
+    }
+}
+
+function editCollection(collectionId) {
+    // Find the collection item and replace it with an edit form
+    const item = document.querySelector(`.collection-item[data-id="${collectionId}"]`);
+    if (!item) return;
+
+    const nameEl = item.querySelector('.collection-name');
+    const descEl = item.querySelector('.collection-desc');
+    const currentName = nameEl ? nameEl.textContent : '';
+    const currentDesc = descEl ? descEl.textContent : '';
+
+    // Store original HTML to restore on cancel
+    const originalHTML = item.innerHTML;
+
+    item.innerHTML = `
+        <div class="collection-edit-form" style="flex: 1;">
+            <input type="text" class="form-input edit-name-input" value="${escapeHtml(currentName)}" placeholder="Collection name..." style="margin-bottom: var(--space-2);">
+            <textarea class="form-input edit-desc-input" placeholder="Description (optional)..." rows="4" style="resize: vertical; min-height: 80px;">${escapeHtml(currentDesc)}</textarea>
+        </div>
+        <div class="collection-controls" style="align-self: flex-start; margin-top: var(--space-2);">
+            <button class="btn btn-primary btn-sm" onclick="saveCollectionEdit(${collectionId})">Save</button>
+            <button class="btn btn-secondary btn-sm" onclick="cancelCollectionEdit(${collectionId}, this)">Cancel</button>
+        </div>
+    `;
+
+    // Store original HTML for cancel
+    item.dataset.originalHtml = originalHTML;
+
+    // Focus the name input
+    item.querySelector('.edit-name-input').focus();
+}
+
+function cancelCollectionEdit(collectionId, btn) {
+    const item = btn.closest('.collection-item');
+    if (item && item.dataset.originalHtml) {
+        item.innerHTML = item.dataset.originalHtml;
+        delete item.dataset.originalHtml;
+    }
+}
+
+async function saveCollectionEdit(collectionId) {
+    const item = document.querySelector(`.collection-item[data-id="${collectionId}"]`);
+    if (!item) return;
+
+    const name = item.querySelector('.edit-name-input').value.trim();
+    const description = item.querySelector('.edit-desc-input').value.trim();
+
+    if (!name) {
+        showPlaylistStatus('Collection name cannot be empty', 'error');
+        return;
+    }
+
+    await updateCollection(collectionId, name, description);
+}
+
+async function updateCollection(collectionId, name, description) {
+    if (!name) {
+        showPlaylistStatus('Collection name cannot be empty', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/account/collections/${collectionId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ name, description })
+        });
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to update collection');
+        }
+
+        loadCollections();
+        loadPlaylistsData(); // Refresh dropdowns
+        showPlaylistStatus('Collection updated!', 'success');
+
+    } catch (error) {
+        showPlaylistStatus('Error: ' + error.message, 'error');
+    }
+}
+
+async function toggleCollectionApproval(collectionId, toggleEl) {
+    try {
+        const response = await fetch(`/account/collections/${collectionId}/toggle-approval`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            }
+        });
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to toggle approval');
+        }
+
+        toggleEl.classList.toggle('active', data.site_approved);
+
+    } catch (error) {
+        showPlaylistStatus('Error: ' + error.message, 'error');
+    }
+}
+
+async function deleteCollection(collectionId) {
+    if (!confirm('Are you sure you want to delete this collection? Playlists will be removed from it but not deleted.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/account/collections/${collectionId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            }
+        });
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to delete collection');
+        }
+
+        loadCollections();
+        loadPlaylistsData(); // Refresh playlists
+
+        showPlaylistStatus('Collection deleted', 'success');
+
+    } catch (error) {
+        showPlaylistStatus('Error: ' + error.message, 'error');
+    }
+}
+
+function showPlaylistStatus(message, type) {
+    const statusEl = document.getElementById('managePlaylistsStatus');
+    statusEl.innerHTML = `<div class="flash-message ${type}">${escapeHtml(message)}</div>`;
+    setTimeout(() => { statusEl.innerHTML = ''; }, 3000);
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Load playlists when modal opens
+document.addEventListener('DOMContentLoaded', function() {
+    const managePlaylistButtons = document.querySelectorAll('button[onclick*="managePlaylistsModal"]');
+    managePlaylistButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            setTimeout(() => {
+                loadPlaylistsData();
             }, 100);
         });
     });

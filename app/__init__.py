@@ -43,6 +43,9 @@ def create_app(config_name=None):
     migrate.init_app(app, db)
     csrf.init_app(app)
 
+    # Import all models so Alembic can detect them for migrations
+    from app import models  # noqa: F401
+
     # Configure login manager
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Please log in to access this page.'
@@ -74,6 +77,7 @@ def register_blueprints(app):
     from app.music import music_bp
     from app.artworks import artworks_bp
     from app.collecting import collecting_bp
+    from app.creating import creating_bp
     from app.account import account_bp
     from app.writing import writing_bp
     from app.main import main_bp
@@ -88,6 +92,7 @@ def register_blueprints(app):
     app.register_blueprint(music_bp, url_prefix='/listening')
     app.register_blueprint(artworks_bp, url_prefix='/artworks')
     app.register_blueprint(collecting_bp, url_prefix='/collecting')
+    app.register_blueprint(creating_bp, url_prefix='/creating')
     app.register_blueprint(writing_bp, url_prefix='/writing')
     app.register_blueprint(account_bp)
 
@@ -184,21 +189,64 @@ def register_context_processors(app):
         }
 
     @app.context_processor
+    def inject_site_settings():
+        """Inject site settings and page headers into all templates"""
+        from flask import request
+        from app.services.settings import get_setting
+        from app.services.page_headers import get_page_header
+
+        # Detect page slug from URL path
+        path = request.path
+        page_slug = None
+
+        if path == '/':
+            page_slug = 'home'
+        elif path.startswith('/writing'):
+            page_slug = 'writing'
+        elif path.startswith('/reading') or path.startswith('/books'):
+            page_slug = 'reading'
+        elif path.startswith('/watching'):
+            page_slug = 'watching'
+        elif path.startswith('/creating'):
+            page_slug = 'creating'
+        elif path.startswith('/listening'):
+            page_slug = 'listening'
+        elif path.startswith('/collecting'):
+            page_slug = 'collecting'
+        elif path.startswith('/artworks'):
+            page_slug = 'pondering'
+
+        return {
+            'site_title': get_setting('site_title', 'Library of Babble'),
+            'site_owner': get_setting('site_owner_name', ''),
+            'contact_email': get_setting('contact_email', 'contact@example.com'),
+            'page_header': get_page_header(page_slug) if page_slug else None,
+        }
+
+    @app.context_processor
     def inject_static_url():
         """Inject static_url helper for images that may be on S3 or local"""
+        from urllib.parse import quote
+
         def static_url(path):
             """
             Returns the full URL for a static asset.
             In development: /static/path
             In production: https://bucket.s3.amazonaws.com/path
+
+            Encodes special characters (like #) in path segments to ensure valid URLs.
             """
+            # Encode each path segment to handle special chars like #
+            # safe='/' preserves directory separators
+            encoded_path = quote(path, safe='/')
+
             base_url = app.config.get('STATIC_STORAGE_URL', '')
             if base_url:
                 # Production: serve from S3
-                return f"{base_url}/{path}"
+                return f"{base_url}/{encoded_path}"
             else:
                 # Development: serve from local /static folder
-                return f"/static/{path}"
+                return f"/static/{encoded_path}"
 
         return {'static_url': static_url}
 

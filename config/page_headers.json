@@ -1,0 +1,53 @@
+{
+  "_comment": "Page headers configuration. Edit these values before deployment.",
+  "headers": [
+    {
+      "slug": "home",
+      "tab_title": null,
+      "title": "Matt Flathers",
+      "subtitle": null
+    },
+    {
+      "slug": "creating",
+      "tab_title": "Creating",
+      "title": "Creating",
+      "subtitle": "I am interested in artifacts. Across all mediums I am drawn to things that are formally strange, layered, with a variety of possible interpretations. This applies to my writing, my research, and all other creative endeavors. I am particularly interested in exploring themes of communication and latent space across projects."
+    },
+    {
+      "slug": "collecting",
+      "tab_title": "Collecting",
+      "title": "Matt's Cabinet of Curiosities",
+      "subtitle": "Over the years I have tried various different methods to organize my various collections, without ever finding a solution that I particularly like. This page is my latest attempt to share my collecting hobby with people. Most of my notes and details are preliminary and based on simple inventory passes and have very little detailed research yet."
+    },
+    {
+      "slug": "reading",
+      "tab_title": "Reading",
+      "title": null,
+      "subtitle": null
+    },
+    {
+      "slug": "watching",
+      "tab_title": "Watching",
+      "title": null,
+      "subtitle": null
+    },
+    {
+      "slug": "listening",
+      "tab_title": "Listening",
+      "title": null,
+      "subtitle": "As a data engineer and an archaeologist by education, classification and curation are hobbies of mine. I have no musical ability of my own but I get a lot of joy out of sorting songs and curating playlists. My public playlist profile on Spotify is a wasteland that is impossible to navigate, so I created this page to highlight some of my personal favorites hidden in the mass of abandoned playlists. Hope you enjoy."
+    },
+    {
+      "slug": "writing",
+      "tab_title": "Writing",
+      "title": null,
+      "subtitle": null
+    },
+    {
+      "slug": "pondering",
+      "tab_title": "Pondering",
+      "title": null,
+      "subtitle": null
+    }
+  ]
+}

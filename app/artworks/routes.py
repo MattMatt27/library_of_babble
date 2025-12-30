@@ -163,6 +163,7 @@ def artwork_to_dict(artwork):
         'id': artwork.id,
         'title': artwork.title,
         'artist': artwork.artist,
+        'filesystem_artist': artwork.artist or '',
         'year': artwork.year,
         'file_name': artwork.file_name,
         'location': artwork.location,
@@ -211,3 +212,112 @@ def is_liked():
     ).first()
 
     return jsonify({'liked': bool(liked)})
+
+
+@artworks_bp.route('/api/artists', methods=['GET'])
+@login_required
+def get_artists():
+    """
+    Get list of unique artists.
+
+    Query params:
+        q (optional): Search query to filter artists (case-insensitive, partial match)
+
+    Returns:
+        JSON array of artist names, sorted alphabetically
+    """
+    query = request.args.get('q', '').strip()
+
+    # Base query for distinct artists
+    artists_query = db.session.query(Artworks.artist).filter(
+        Artworks.artist.isnot(None),
+        Artworks.artist != ''
+    ).distinct()
+
+    # Apply search filter if provided
+    if query:
+        artists_query = artists_query.filter(
+            Artworks.artist.ilike(f'%{query}%')
+        )
+
+    # Execute and format results
+    artists = artists_query.order_by(Artworks.artist).limit(50).all()
+
+    return jsonify([artist[0] for artist in artists])
+
+
+@artworks_bp.route('/get_artwork', methods=['GET'])
+@login_required
+def get_artwork():
+    """Get full artwork details for editing (admin only)"""
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+
+    artwork_id = request.args.get('artwork_id')
+    if not artwork_id:
+        return jsonify({'success': False, 'error': 'Artwork ID is required'}), 400
+
+    artwork = Artworks.query.get(artwork_id)
+    if not artwork:
+        return jsonify({'success': False, 'error': 'Artwork not found'}), 404
+
+    return jsonify({
+        'success': True,
+        'artwork': {
+            'id': artwork.id,
+            'title': artwork.title,
+            'artist': artwork.artist,
+            'year': artwork.year,
+            'medium': artwork.medium,
+            'location': artwork.location,
+            'series': artwork.series,
+            'description': artwork.description,
+            'site_approved': artwork.site_approved,
+            'file_name': artwork.file_name
+        }
+    })
+
+
+@artworks_bp.route('/update_artwork', methods=['POST'])
+@login_required
+def update_artwork():
+    """Update artwork metadata (admin only)"""
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'error': 'No data provided'}), 400
+
+    artwork_id = data.get('artwork_id')
+    if not artwork_id:
+        return jsonify({'success': False, 'error': 'Artwork ID is required'}), 400
+
+    artwork = Artworks.query.get(artwork_id)
+    if not artwork:
+        return jsonify({'success': False, 'error': 'Artwork not found'}), 404
+
+    try:
+        # Update fields
+        artwork.title = data.get('title', artwork.title)
+        artwork.artist = data.get('artist', artwork.artist)
+        artwork.year = data.get('year', artwork.year)
+        artwork.medium = data.get('medium') or None
+        artwork.location = data.get('location') or None
+        artwork.series = data.get('series') or None
+        artwork.description = data.get('description') or None
+        artwork.site_approved = data.get('site_approved', artwork.site_approved)
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Artwork updated successfully'
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': f'Failed to update: {str(e)}'
+        }), 500

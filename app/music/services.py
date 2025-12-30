@@ -146,8 +146,8 @@ def get_approved_playlist_collections():
     Get all approved collections that contain playlists.
     Returns dict: {collection_name: {description, playlists: [...]}}
     """
-    # Get all approved collections
-    collections = Collection.query.filter_by(site_approved=True).all()
+    # Get all approved collections, ordered by sort_order
+    collections = Collection.query.filter_by(site_approved=True).order_by(Collection.sort_order).all()
 
     result = {}
     for collection in collections:

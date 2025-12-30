@@ -78,7 +78,8 @@ def detail(book_id):
         quotes.append({
             'id': quote.id,
             'text': quote_text,
-            'page_number': quote.page_number if quote.page_number else "N/A",
+            'page_number': quote.page_number,
+            'chapter': quote.chapter,
             'is_liked': quote.id in liked_quote_ids
         })
 
@@ -141,12 +142,14 @@ def add_quote(book_id):
 
     quote_text = request.form.get('quote_text')
     page_number = request.form.get('page_number')
+    chapter = request.form.get('chapter', '').strip()
 
     if quote_text:
         new_quote = BookQuote(
             book_id=str(book_id),
             quote_text=quote_text,
-            page_number=int(page_number) if page_number else None
+            page_number=int(page_number) if page_number else None,
+            chapter=chapter if chapter else None
         )
         db.session.add(new_quote)
         db.session.commit()
@@ -164,10 +167,12 @@ def update_quote(quote_id):
     quote = BookQuote.query.get_or_404(quote_id)
     quote_text = request.form.get('quote_text')
     page_number = request.form.get('page_number')
+    chapter = request.form.get('chapter', '').strip()
 
     if quote_text:
         quote.quote_text = quote_text
         quote.page_number = int(page_number) if page_number else None
+        quote.chapter = chapter if chapter else None
         db.session.commit()
 
     return redirect(url_for('books.detail', book_id=quote.book_id))

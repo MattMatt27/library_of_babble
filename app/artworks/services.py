@@ -23,7 +23,8 @@ def normalize_year(year):
     if not year:
         return None
 
-    year_str = str(year).strip()
+    # Strip all whitespace including non-breaking spaces, and normalize internal spaces
+    year_str = ' '.join(str(year).split())
 
     # Handle BCE year ranges (e.g., "664-332 BCE") - must check before general BCE
     bce_range_match = re.match(r"(\d+)\s*[-–]\s*\d+\s*BCE", year_str, re.IGNORECASE)
@@ -42,9 +43,9 @@ def normalize_year(year):
     if bce_match:
         return -int(bce_match.group(1))
 
-    # Handle multi-century format (e.g., "18-19th century", "5-6th Century", "19th-20th Century")
-    # This regex needs to match both "5-6th" and "19th-20th" patterns
-    multi_century_match = re.match(r"(\d+)(?:st|nd|rd|th)?-(\d+)(st|nd|rd|th)\s+[Cc]entury", year_str)
+    # Handle multi-century format (e.g., "18-19th century", "5-6th Century", "19th-20th Century", "19th - 20th Century")
+    # This regex needs to match both "5-6th" and "19th-20th" patterns, with optional spaces around dash
+    multi_century_match = re.match(r"(\d+)(?:st|nd|rd|th)?\s*[-–]\s*(\d+)(st|nd|rd|th)\s+[Cc]entury", year_str)
     if multi_century_match:
         # Use the earlier century
         century = int(multi_century_match.group(1))
@@ -101,12 +102,13 @@ def get_approved_artworks_from_db(page=1, per_page=100, sort_order='asc',
     # Build base query
     query = Artworks.query.filter(Artworks.site_approved == True)
 
-    # Apply collection filter
+    # Apply collection filter (AND logic - artwork must be in ALL selected collections)
     if collection_filter:
         from flask_login import current_user
         from app.artworks.models import LikedArtworks
 
-        artwork_ids = set()
+        # Collect artwork ID sets for each collection
+        collection_sets = []
 
         # Handle "my_likes" specially
         if 'my_likes' in collection_filter:
@@ -114,20 +116,32 @@ def get_approved_artworks_from_db(page=1, per_page=100, sort_order='asc',
                 liked_ids = db.session.query(LikedArtworks.artwork_id).filter(
                     LikedArtworks.user_id == current_user.id
                 ).all()
-                artwork_ids.update([lid[0] for lid in liked_ids])
+                collection_sets.append(set(lid[0] for lid in liked_ids))
+            else:
+                # User not authenticated but requested my_likes - empty set
+                collection_sets.append(set())
 
-        # Get other collection galleries
+        # Get artwork IDs for each gallery collection separately
         other_collections = [c for c in collection_filter if c != 'my_likes']
-        if other_collections:
+        for collection_id in other_collections:
             gallery_artwork_ids = db.session.query(ArtworkGalleryItem.artwork_id).filter(
-                ArtworkGalleryItem.gallery_id.in_(other_collections)
-            ).distinct().all()
-            artwork_ids.update([aid[0] for aid in gallery_artwork_ids])
+                ArtworkGalleryItem.gallery_id == collection_id
+            ).all()
+            collection_sets.append(set(aid[0] for aid in gallery_artwork_ids))
 
-        if artwork_ids:
-            query = query.filter(Artworks.id.in_(list(artwork_ids)))
+        # Intersect all sets (AND logic)
+        if collection_sets:
+            artwork_ids = collection_sets[0]
+            for s in collection_sets[1:]:
+                artwork_ids = artwork_ids.intersection(s)
+
+            if artwork_ids:
+                query = query.filter(Artworks.id.in_(list(artwork_ids)))
+            else:
+                # No artworks match ALL collections, return empty
+                return [], 0, all_artists
         else:
-            # No artworks match the collection filter, return empty
+            # No valid collections to filter by
             return [], 0, all_artists
 
     # Apply artist filter
@@ -136,7 +150,7 @@ def get_approved_artworks_from_db(page=1, per_page=100, sort_order='asc',
 
     # For date filtering, we need to handle the complex year normalization
     # For now, we'll apply simple filtering (can be enhanced later)
-    # This is a simplified version - the original used complex SQL CASE statements
+    # This is a simplified version - my original manula approach used complex SQL CASE statements
 
     # Get total count for pagination before sorting
     total_items = query.count()
@@ -189,10 +203,12 @@ def get_approved_artworks_from_db(page=1, per_page=100, sort_order='asc',
     # Process results
     artworks = []
     for artwork in artworks_query:
+        artist_display = unquote(artwork.artist).strip() if artwork.artist else ''
         artworks.append({
             'id': artwork.id,
             'title': artwork.title if artwork.title else f"From the {artwork.series} series",
-            'artist': unquote(artwork.artist).strip() if artwork.artist else '',
+            'artist': artist_display,
+            'filesystem_artist': artist_display, 
             'year': artwork.year,
             'file_name': unquote(artwork.file_name) if artwork.file_name else 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg',
             'series': artwork.series,
@@ -210,10 +226,12 @@ def get_all_artworks():
 
     artworks = []
     for artwork in artworks_query:
+        artist_display = unquote(artwork.artist).strip() if artwork.artist else ''
         artworks.append({
             'id': artwork.id,
             'title': f"{artwork.title} ({artwork.year})" if artwork.title else f"From the {artwork.series} series ({artwork.year})",
-            'artist': unquote(artwork.artist).strip() if artwork.artist else '',
+            'artist': artist_display,
+            'filesystem_artist': artist_display, 
             'year': artwork.year,
             'file_name': unquote(artwork.file_name) if artwork.file_name else 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg',
             'series': artwork.series,

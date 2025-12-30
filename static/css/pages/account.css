@@ -410,9 +410,10 @@
   color: var(--text-secondary);
 }
 
-.quote-modal-page {
-  font-size: var(--font-sm);
+.quote-modal-location {
+  font-size: var(--font-xs);
   color: var(--text-tertiary);
+  margin-top: var(--space-1);
 }
 
 /* Admin tools section */
@@ -550,6 +551,11 @@
 
 .tool-icon[data-type="pages"]::before {
   content: '☰';
+  font-size: var(--font-xl);
+}
+
+.tool-icon[data-type="playlists"]::before {
+  content: '♫';
   font-size: var(--font-xl);
 }
 
@@ -1099,4 +1105,38 @@
 
 .pub-actions .btn-icon:last-child:hover {
   color: #ef4444;
+}
+
+/* Autocomplete Suggestions */
+.autocomplete-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-top: none;
+  border-radius: 0 0 var(--radius-base) var(--radius-base);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.autocomplete-item {
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  font-size: var(--font-sm);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-item:hover,
+.autocomplete-item.selected {
+  background: var(--bg-tertiary);
+  color: var(--accent-blue);
 }

@@ -5,6 +5,148 @@
 
 import { showStatus } from '../core/utilities.js';
 
+// Autocomplete state
+let autocompleteTimeout = null;
+let selectedIndex = -1;
+
+/**
+ * Initialize artist autocomplete
+ * Call this when the upload modal is opened
+ */
+export function initArtistAutocomplete() {
+    const input = document.getElementById('artworkArtist');
+    const suggestionsDiv = document.getElementById('artistSuggestions');
+
+    if (!input || !suggestionsDiv) return;
+
+    // Input event with debounce
+    input.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+
+        // Clear previous timeout
+        if (autocompleteTimeout) {
+            clearTimeout(autocompleteTimeout);
+        }
+
+        // Hide suggestions if query is too short
+        if (query.length < 2) {
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+
+        // Debounce the API call
+        autocompleteTimeout = setTimeout(() => {
+            fetchArtistSuggestions(query);
+        }, 300);
+    });
+
+    // Keyboard navigation
+    input.addEventListener('keydown', (e) => {
+        const items = suggestionsDiv.querySelectorAll('.autocomplete-item');
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+            updateSelection(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedIndex = Math.max(selectedIndex - 1, -1);
+            updateSelection(items);
+        } else if (e.key === 'Enter' && selectedIndex >= 0) {
+            e.preventDefault();
+            if (items[selectedIndex]) {
+                selectArtist(items[selectedIndex].textContent);
+            }
+        } else if (e.key === 'Escape') {
+            suggestionsDiv.style.display = 'none';
+            selectedIndex = -1;
+        }
+    });
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+            suggestionsDiv.style.display = 'none';
+            selectedIndex = -1;
+        }
+    });
+}
+
+/**
+ * Fetch artist suggestions from API
+ */
+async function fetchArtistSuggestions(query) {
+    const suggestionsDiv = document.getElementById('artistSuggestions');
+
+    try {
+        const response = await fetch(`/artworks/api/artists?q=${encodeURIComponent(query)}`);
+        const artists = await response.json();
+
+        if (artists.length === 0) {
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+
+        // Build suggestion items
+        suggestionsDiv.innerHTML = artists.map(artist =>
+            `<div class="autocomplete-item">${escapeHtml(artist)}</div>`
+        ).join('');
+
+        // Add click handlers
+        suggestionsDiv.querySelectorAll('.autocomplete-item').forEach(item => {
+            item.addEventListener('click', () => {
+                selectArtist(item.textContent);
+            });
+        });
+
+        suggestionsDiv.style.display = 'block';
+        selectedIndex = -1;
+    } catch (error) {
+        console.error('Error fetching artist suggestions:', error);
+        suggestionsDiv.style.display = 'none';
+    }
+}
+
+/**
+ * Select an artist from suggestions
+ */
+function selectArtist(artist) {
+    const input = document.getElementById('artworkArtist');
+    const suggestionsDiv = document.getElementById('artistSuggestions');
+
+    input.value = artist;
+    suggestionsDiv.style.display = 'none';
+    selectedIndex = -1;
+
+    // Move focus to next field
+    const titleInput = document.getElementById('artworkTitle');
+    if (titleInput) {
+        titleInput.focus();
+    }
+}
+
+/**
+ * Update visual selection state
+ */
+function updateSelection(items) {
+    items.forEach((item, index) => {
+        if (index === selectedIndex) {
+            item.classList.add('selected');
+        } else {
+            item.classList.remove('selected');
+        }
+    });
+}
+
+/**
+ * Escape HTML to prevent XSS
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 /**
  * Switch between individual and CSV upload modes
  * @param {string} mode - Either 'individual' or 'csv'

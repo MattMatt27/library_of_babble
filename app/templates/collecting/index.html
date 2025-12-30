@@ -10,10 +10,14 @@
 
 {% block content %}
 <div class="container collecting-page">
+    {% if page_header and page_header.title %}
     <div class="page-header">
-        <h1>Matt's Cabinet of Curiosities</h1>
-        <p class="page-subtitle">Over the years I have tried various different methods to organize my various collections, without ever finding a solution that I particularly like. This page is my latest attempt to share my collecting hobby with people. Most of my notes and details are preliminary and based on simple inventory passes and have very little detailed research yet.</p>
+        <h1>{{ page_header.title }}</h1>
+        {% if page_header.subtitle %}
+        <p class="page-subtitle">{{ page_header.subtitle }}</p>
+        {% endif %}
     </div>
+    {% endif %}
 
     <div class="collection-section">
         <div class="collection-header">

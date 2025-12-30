@@ -13,6 +13,7 @@ from app.books.services import (
     read_books_from_db,
     get_books_from_bookshelf
 )
+from app.common.models import Collection, CollectionItem
 from app.utils.security import page_visible
 from app.extensions import db
 
@@ -22,8 +23,24 @@ from app.extensions import db
 def index():
     """Reading page with recently read and recommendations"""
     recently_read_books = get_recently_read_books()
-    recommended_fiction_books = get_books_from_bookshelf('matts-recommended-fiction')
-    recommended_nonfiction_books = get_books_from_bookshelf('matts-recommended-nonfiction')
+
+    # Get all approved Book collections, ordered by sort_order
+    book_collections = Collection.query.filter_by(
+        collection_type='Book',
+        site_approved=True
+    ).order_by(Collection.sort_order.asc().nullslast(), Collection.collection_name).all()
+
+    # Build shelves data from collections
+    shelves = []
+    for collection in book_collections:
+        books = get_books_from_bookshelf(collection.collection_name)
+        if books:  # Only include shelves that have books
+            shelves.append({
+                'id': collection.id,
+                'name': collection.collection_name,
+                'display_name': collection.description or collection.collection_name.replace('-', ' ').title(),
+                'books': books
+            })
 
     # Get all visible book pairings for cycling display
     pairings = BookPairing.query.filter_by(is_visible=True).order_by(BookPairing.updated_at.desc()).all()
@@ -71,8 +88,7 @@ def index():
     return render_template(
         'books/reading.html',
         recently_read_books=recently_read_books,
-        recommended_fiction_books=recommended_fiction_books,
-        recommended_nonfiction_books=recommended_nonfiction_books,
+        shelves=shelves,
         book_pairings=book_pairings,
         random_quote=random_quote,
         current_user=current_user
@@ -227,3 +243,252 @@ def quotes():
         books_with_quotes=books_with_quotes,
         current_user=current_user
     )
+
+
+@reading_bp.route('/api/shelf', methods=['POST'])
+@login_required
+def create_shelf():
+    """Create a new book shelf/collection (admin only)"""
+    if not current_user.is_admin:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    data = request.get_json()
+    name = data.get('name', '').strip()
+    display_name = data.get('display_name', '').strip()
+
+    if not name:
+        return jsonify({'error': 'Shelf name is required'}), 400
+
+    # Convert display name to slug for collection_name
+    collection_name = name.lower().replace(' ', '-')
+
+    # Check if collection already exists
+    existing = Collection.query.filter_by(collection_name=collection_name).first()
+    if existing:
+        return jsonify({'error': 'A shelf with this name already exists'}), 400
+
+    # Get max sort_order for Book collections
+    max_order = db.session.query(func.max(Collection.sort_order)).filter_by(
+        collection_type='Book'
+    ).scalar() or 0
+
+    collection = Collection(
+        collection_name=collection_name,
+        description=display_name or name,
+        collection_type='Book',
+        site_approved=True,
+        sort_order=max_order + 1
+    )
+    db.session.add(collection)
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'id': collection.id,
+        'name': collection.collection_name,
+        'display_name': collection.description
+    })
+
+
+@reading_bp.route('/api/shelf/<int:shelf_id>', methods=['PUT'])
+@login_required
+def update_shelf(shelf_id):
+    """Update an existing book shelf/collection (admin only)"""
+    if not current_user.is_admin:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    collection = Collection.query.get(shelf_id)
+    if not collection:
+        return jsonify({'error': 'Shelf not found'}), 404
+
+    data = request.get_json()
+    display_name = data.get('display_name', '').strip()
+
+    if not display_name:
+        return jsonify({'error': 'Shelf name is required'}), 400
+
+    collection.description = display_name
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'id': collection.id,
+        'name': collection.collection_name,
+        'display_name': collection.description
+    })
+
+
+@reading_bp.route('/api/shelf/<int:shelf_id>/books', methods=['GET'])
+@login_required
+def get_shelf_books(shelf_id):
+    """Get all books in a shelf (admin only)"""
+    if not current_user.is_admin:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    collection = Collection.query.get(shelf_id)
+    if not collection:
+        return jsonify({'error': 'Shelf not found'}), 404
+
+    items = CollectionItem.query.filter_by(
+        collection_id=shelf_id,
+        item_type='Book'
+    ).order_by(CollectionItem.item_order.asc().nullslast()).all()
+
+    books = []
+    for item in items:
+        book = Books.query.get(item.item_id)
+        if book:
+            books.append({
+                'item_id': item.id,
+                'book_id': book.id,
+                'title': book.title,
+                'author': book.author,
+                'cover_image_url': book.cover_image_url,
+                'order': item.item_order
+            })
+
+    return jsonify(books)
+
+
+@reading_bp.route('/api/shelf/<int:shelf_id>/books', methods=['POST'])
+@login_required
+def add_book_to_shelf(shelf_id):
+    """Add a book to a shelf (admin only)"""
+    if not current_user.is_admin:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    collection = Collection.query.get(shelf_id)
+    if not collection:
+        return jsonify({'error': 'Shelf not found'}), 404
+
+    data = request.get_json()
+    book_id = data.get('book_id')
+
+    if not book_id:
+        return jsonify({'error': 'Book ID is required'}), 400
+
+    book = Books.query.get(book_id)
+    if not book:
+        return jsonify({'error': 'Book not found'}), 404
+
+    # Check if book already in shelf
+    existing = CollectionItem.query.filter_by(
+        collection_id=shelf_id,
+        item_type='Book',
+        item_id=str(book_id)
+    ).first()
+
+    if existing:
+        return jsonify({'error': 'Book is already on this shelf'}), 400
+
+    # Get max order
+    max_order = db.session.query(func.max(CollectionItem.item_order)).filter_by(
+        collection_id=shelf_id
+    ).scalar() or 0
+
+    item = CollectionItem(
+        collection_id=shelf_id,
+        item_type='Book',
+        item_id=str(book_id),
+        item_order=max_order + 1
+    )
+    db.session.add(item)
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'item_id': item.id,
+        'book_id': book.id,
+        'title': book.title,
+        'author': book.author,
+        'cover_image_url': book.cover_image_url,
+        'order': item.item_order
+    })
+
+
+@reading_bp.route('/api/shelf/<int:shelf_id>/books/<int:item_id>', methods=['DELETE'])
+@login_required
+def remove_book_from_shelf(shelf_id, item_id):
+    """Remove a book from a shelf (admin only)"""
+    if not current_user.is_admin:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    item = CollectionItem.query.filter_by(
+        id=item_id,
+        collection_id=shelf_id
+    ).first()
+
+    if not item:
+        return jsonify({'error': 'Item not found'}), 404
+
+    db.session.delete(item)
+    db.session.commit()
+
+    return jsonify({'success': True})
+
+
+@reading_bp.route('/api/shelf/<int:shelf_id>/reorder', methods=['POST'])
+@login_required
+def reorder_shelf_books(shelf_id):
+    """Reorder books in a shelf (admin only)"""
+    if not current_user.is_admin:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    collection = Collection.query.get(shelf_id)
+    if not collection:
+        return jsonify({'error': 'Shelf not found'}), 404
+
+    data = request.get_json()
+    item_ids = data.get('item_ids', [])
+
+    for index, item_id in enumerate(item_ids):
+        item = CollectionItem.query.filter_by(
+            id=item_id,
+            collection_id=shelf_id
+        ).first()
+        if item:
+            item.item_order = index + 1
+
+    db.session.commit()
+
+    return jsonify({'success': True})
+
+
+@reading_bp.route('/api/shelves', methods=['GET'])
+@login_required
+def get_all_shelves():
+    """Get all book shelves for reordering (admin only)"""
+    if not current_user.is_admin:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    collections = Collection.query.filter_by(
+        collection_type='Book',
+        site_approved=True
+    ).order_by(Collection.sort_order.asc().nullslast(), Collection.collection_name).all()
+
+    return jsonify([{
+        'id': c.id,
+        'name': c.collection_name,
+        'display_name': c.description or c.collection_name.replace('-', ' ').title(),
+        'sort_order': c.sort_order
+    } for c in collections])
+
+
+@reading_bp.route('/api/shelves/reorder', methods=['POST'])
+@login_required
+def reorder_shelves():
+    """Reorder shelves (admin only)"""
+    if not current_user.is_admin:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    data = request.get_json()
+    shelf_ids = data.get('shelf_ids', [])
+
+    for index, shelf_id in enumerate(shelf_ids):
+        collection = Collection.query.get(shelf_id)
+        if collection:
+            collection.sort_order = index + 1
+
+    db.session.commit()
+
+    return jsonify({'success': True})

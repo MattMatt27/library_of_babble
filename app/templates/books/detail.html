@@ -6,33 +6,61 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/books.css') }}">
 <script src="{{ url_for('static', filename='js/star-rating.js') }}" defer></script>
 <style>
-/* Book detail page styles */
+/* Book detail page styles - Compact layout */
 .book-detail-container {
   margin-top: var(--space-4);
 }
 
-.book-detail-main {
+/* Two-column layout: book info + reviews side by side */
+.book-detail-top {
   display: grid;
-  grid-template-columns: 350px 1fr;
-  gap: var(--space-6);
-  margin-bottom: var(--space-6);
-}
-
-.book-detail-sidebar {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
-}
-
-.book-detail-image {
+  grid-template-columns: 260px 1fr;
+  gap: var(--space-5);
   margin-bottom: var(--space-5);
 }
 
-.book-detail-image img {
+/* Left card: Cover + info stacked vertically */
+.book-info-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 260px;
+}
+
+/* Book cover - compact size */
+.book-cover-section {
+  flex-shrink: 0;
+  width: 160px;
+  margin-bottom: var(--space-4);
+}
+
+/* Right card: Reviews */
+.reviews-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.reviews-header {
+  font-size: var(--font-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-4) 0;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.book-cover-image {
   width: 100%;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-md);
 }
 
 /* Cover upload overlay for admin */
@@ -56,6 +84,7 @@
   justify-content: center;
   opacity: 0;
   transition: opacity var(--transition-base);
+  border-radius: var(--radius-md);
 }
 
 .cover-upload-container:hover .cover-upload-overlay {
@@ -63,69 +92,64 @@
 }
 
 .cover-upload-icon {
-  font-size: var(--font-3xl);
-  margin-bottom: var(--space-2);
+  font-size: var(--font-2xl);
+  margin-bottom: var(--space-1);
 }
 
 .cover-upload-text {
   color: white;
-  font-size: var(--font-base);
+  font-size: var(--font-sm);
   font-weight: var(--font-semibold);
 }
 
-.book-detail-title {
-  font-size: var(--font-2xl);
+/* Book info section */
+.book-info-section {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.book-title {
+  font-size: var(--font-lg);
   font-weight: var(--font-bold);
   color: var(--text-primary);
-  margin-bottom: var(--space-2);
+  margin: 0 0 var(--space-1) 0;
   line-height: var(--leading-tight);
 }
 
-.book-detail-author {
-  font-size: var(--font-lg);
-  color: var(--text-secondary);
-  margin-bottom: var(--space-2);
-}
-
-.book-detail-year {
+.book-author {
   font-size: var(--font-base);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.book-year {
+  font-size: var(--font-sm);
   color: var(--text-tertiary);
-}
-
-/* Reviews section */
-.reviews-section {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
-}
-
-.section-title {
-  font-size: var(--font-2xl);
-  font-weight: var(--font-semibold);
-  color: var(--text-primary);
-  margin-bottom: var(--space-5);
-  padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--border-primary);
+  margin: 0;
 }
 
 .review-item {
-  margin-bottom: var(--space-6);
-  padding-bottom: var(--space-6);
+  padding: var(--space-3) 0;
   border-bottom: 1px solid var(--border-secondary);
+}
+
+.review-item:first-child {
+  padding-top: 0;
 }
 
 .review-item:last-child {
   border-bottom: none;
-  margin-bottom: 0;
   padding-bottom: 0;
 }
 
-.review-header {
+.review-meta {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
   margin-bottom: var(--space-3);
+  flex-wrap: wrap;
 }
 
 .review-date {
@@ -133,47 +157,59 @@
   font-size: var(--font-sm);
 }
 
-.review-stars img {
-  height: 24px;
-  width: auto;
+.review-stars {
+  display: flex;
+  align-items: center;
 }
 
 .review-content {
   color: var(--text-primary);
   line-height: 1.6;
+  font-size: var(--font-base);
 }
 
-/* Quotes section */
+.no-review {
+  color: var(--text-tertiary);
+  font-style: italic;
+  font-size: var(--font-sm);
+}
+
+/* Quotes section - compact */
 .quotes-section {
   background: var(--bg-secondary);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
-  padding: var(--space-6);
+  padding: var(--space-5);
 }
 
 .quotes-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-4);
   padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--border-primary);
 }
 
-.quotes-header .section-title {
-  border-bottom: none;
-  padding-bottom: 0;
-  margin-bottom: 0;
+.quotes-header h2 {
+  font-size: var(--font-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0;
 }
 
 .quote-item {
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-4);
   padding-left: var(--space-4);
   border-left: 3px solid var(--accent-blue);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: var(--space-3);
+}
+
+.quote-item:last-child {
+  margin-bottom: 0;
 }
 
 .quote-content {
@@ -208,6 +244,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .quote-like-btn:hover {
@@ -221,6 +258,27 @@
 
 .quote-like-btn.liked:hover {
   color: var(--accent-blue-hover);
+}
+
+.quote-like-btn:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+.quote-like-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Animation for like action */
+@keyframes heartBeat {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.2); }
+  30% { transform: scale(1); }
+}
+
+.quote-like-btn.animating {
+  animation: heartBeat 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Quote editing tabs */
@@ -271,6 +329,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  flex-wrap: wrap;
 }
 
 .quote-page-label {
@@ -286,48 +345,18 @@
   width: 180px;
 }
 
-.form-row {
-  display: flex;
-  gap: var(--space-4);
-}
-
-.form-row .form-group {
-  flex: 1;
-}
-
-.quote-like-btn:focus-visible {
-  outline: 2px solid var(--accent-blue);
-  outline-offset: 2px;
-}
-
-.quote-like-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Animation for like action */
-@keyframes heartBeat {
-  0%, 100% { transform: scale(1); }
-  15% { transform: scale(1.2); }
-  30% { transform: scale(1); }
-}
-
-.quote-like-btn.animating {
-  animation: heartBeat 400ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
 .no-content {
   color: var(--text-tertiary);
   font-style: italic;
 }
 
-/* Quote form */
+/* Quote add form */
 .quote-form-container {
   background: var(--bg-primary);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-base);
-  padding: var(--space-5);
-  margin-bottom: var(--space-5);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
   display: none;
 }
 
@@ -335,8 +364,13 @@
   display: block;
 }
 
-.add-quote-btn-icon {
-  display: none;
+.form-row {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.form-row .form-group {
+  flex: 1;
 }
 
 /* Modal styles */
@@ -363,13 +397,13 @@
   background: var(--bg-secondary);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
-  max-width: 600px;
+  max-width: 500px;
   width: 100%;
   box-shadow: var(--shadow-lg);
 }
 
 .modal-header {
-  padding: var(--space-5);
+  padding: var(--space-4);
   border-bottom: 1px solid var(--border-primary);
   display: flex;
   justify-content: space-between;
@@ -377,7 +411,7 @@
 }
 
 .modal-header h3 {
-  font-size: var(--font-xl);
+  font-size: var(--font-lg);
   font-weight: var(--font-semibold);
   color: var(--text-primary);
   margin: 0;
@@ -405,11 +439,11 @@
 }
 
 .modal-body {
-  padding: var(--space-5);
+  padding: var(--space-4);
 }
 
 .modal-footer {
-  padding: var(--space-5);
+  padding: var(--space-4);
   border-top: 1px solid var(--border-primary);
   display: flex;
   justify-content: flex-end;
@@ -435,32 +469,27 @@
 }
 
 /* Mobile responsive */
-@media (max-width: 900px) {
-  .book-detail-main {
+@media (max-width: 768px) {
+  .book-detail-top {
     grid-template-columns: 1fr;
   }
 
-  .book-detail-sidebar {
-    text-align: center;
+  .book-cover-section {
+    width: 140px;
   }
 
-  .book-detail-image {
-    max-width: 300px;
-    margin-left: auto;
-    margin-right: auto;
+  .quote-edit-row {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .add-quote-btn-icon {
-    display: inline;
+  .quote-chapter-input,
+  .quote-page-input {
+    width: 100%;
   }
 
-  .add-quote-btn-icon::before {
-    content: '+';
-    font-size: var(--font-xl);
-  }
-
-  .add-quote-btn-text {
-    display: none;
+  .form-row {
+    flex-direction: column;
   }
 }
 </style>
@@ -468,58 +497,58 @@
 
 {% block content %}
 <div class="container book-detail-container">
-    <!-- Main content: Sidebar + Reviews -->
-    <div class="book-detail-main">
-        <!-- Left sidebar: Book details -->
-        <div class="book-detail-sidebar">
-            <div class="book-detail-image">
+    <!-- Top row: Book info card + Reviews card -->
+    <div class="book-detail-top">
+        <!-- Left card: Cover + Info -->
+        <div class="book-info-card">
+            <div class="book-cover-section">
                 {% if current_user.is_authenticated and current_user.role == 'admin' %}
                     <div class="cover-upload-container" onclick="showCoverUrlModal()">
-                        <img src="{{ book.cover_image_url }}" alt="{{ book.title }}">
+                        <img src="{{ book.cover_image_url }}" alt="{{ book.title }}" class="book-cover-image">
                         <div class="cover-upload-overlay">
                             <span class="cover-upload-icon">📷</span>
-                            <span class="cover-upload-text">Update Cover URL</span>
+                            <span class="cover-upload-text">Update Cover</span>
                         </div>
                     </div>
                 {% else %}
-                    <img src="{{ book.cover_image_url }}" alt="{{ book.title }}">
+                    <img src="{{ book.cover_image_url }}" alt="{{ book.title }}" class="book-cover-image">
                 {% endif %}
             </div>
-
-            <h1 class="book-detail-title">{{ book.title }}</h1>
-            <div class="book-detail-author">by {{ book.author }}</div>
-            <div class="book-detail-year">
-                {% if book.publication_year is not none %}
-                    {% if book.publication_year < 0 %}
-                        {{ -book.publication_year }} BC
+            <div class="book-info-section">
+                <h1 class="book-title">{{ book.title }}</h1>
+                <p class="book-author">by {{ book.author }}</p>
+                <p class="book-year">
+                    {% if book.publication_year is not none %}
+                        {% if book.publication_year < 0 %}
+                            {{ -book.publication_year }} BC
+                        {% else %}
+                            {{ book.publication_year }}
+                        {% endif %}
                     {% else %}
-                        {{ book.publication_year }}
+                        Unknown publication year
                     {% endif %}
-                {% else %}
-                    Unknown publication year
-                {% endif %}
+                </p>
             </div>
         </div>
 
-        <!-- Right side: Reviews -->
-        <div class="reviews-section">
-            <h2 class="section-title">Reviews</h2>
-            {% if reviews %}
+        <!-- Right card: Reviews -->
+        <div class="reviews-card">
+            <h2 class="reviews-header">Reviews</h2>
+            {% if reviews and reviews|length > 0 %}
                 {% for review in reviews %}
                     <div class="review-item">
-                        <div class="review-header">
-                            <div class="review-date">Finished on {{ review.date_read }}</div>
+                        <div class="review-meta">
+                            <span class="review-date">Finished {{ review.date_read }}</span>
                             {% if review.my_rating and review.my_rating != '0' %}
                                 <div class="review-stars">
-                                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                    {% if current_user.is_authenticated and current_user.role == 'admin' and loop.first %}
                                         <div data-star-rating="{{ review.my_rating or 0 }}"
                                              data-interactive
                                              data-item-type="book"
                                              data-item-id="{{ book.id }}"
                                              data-size="small"></div>
                                     {% else %}
-                                        <div data-star-rating="{{ review.my_rating or 0 }}"
-                                             data-size="small"></div>
+                                        <div data-star-rating="{{ review.my_rating or 0 }}" data-size="small"></div>
                                     {% endif %}
                                 </div>
                             {% endif %}
@@ -527,24 +556,23 @@
                         {% if review.my_review %}
                             <div class="review-content">{{ review.my_review|safe }}</div>
                         {% else %}
-                            <div class="no-content">No written review</div>
+                            <p class="no-review">No written review</p>
                         {% endif %}
                     </div>
                 {% endfor %}
             {% else %}
-                <p class="no-content">No reviews available for this book.</p>
+                <p class="no-review">Not yet reviewed</p>
             {% endif %}
         </div>
     </div>
 
-    <!-- Quotes section -->
+    <!-- Quotes Section -->
+    {% if quotes or (current_user.is_authenticated and current_user.role == 'admin') %}
     <div class="quotes-section">
         <div class="quotes-header">
-            <h2 class="section-title mb-0">Memorable Quotes</h2>
+            <h2>Quotes</h2>
             {% if current_user.is_authenticated and current_user.role == 'admin' %}
-                <button class="btn btn-primary btn-sm" onclick="toggleQuoteForm()">
-                    <span class="add-quote-btn-icon"></span><span class="add-quote-btn-text">Add Quote</span>
-                </button>
+                <button class="btn btn-primary btn-sm" onclick="toggleQuoteForm()">+ Add</button>
             {% endif %}
         </div>
 
@@ -553,13 +581,13 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="form-group">
                     <label class="form-label" for="quoteText">Quote Text</label>
-                    <textarea id="quoteText" name="quote_text" class="form-textarea" rows="4" required></textarea>
+                    <textarea id="quoteText" name="quote_text" class="form-textarea" rows="3" required></textarea>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label" for="chapter">Chapter / Poem Title</label>
-                        <input type="text" id="chapter" name="chapter" class="form-input" placeholder="e.g., Chapter 3 or The Road Not Taken">
+                        <input type="text" id="chapter" name="chapter" class="form-input" placeholder="e.g., Chapter 3">
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="pageNumber">Page Number</label>
@@ -568,7 +596,7 @@
                 </div>
 
                 <div class="flex gap-3">
-                    <button type="submit" class="btn btn-success btn-sm">Save Quote</button>
+                    <button type="submit" class="btn btn-success btn-sm">Save</button>
                     <button type="button" class="btn btn-ghost btn-sm" onclick="toggleQuoteForm()">Cancel</button>
                 </div>
             </form>
@@ -626,34 +654,32 @@
                 </div>
             {% endfor %}
         {% else %}
-            <p class="no-content">No quotes available for this book.</p>
+            <p class="no-content">No quotes saved for this book yet.</p>
         {% endif %}
     </div>
+    {% endif %}
 
     <!-- Cover URL Modal (Admin Only) -->
     {% if current_user.is_authenticated and current_user.role == 'admin' %}
     <div class="modal-overlay" id="coverUrlModal">
         <div class="modal">
             <div class="modal-header">
-                <h3>Update Cover Image URL</h3>
+                <h3>Update Cover URL</h3>
                 <button class="modal-close" onclick="closeCoverUrlModal()">&times;</button>
             </div>
             <form action="{{ url_for('books.update_cover_url', book_id=book.id) }}" method="POST">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body">
-                    <p style="color: var(--text-secondary); margin-bottom: var(--space-4);">
-                        Enter the URL of the book cover image:
-                    </p>
                     <div class="form-group">
                         <label for="coverUrl">Cover Image URL</label>
                         <input type="url" id="coverUrl" name="cover_url" class="form-input"
                                value="{{ book.cover_image_url }}"
-                               placeholder="https://example.com/book-cover.jpg" required>
+                               placeholder="https://example.com/cover.jpg" required>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeCoverUrlModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Cover</button>
+                    <button type="submit" class="btn btn-primary">Update</button>
                 </div>
             </form>
         </div>
@@ -664,14 +690,11 @@
 
 {% block extra_scripts %}
 <script>
-    // Get CSRF token from meta tag
     function getCSRFToken() {
         return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     }
 
-    // Toggle quote like
     async function toggleQuoteLike(button, quoteId) {
-        // Prevent double-clicking
         if (button.disabled) return;
         button.disabled = true;
 
@@ -685,14 +708,11 @@
                 body: JSON.stringify({ quote_id: quoteId })
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to toggle like');
-            }
+            if (!response.ok) throw new Error('Failed to toggle like');
 
             const data = await response.json();
             const icon = button.querySelector('i');
 
-            // Update button state
             if (data.liked) {
                 button.classList.add('liked');
                 icon.classList.remove('fa-regular');
@@ -707,7 +727,6 @@
                 button.setAttribute('aria-label', 'Like this quote');
             }
 
-            // Trigger animation
             button.classList.add('animating');
             setTimeout(() => button.classList.remove('animating'), 400);
 
@@ -719,8 +738,7 @@
     }
 
     function toggleQuoteForm() {
-        const formContainer = document.getElementById("quoteFormContainer");
-        formContainer.classList.toggle('active');
+        document.getElementById("quoteFormContainer").classList.toggle('active');
     }
 
     function showCoverUrlModal() {
@@ -739,28 +757,22 @@
         }
     }
 
-    // Close modal on overlay click
     document.addEventListener('DOMContentLoaded', function() {
         const modal = document.getElementById('coverUrlModal');
         if (modal) {
             modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    closeCoverUrlModal();
-                }
+                if (e.target === modal) closeCoverUrlModal();
             });
         }
 
-        // Close modal on escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 const activeModal = document.querySelector('.modal-overlay.active');
-                if (activeModal) {
-                    closeCoverUrlModal();
-                }
+                if (activeModal) closeCoverUrlModal();
             }
         });
 
-        // Quote tab switching (Preview/Edit)
+        // Quote tab switching
         document.querySelectorAll('.quote-tab').forEach(tab => {
             tab.addEventListener('click', function() {
                 const quoteId = this.dataset.quoteId;
@@ -769,11 +781,9 @@
                 const edit = document.getElementById(`quote-edit-${quoteId}`);
                 const tabs = this.parentElement.querySelectorAll('.quote-tab');
 
-                // Update active tab
                 tabs.forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
 
-                // Toggle preview/edit view
                 if (tabType === 'preview') {
                     preview.style.display = 'block';
                     edit.style.display = 'none';

@@ -1,6 +1,7 @@
 """
 Books Business Logic and Helper Functions
 """
+import re
 import sqlite3
 from app.extensions import db
 from app.books.models import Books, BookQuote
@@ -8,9 +9,12 @@ from app.common.models import Reviews, Collection, CollectionItem
 
 
 def truncate_title(title):
-    """Clean book titles by dropping text after the first colon (usually a subtitle)"""
+    """Clean book titles by dropping subtitles and parentheticals"""
+    # Remove parentheticals like (The Authorized Text)
+    title = re.sub(r'\s*\([^)]*\)\s*', ' ', title).strip()
+    # Drop text after colon (subtitle)
     index = title.find(':')
-    return title[:index] if index != -1 else title
+    return title[:index].strip() if index != -1 else title
 
 
 def get_recently_read_books(limit=10):
@@ -88,11 +92,11 @@ def get_books_from_bookshelf(bookshelf_name):
     if not collection:
         return books
 
-    # Get book IDs from collection items
+    # Get book IDs from collection items, ordered by item_order
     collection_items = CollectionItem.query.filter_by(
         collection_id=collection.id,
         item_type='Book'
-    ).all()
+    ).order_by(CollectionItem.item_order.asc().nullslast()).all()
 
     for item in collection_items:
         book = Books.query.get(item.item_id)

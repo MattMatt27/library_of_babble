@@ -23,7 +23,7 @@
         <div class="movies-section-header">
             <h2>Recommended Movies</h2>
         </div>
-        <div class="movies-grid">
+        <div class="movies-row">
             {% for rec_movie in recommended_movies %}
                 <div class="movie-card">
                     <div class="movie-card-image">
@@ -46,7 +46,7 @@
             <a href="{{ url_for('movies.index') }}" class="see-all-btn">See All</a>
             {% endif %}
         </div>
-        <div class="movies-grid">
+        <div class="movies-row">
             {% for movie in recently_watched_movies %}
                 <div class="movie-card">
                     <div class="movie-card-image">
@@ -77,7 +77,7 @@
         <div class="movies-section-header">
             <h2>Recommended TV Shows</h2>
         </div>
-        <div class="movies-grid">
+        <div class="movies-row">
             {% for rec_show in recommended_shows %}
                 <div class="movie-card">
                     <div class="movie-card-image">

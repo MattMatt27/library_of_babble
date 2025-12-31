@@ -350,6 +350,51 @@
   font-style: italic;
 }
 
+/* Review editing tabs */
+.review-tabs {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.review-tab {
+  background: none;
+  border: none;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-sm);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: var(--radius-base);
+  transition: all var(--transition-fast);
+}
+
+.review-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.review-tab.active {
+  color: var(--accent-blue);
+  background: rgba(88, 166, 255, 0.1);
+}
+
+.review-edit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.review-textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 120px;
+}
+
+.review-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 /* Quote add form */
 .quote-form-container {
   background: var(--bg-primary);
@@ -553,11 +598,35 @@
                                 </div>
                             {% endif %}
                         </div>
-                        {% if review.my_review %}
-                            <div class="review-content">{{ review.my_review|safe }}</div>
-                        {% else %}
-                            <p class="no-review">No written review</p>
-                        {% endif %}
+
+                        <form action="{{ url_for('books.update_review', book_id=book.id) }}" method="POST" class="review-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="date_read" value="{{ review.date_read }}">
+
+                            {% if current_user.is_authenticated and current_user.is_admin %}
+                            <div class="review-tabs">
+                                <button type="button" class="review-tab active" data-tab="preview" data-review-id="{{ review.id }}">Preview</button>
+                                <button type="button" class="review-tab" data-tab="write" data-review-id="{{ review.id }}">Edit</button>
+                            </div>
+                            {% endif %}
+
+                            <div class="review-preview" id="review-preview-{{ review.id }}">
+                                {% if review.my_review %}
+                                    <div class="review-content">{{ review.my_review|safe }}</div>
+                                {% else %}
+                                    <p class="no-review">No written review</p>
+                                {% endif %}
+                            </div>
+
+                            {% if current_user.is_authenticated and current_user.is_admin %}
+                            <div class="review-edit" id="review-edit-{{ review.id }}" style="display: none;">
+                                <textarea name="my_review" class="form-textarea review-textarea" rows="6">{{ review.my_review or '' }}</textarea>
+                                <div class="review-edit-actions">
+                                    <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </form>
                     </div>
                 {% endfor %}
             {% else %}
@@ -790,6 +859,28 @@
                 } else {
                     preview.style.display = 'none';
                     edit.style.display = 'block';
+                }
+            });
+        });
+
+        // Review tab switching
+        document.querySelectorAll('.review-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const reviewId = this.dataset.reviewId;
+                const tabType = this.dataset.tab;
+                const preview = document.getElementById(`review-preview-${reviewId}`);
+                const edit = document.getElementById(`review-edit-${reviewId}`);
+                const tabs = this.parentElement.querySelectorAll('.review-tab');
+
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                if (tabType === 'preview') {
+                    preview.style.display = 'block';
+                    edit.style.display = 'none';
+                } else {
+                    preview.style.display = 'none';
+                    edit.style.display = 'flex';
                 }
             });
         });

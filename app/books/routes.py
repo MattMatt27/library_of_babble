@@ -63,6 +63,7 @@ def detail(book_id):
 
     for review in review_records:
         reviews.append({
+            'id': review.id,
             'date_read': review.date_reviewed,
             'my_rating': str(review.rating) if review.rating else '0',
             'my_review': review.review_text

@@ -21,10 +21,10 @@
             <div class="filter-group">
                 <label for="sort-select">Sort:</label>
                 <select id="sort-select">
-                    <option value="random">Random</option>
-                    <option value="book-title">Book Title</option>
-                    <option value="book-year-asc">Book Year (Oldest)</option>
-                    <option value="book-year-desc">Book Year (Newest)</option>
+                    <option value="random" {% if sort_order == 'random' %}selected{% endif %}>Random</option>
+                    <option value="book-title" {% if sort_order == 'book-title' %}selected{% endif %}>Book Title</option>
+                    <option value="book-year-asc" {% if sort_order == 'book-year-asc' %}selected{% endif %}>Book Year (Oldest)</option>
+                    <option value="book-year-desc" {% if sort_order == 'book-year-desc' %}selected{% endif %}>Book Year (Newest)</option>
                 </select>
             </div>
 
@@ -33,14 +33,14 @@
                 <select id="book-filter">
                     <option value="">All books</option>
                     {% for book in books_with_quotes %}
-                    <option value="{{ book.id }}">{{ book.title }}</option>
+                    <option value="{{ book.id }}" {% if book_filter == book.id %}selected{% endif %}>{{ book.title }}</option>
                     {% endfor %}
                 </select>
             </div>
 
             {% if current_user.is_authenticated %}
             <label class="filter-toggle">
-                <input type="checkbox" id="liked-filter">
+                <input type="checkbox" id="liked-filter" {% if liked_only %}checked{% endif %}>
                 <span>Liked only</span>
             </label>
             {% endif %}
@@ -86,10 +86,19 @@
             </div>
             {% else %}
             <div class="no-quotes">
-                <p>No quotes saved yet.</p>
+                <p>No quotes found.</p>
             </div>
             {% endfor %}
         </div>
+
+        <!-- Pagination Controls -->
+        {% if total_pages > 1 %}
+        <div class="pagination">
+            <button id="prev-page" {% if current_page == 1 %}disabled{% endif %}>&lt; Prev</button>
+            <span class="page-info">Page {{ current_page }} of {{ total_pages }} ({{ total_quotes }} quotes)</span>
+            <button id="next-page" {% if current_page == total_pages %}disabled{% endif %}>Next &gt;</button>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
@@ -100,66 +109,74 @@ document.addEventListener('DOMContentLoaded', function() {
     const bookFilter = document.getElementById('book-filter');
     const likedFilter = document.getElementById('liked-filter');
     const sortSelect = document.getElementById('sort-select');
-    const grid = document.getElementById('quotes-grid');
-    const items = Array.from(grid.querySelectorAll('.quote-item'));
-
-    // Store original order for random sort
-    const originalOrder = items.map(item => item.cloneNode(true));
 
     function getCSRFToken() {
         return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     }
 
-    // Filter function
-    function applyFilters() {
-        const selectedBook = bookFilter ? bookFilter.value : '';
-        const likedOnly = likedFilter ? likedFilter.checked : false;
-
-        items.forEach(item => {
-            const matchesBook = !selectedBook || item.dataset.bookId === selectedBook;
-            const matchesLiked = !likedOnly || item.dataset.liked === 'true';
-
-            if (matchesBook && matchesLiked) {
-                item.style.display = '';
+    // Navigate with updated URL params
+    function updatePage(params) {
+        const url = new URL(window.location.href);
+        Object.keys(params).forEach(key => {
+            if (params[key] === null || params[key] === '' || params[key] === false) {
+                url.searchParams.delete(key);
             } else {
-                item.style.display = 'none';
+                url.searchParams.set(key, params[key]);
+            }
+        });
+        // Reset to page 1 when filters change
+        if (!('page' in params)) {
+            url.searchParams.delete('page');
+        }
+        window.location.href = url.toString();
+    }
+
+    // Filter/sort change handlers
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+            updatePage({ sort: this.value });
+        });
+    }
+
+    if (bookFilter) {
+        bookFilter.addEventListener('change', function() {
+            updatePage({ book: this.value || null });
+        });
+    }
+
+    if (likedFilter) {
+        likedFilter.addEventListener('change', function() {
+            updatePage({ liked: this.checked ? 'true' : null });
+        });
+    }
+
+    // Pagination handlers
+    function goToPage(pageNum) {
+        const params = new URLSearchParams(window.location.search);
+        params.set('page', pageNum);
+        window.location.href = `${window.location.pathname}?${params.toString()}`;
+    }
+
+    const prevBtn = document.getElementById('prev-page');
+    const nextBtn = document.getElementById('next-page');
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if ({{ current_page }} > 1) {
+                goToPage({{ current_page }} - 1);
             }
         });
     }
 
-    // Sort function
-    function applySort() {
-        const sortBy = sortSelect ? sortSelect.value : 'random';
-
-        let sortedItems;
-        switch (sortBy) {
-            case 'book-title':
-                sortedItems = [...items].sort((a, b) =>
-                    a.dataset.bookTitle.localeCompare(b.dataset.bookTitle)
-                );
-                break;
-            case 'book-year-asc':
-                sortedItems = [...items].sort((a, b) =>
-                    parseInt(a.dataset.bookYear) - parseInt(b.dataset.bookYear)
-                );
-                break;
-            case 'book-year-desc':
-                sortedItems = [...items].sort((a, b) =>
-                    parseInt(b.dataset.bookYear) - parseInt(a.dataset.bookYear)
-                );
-                break;
-            case 'random':
-            default:
-                sortedItems = [...items].sort(() => Math.random() - 0.5);
-                break;
-        }
-
-        // Re-append in sorted order
-        sortedItems.forEach(item => grid.appendChild(item));
-        applyFilters();
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            if ({{ current_page }} < {{ total_pages }}) {
+                goToPage({{ current_page }} + 1);
+            }
+        });
     }
 
-    // Like toggle
+    // Like toggle (AJAX, no page reload)
     async function toggleLike(button) {
         if (button.disabled) return;
         button.disabled = true;
@@ -200,9 +217,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 quoteItem.dataset.liked = 'false';
             }
 
-            // Re-apply filters in case "liked only" is active
-            applyFilters();
-
             // Trigger animation
             button.classList.add('animating');
             setTimeout(() => button.classList.remove('animating'), 400);
@@ -212,17 +226,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } finally {
             button.disabled = false;
         }
-    }
-
-    // Event listeners
-    if (bookFilter) {
-        bookFilter.addEventListener('change', applyFilters);
-    }
-    if (likedFilter) {
-        likedFilter.addEventListener('change', applyFilters);
-    }
-    if (sortSelect) {
-        sortSelect.addEventListener('change', applySort);
     }
 
     // Like buttons

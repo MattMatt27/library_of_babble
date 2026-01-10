@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Watching{% endblock %}
+{% block title %}📺 Watching{% endblock %}
 
 {% set active_page = 'watching' %}
 
@@ -19,52 +19,44 @@
         {% endif %}
     </div>
     {% endif %}
-
-    <!-- Movies Section - warm gold accents -->
-    <section class="media-section media-section--film">
-        <div class="media-section-header">
-            <div class="media-section-title">
-                <span class="media-section-icon"><i class="fa-solid fa-film"></i></span>
-                <h2>Recommended Movies</h2>
-            </div>
+    <section class="movies-section">
+        <div class="movies-section-header">
+            <h2>Recommended Movies</h2>
         </div>
-        <div class="media-row">
+        <div class="movies-row">
             {% for rec_movie in recommended_movies %}
-                <div class="media-card">
-                    <div class="media-card-image">
+                <div class="movie-card">
+                    <div class="movie-card-image">
                         <img src="{{ rec_movie['cover_image_url'] }}" alt="{{ rec_movie['title'] }}">
                     </div>
-                    <div class="media-card-content">
-                        <div class="media-card-title">{{ rec_movie['title'] }}</div>
-                        <div class="media-card-director">{{ rec_movie['director'] }}</div>
-                        <div class="media-card-year">{{ rec_movie['year'] }}</div>
+                    <div class="movie-card-content">
+                        <div class="movie-card-title">{{ rec_movie['title'] }}</div>
+                        <div class="movie-card-director">{{ rec_movie['director'] }}</div>
+                        <div class="movie-card-year">{{ rec_movie['year'] }}</div>
                     </div>
                 </div>
             {% endfor %}
         </div>
     </section>
 
-    <section class="media-section media-section--film">
-        <div class="media-section-header">
-            <div class="media-section-title">
-                <span class="media-section-icon"><i class="fa-solid fa-film"></i></span>
-                <h2>Recently Watched Movies</h2>
-            </div>
+    <section class="movies-section">
+        <div class="movies-section-header">
+            <h2>Recently Watched Movies</h2>
             {% if can_access_page('movies') %}
             <a href="{{ url_for('movies.index') }}" class="see-all-btn">See All</a>
             {% endif %}
         </div>
-        <div class="media-row">
+        <div class="movies-row">
             {% for movie in recently_watched_movies %}
-                <div class="media-card">
-                    <div class="media-card-image">
+                <div class="movie-card">
+                    <div class="movie-card-image">
                         <img src="{{ movie['cover_image_url'] }}" alt="{{ movie['title'] }}">
                     </div>
-                    <div class="media-card-content">
-                        <div class="media-card-title">{{ movie['title'] }}</div>
-                        <div class="media-card-director">{{ movie['director'] }}</div>
-                        <div class="media-card-year">{{ movie['year'] }}</div>
-                        <div class="media-card-rating">
+                    <div class="movie-card-content">
+                        <div class="movie-card-title">{{ movie['title'] }}</div>
+                        <div class="movie-card-director">{{ movie['director'] }}</div>
+                        <div class="movie-card-year">{{ movie['year'] }}</div>
+                        <div class="movie-card-rating">
                             {% if current_user.is_authenticated and current_user.role == 'admin' %}
                                 <div data-star-rating="{{ movie['my_rating'] or 0 }}"
                                      data-interactive
@@ -81,23 +73,19 @@
         </div>
     </section>
 
-    <!-- TV Shows Section - cool blue accents -->
-    <section class="media-section media-section--tv">
-        <div class="media-section-header">
-            <div class="media-section-title">
-                <span class="media-section-icon"><i class="fa-solid fa-tv"></i></span>
-                <h2>Recommended TV Shows</h2>
-            </div>
+    <section class="movies-section">
+        <div class="movies-section-header">
+            <h2>Recommended TV Shows</h2>
         </div>
-        <div class="media-row">
+        <div class="movies-row">
             {% for rec_show in recommended_shows %}
-                <div class="media-card">
-                    <div class="media-card-image">
+                <div class="movie-card">
+                    <div class="movie-card-image">
                         <img src="{{ rec_show['cover_image_url'] }}" alt="{{ rec_show['title'] }}">
                     </div>
-                    <div class="media-card-content">
-                        <div class="media-card-title">{{ rec_show['title'] }}</div>
-                        <div class="media-card-year">{{ rec_show['year'] }}</div>
+                    <div class="movie-card-content">
+                        <div class="movie-card-title">{{ rec_show['title'] }}</div>
+                        <div class="movie-card-year">{{ rec_show['year'] }}</div>
                     </div>
                 </div>
             {% endfor %}

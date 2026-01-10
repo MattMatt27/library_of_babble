@@ -203,9 +203,32 @@ def search_books():
 @reading_bp.route('/quotes')
 @page_visible('reading')
 def quotes():
-    """Quotes exploration page"""
-    # Get all quotes with their associated books
-    all_quotes = BookQuote.query.all()
+    """Quotes exploration page with pagination"""
+    from flask import session
+    import time
+
+    # Pagination parameters
+    page = request.args.get('page', 1, type=int)
+    per_page = 100
+    sort_order = request.args.get('sort', 'random')
+    book_filter = request.args.get('book', None, type=int)
+    liked_only = request.args.get('liked', 'false') == 'true'
+
+    # Generate a random seed for consistent random ordering across pagination
+    filter_key = f"{book_filter}_{liked_only}"
+
+    if sort_order == 'random':
+        previous_sort = session.get('quotes_previous_sort')
+        if ('quotes_random_seed' not in session or
+            session.get('quotes_filter_key') != filter_key or
+            previous_sort != 'random'):
+            session['quotes_random_seed'] = int(time.time() * 1000000) % 2147483647
+            session['quotes_filter_key'] = filter_key
+        random_seed = session['quotes_random_seed']
+    else:
+        random_seed = None
+
+    session['quotes_previous_sort'] = sort_order
 
     # Get user's liked quotes (if authenticated)
     liked_quote_ids = set()
@@ -215,10 +238,24 @@ def quotes():
         ).all()
         liked_quote_ids = {like.quote_id for like in liked_quotes}
 
+    # Build query with filters
+    query = BookQuote.query
+
+    if book_filter:
+        query = query.filter(BookQuote.book_id == str(book_filter))
+
+    # Get all matching quotes first (for liked filter and sorting)
+    all_quotes = query.all()
+
+    # Build quotes data with book info
     quotes_data = []
     for quote in all_quotes:
         book = Books.query.get(quote.book_id)
         if book:
+            is_liked = quote.id in liked_quote_ids
+            # Skip if liked_only filter is active and quote is not liked
+            if liked_only and not is_liked:
+                continue
             quotes_data.append({
                 'id': quote.id,
                 'text': quote.quote_text,
@@ -229,18 +266,46 @@ def quotes():
                 'book_year': book.original_publication_year,
                 'chapter': quote.chapter,
                 'page_number': quote.page_number,
-                'is_liked': quote.id in liked_quote_ids
+                'is_liked': is_liked
             })
 
-    # Get unique books for filtering
+    # Apply sorting
+    if sort_order == 'random' and random_seed:
+        random.seed(random_seed)
+        random.shuffle(quotes_data)
+    elif sort_order == 'book-title':
+        quotes_data.sort(key=lambda q: q['book_title'].lower())
+    elif sort_order == 'book-year-asc':
+        quotes_data.sort(key=lambda q: q['book_year'] or 0)
+    elif sort_order == 'book-year-desc':
+        quotes_data.sort(key=lambda q: q['book_year'] or 0, reverse=True)
+
+    # Calculate pagination
+    total_quotes = len(quotes_data)
+    total_pages = max(1, (total_quotes + per_page - 1) // per_page)
+    page = min(page, total_pages)  # Don't go past last page
+
+    # Slice for current page
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    paginated_quotes = quotes_data[start_idx:end_idx]
+
+    # Get unique books for filtering (from all quotes, not filtered)
+    all_book_ids = [q.book_id for q in BookQuote.query.all()]
     books_with_quotes = Books.query.filter(
-        Books.id.in_([q.book_id for q in all_quotes])
+        Books.id.in_(all_book_ids)
     ).order_by(Books.title).all()
 
     return render_template(
         'books/quotes.html',
-        quotes=quotes_data,
+        quotes=paginated_quotes,
         books_with_quotes=books_with_quotes,
+        current_page=page,
+        total_pages=total_pages,
+        total_quotes=total_quotes,
+        sort_order=sort_order,
+        book_filter=book_filter,
+        liked_only=liked_only,
         current_user=current_user
     )
 

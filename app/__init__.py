@@ -59,6 +59,9 @@ def create_app(config_name=None):
     # Register context processors
     register_context_processors(app)
 
+    # Register custom Jinja2 filters
+    register_template_filters(app)
+
     # Add security headers
     register_security_headers(app)
 
@@ -249,6 +252,16 @@ def register_context_processors(app):
                 return f"/static/{encoded_path}"
 
         return {'static_url': static_url}
+
+
+def register_template_filters(app):
+    """Register custom Jinja2 template filters"""
+    from app.utils.security import sanitize_html
+
+    @app.template_filter('safe_html')
+    def safe_html_filter(content):
+        """Sanitize HTML on render — use instead of |safe for user content"""
+        return sanitize_html(content)
 
 
 def register_security_headers(app):

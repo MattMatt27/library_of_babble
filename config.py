@@ -56,11 +56,19 @@ class ProductionConfig(Config):
     DEBUG = False
     TESTING = False
 
-    # In production, DATABASE_URL must be set
+    # Session cookie security
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+
+    # In production, DATABASE_URL and SECRET_KEY must be set
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
 
     if not SQLALCHEMY_DATABASE_URI:
         raise ValueError("DATABASE_URL environment variable must be set in production")
+
+    if SECRET_KEY == 'dev-secret-key-change-in-production':
+        raise ValueError("FLASK_SECRET_KEY environment variable must be set in production")
 
 
 class TestingConfig(Config):

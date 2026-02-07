@@ -26,8 +26,14 @@ Boredom Killer - Movies.csv
 # Data processing directories
 data/
 
-# Large asset directories
+# Large asset directories (served from S3 in production)
 static/images/artists/
+static/images/creating/
+
+# Backup / simplified files
+*.simplified
+*.bak
+*.old
 
 # ============================================================================
 # Database

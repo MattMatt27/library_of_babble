@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}Movie Quotes{% endblock %}
+
+{% set active_page = 'watching' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/quotes.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="quotes-page">
+        <div class="quotes-header">
+            <h1>Movie Quotes</h1>
+            <p>Collected quotes and lines from film</p>
+        </div>
+
+        <!-- Filters and Sort -->
+        <div class="quotes-filters">
+            <div class="filter-group">
+                <label for="sort-select">Sort:</label>
+                <select id="sort-select">
+                    <option value="random" {% if sort_order == 'random' %}selected{% endif %}>Random</option>
+                    <option value="movie-title" {% if sort_order == 'movie-title' %}selected{% endif %}>Movie Title</option>
+                    <option value="movie-year-asc" {% if sort_order == 'movie-year-asc' %}selected{% endif %}>Movie Year (Oldest)</option>
+                    <option value="movie-year-desc" {% if sort_order == 'movie-year-desc' %}selected{% endif %}>Movie Year (Newest)</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="movie-filter">Movie:</label>
+                <select id="movie-filter">
+                    <option value="">All movies</option>
+                    {% for movie in movies_with_quotes %}
+                    <option value="{{ movie.tmdb_id }}" {% if movie_filter == movie.tmdb_id %}selected{% endif %}>{{ movie.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {% if current_user.is_authenticated %}
+            <label class="filter-toggle">
+                <input type="checkbox" id="liked-filter" {% if liked_only %}checked{% endif %}>
+                <span>Liked only</span>
+            </label>
+            {% endif %}
+        </div>
+
+        <!-- Quotes grid -->
+        <div class="quotes-grid" id="quotes-grid">
+            {% for quote in quotes %}
+            <div class="quote-item"
+                 data-movie-id="{{ quote.movie_id }}"
+                 data-movie-title="{{ quote.movie_title }}"
+                 data-movie-year="{{ quote.movie_year or 0 }}"
+                 data-liked="{{ 'true' if quote.is_liked else 'false' }}"
+                 data-quote-id="{{ quote.id }}">
+                <div class="quote-item-header">
+                    <blockquote class="quote-item-text">"{{ quote.text }}"</blockquote>
+                    {% if current_user.is_authenticated %}
+                    <button class="quote-like-btn {{ 'liked' if quote.is_liked else '' }}"
+                            data-quote-id="{{ quote.id }}"
+                            aria-label="{{ 'Unlike this quote' if quote.is_liked else 'Like this quote' }}"
+                            aria-pressed="{{ 'true' if quote.is_liked else 'false' }}">
+                        <i class="{{ 'fa-solid' if quote.is_liked else 'fa-regular' }} fa-heart"></i>
+                    </button>
+                    {% endif %}
+                </div>
+                <div class="quote-item-meta">
+                    {% if quote.character %}
+                    <span class="quote-chapter">{{ quote.character }}</span>
+                    {% endif %}
+                    {% if quote.scene_timestamp %}
+                    <span class="quote-page">{{ quote.scene_timestamp }}</span>
+                    {% endif %}
+                </div>
+                <div class="quote-item-source">
+                    {% if quote.movie_cover %}
+                    <img src="{{ quote.movie_cover }}" alt="{{ quote.movie_title }}" class="quote-source-cover">
+                    {% endif %}
+                    <div class="quote-source-info">
+                        <span class="quote-source-title">{{ quote.movie_title }}</span>
+                        <span class="quote-source-author">{{ quote.movie_director }}{% if quote.movie_year %} ({{ quote.movie_year }}){% endif %}</span>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="no-quotes">
+                <p>No quotes found.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination Controls -->
+        {% if total_pages > 1 %}
+        <div class="pagination">
+            <button id="prev-page" {% if current_page == 1 %}disabled{% endif %}>&lt; Prev</button>
+            <span class="page-info">Page {{ current_page }} of {{ total_pages }} ({{ total_quotes }} quotes)</span>
+            <button id="next-page" {% if current_page == total_pages %}disabled{% endif %}>Next &gt;</button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const movieFilter = document.getElementById('movie-filter');
+    const likedFilter = document.getElementById('liked-filter');
+    const sortSelect = document.getElementById('sort-select');
+
+    function getCSRFToken() {
+        return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    }
+
+    function updatePage(params) {
+        const url = new URL(window.location.href);
+        Object.keys(params).forEach(key => {
+            if (params[key] === null || params[key] === '' || params[key] === false) {
+                url.searchParams.delete(key);
+            } else {
+                url.searchParams.set(key, params[key]);
+            }
+        });
+        if (!('page' in params)) {
+            url.searchParams.delete('page');
+        }
+        window.location.href = url.toString();
+    }
+
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+            updatePage({ sort: this.value });
+        });
+    }
+
+    if (movieFilter) {
+        movieFilter.addEventListener('change', function() {
+            updatePage({ movie: this.value || null });
+        });
+    }
+
+    if (likedFilter) {
+        likedFilter.addEventListener('change', function() {
+            updatePage({ liked: this.checked ? 'true' : null });
+        });
+    }
+
+    // Pagination
+    function goToPage(pageNum) {
+        const params = new URLSearchParams(window.location.search);
+        params.set('page', pageNum);
+        window.location.href = `${window.location.pathname}?${params.toString()}`;
+    }
+
+    const prevBtn = document.getElementById('prev-page');
+    const nextBtn = document.getElementById('next-page');
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if ({{ current_page }} > 1) {
+                goToPage({{ current_page }} - 1);
+            }
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            if ({{ current_page }} < {{ total_pages }}) {
+                goToPage({{ current_page }} + 1);
+            }
+        });
+    }
+
+    // Like toggle
+    async function toggleLike(button) {
+        if (button.disabled) return;
+        button.disabled = true;
+
+        const quoteId = parseInt(button.dataset.quoteId);
+        const quoteItem = button.closest('.quote-item');
+
+        try {
+            const response = await fetch('{{ url_for("movies.like_quote") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({ quote_id: quoteId })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to toggle like');
+            }
+
+            const data = await response.json();
+            const icon = button.querySelector('i');
+
+            if (data.liked) {
+                button.classList.add('liked');
+                icon.classList.remove('fa-regular');
+                icon.classList.add('fa-solid');
+                button.setAttribute('aria-pressed', 'true');
+                button.setAttribute('aria-label', 'Unlike this quote');
+                quoteItem.dataset.liked = 'true';
+            } else {
+                button.classList.remove('liked');
+                icon.classList.remove('fa-solid');
+                icon.classList.add('fa-regular');
+                button.setAttribute('aria-pressed', 'false');
+                button.setAttribute('aria-label', 'Like this quote');
+                quoteItem.dataset.liked = 'false';
+            }
+
+            button.classList.add('animating');
+            setTimeout(() => button.classList.remove('animating'), 400);
+
+        } catch (error) {
+            console.error('Error toggling like:', error);
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    document.querySelectorAll('.quote-like-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            toggleLike(this);
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -13,7 +13,8 @@ from app.books.services import (
     read_books_from_db,
     get_books_from_bookshelf
 )
-from app.common.models import Collection, CollectionItem
+from app.common.models import Collection, CollectionItem, ContentPairing
+from app.common.services import get_pairings_for_page, search_all_content, get_content_item
 from app.utils.security import page_visible
 from app.extensions import db
 
@@ -42,28 +43,8 @@ def index():
                 'books': books
             })
 
-    # Get all visible book pairings for cycling display
-    pairings = BookPairing.query.filter_by(is_visible=True).order_by(BookPairing.updated_at.desc()).all()
-    book_pairings = []
-    for pairing in pairings:
-        if pairing.book_1 and pairing.book_2:
-            book_pairings.append({
-                'id': pairing.id,
-                'book_1': {
-                    'id': pairing.book_1.id,
-                    'title': pairing.book_1.title,
-                    'author': pairing.book_1.author,
-                    'cover_image_url': pairing.book_1.cover_image_url,
-                },
-                'book_2': {
-                    'id': pairing.book_2.id,
-                    'title': pairing.book_2.title,
-                    'author': pairing.book_2.author,
-                    'cover_image_url': pairing.book_2.cover_image_url,
-                },
-                'note': pairing.note,
-                'is_visible': pairing.is_visible
-            })
+    # Get all visible pairings where at least one side is a Book
+    content_pairings = get_pairings_for_page(['Book'])
 
     # Get a random short quote (under 300 chars) for the quote card
     short_quotes = BookQuote.query.filter(
@@ -89,7 +70,7 @@ def index():
         'books/reading.html',
         recently_read_books=recently_read_books,
         shelves=shelves,
-        book_pairings=book_pairings,
+        content_pairings=content_pairings,
         random_quote=random_quote,
         current_user=current_user
     )
@@ -106,64 +87,74 @@ def books():
 @reading_bp.route('/api/pairing', methods=['GET'])
 @login_required
 def get_pairing():
-    """Get current book pairing"""
+    """Get most recent content pairing"""
     if not current_user.is_admin:
         return jsonify({'error': 'Unauthorized'}), 403
 
-    pairing = BookPairing.query.order_by(BookPairing.updated_at.desc()).first()
-    if pairing and pairing.book_1 and pairing.book_2:
-        return jsonify({
-            'book_id_1': pairing.book_id_1,
-            'book_title_1': pairing.book_1.title,
-            'book_author_1': pairing.book_1.author,
-            'book_id_2': pairing.book_id_2,
-            'book_title_2': pairing.book_2.title,
-            'book_author_2': pairing.book_2.author,
-            'note': pairing.note
-        })
-    return jsonify({'book_id_1': None, 'book_id_2': None, 'note': None})
+    pairing = ContentPairing.query.order_by(ContentPairing.updated_at.desc()).first()
+    if pairing:
+        item_1 = get_content_item(pairing.item_type_1, pairing.item_id_1)
+        item_2 = get_content_item(pairing.item_type_2, pairing.item_id_2)
+        if item_1 and item_2:
+            return jsonify({
+                'item_type_1': pairing.item_type_1,
+                'item_id_1': pairing.item_id_1,
+                'item_title_1': item_1['title'],
+                'item_subtitle_1': item_1['subtitle'],
+                'item_type_2': pairing.item_type_2,
+                'item_id_2': pairing.item_id_2,
+                'item_title_2': item_2['title'],
+                'item_subtitle_2': item_2['subtitle'],
+                'note': pairing.note
+            })
+    return jsonify({'item_id_1': None, 'item_id_2': None, 'note': None})
 
 
 @reading_bp.route('/api/pairing', methods=['POST'])
 @login_required
 def set_pairing():
-    """Create or update book pairing (admin only)"""
+    """Create or update content pairing (admin only)"""
     if not current_user.is_admin:
         return jsonify({'error': 'Unauthorized'}), 403
 
     data = request.get_json()
     pairing_id = data.get('id')
-    book_id_1 = data.get('book_id_1')
-    book_id_2 = data.get('book_id_2')
+    item_type_1 = data.get('item_type_1')
+    item_id_1 = str(data.get('item_id_1'))
+    item_type_2 = data.get('item_type_2')
+    item_id_2 = str(data.get('item_id_2'))
     note = data.get('note', '').strip()
     is_visible = data.get('is_visible', True)
 
-    if not book_id_1 or not book_id_2 or not note:
-        return jsonify({'error': 'Two books and a note are required'}), 400
+    if not item_id_1 or not item_id_2 or not note:
+        return jsonify({'error': 'Two items and a note are required'}), 400
 
-    if book_id_1 == book_id_2:
-        return jsonify({'error': 'Please select two different books'}), 400
+    if item_type_1 == item_type_2 and item_id_1 == item_id_2:
+        return jsonify({'error': 'Please select two different items'}), 400
 
-    # Verify both books exist
-    book_1 = Books.query.get(book_id_1)
-    book_2 = Books.query.get(book_id_2)
-    if not book_1 or not book_2:
-        return jsonify({'error': 'One or both books not found'}), 404
+    # Verify both items exist
+    item_1 = get_content_item(item_type_1, item_id_1)
+    item_2 = get_content_item(item_type_2, item_id_2)
+    if not item_1 or not item_2:
+        return jsonify({'error': 'One or both items not found'}), 404
 
-    # Update existing or create new pairing
     if pairing_id:
-        pairing = BookPairing.query.get(pairing_id)
+        pairing = ContentPairing.query.get(pairing_id)
         if not pairing:
             return jsonify({'error': 'Pairing not found'}), 404
-        pairing.book_id_1 = book_id_1
-        pairing.book_id_2 = book_id_2
+        pairing.item_type_1 = item_type_1
+        pairing.item_id_1 = item_id_1
+        pairing.item_type_2 = item_type_2
+        pairing.item_id_2 = item_id_2
         pairing.note = note
         pairing.is_visible = is_visible
         pairing.updated_by = current_user.id
     else:
-        pairing = BookPairing(
-            book_id_1=book_id_1,
-            book_id_2=book_id_2,
+        pairing = ContentPairing(
+            item_type_1=item_type_1,
+            item_id_1=item_id_1,
+            item_type_2=item_type_2,
+            item_id_2=item_id_2,
             note=note,
             is_visible=is_visible,
             updated_by=current_user.id
@@ -174,10 +165,21 @@ def set_pairing():
     return jsonify({'success': True})
 
 
+@reading_bp.route('/api/content/search', methods=['GET'])
+@login_required
+def search_content():
+    """Search across all content types for the pairing modal"""
+    if not current_user.is_admin:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    query = request.args.get('q', '').strip()
+    return jsonify(search_all_content(query))
+
+
 @reading_bp.route('/api/books/search', methods=['GET'])
 @login_required
 def search_books():
-    """Search books for the featured book modal"""
+    """Search books (backward compat, also used by shelf modal)"""
     if not current_user.is_admin:
         return jsonify({'error': 'Unauthorized'}), 403
 

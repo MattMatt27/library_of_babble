@@ -71,3 +71,25 @@ class CollectionItem(db.Model):
 
     def __repr__(self):
         return f'<CollectionItem {self.collection_id}:{self.item_type}:{self.item_id}>'
+
+
+class ContentPairing(db.Model):
+    """
+    Admin-curated content pairing - two items that complement each other.
+    Supports cross-content-type pairings (e.g. Book + Movie).
+    """
+
+    __tablename__ = 'content_pairing'
+
+    id = db.Column(db.Integer, primary_key=True)
+    item_type_1 = db.Column(db.String(20), nullable=False)  # 'Book', 'Movie', 'TVShow'
+    item_id_1 = db.Column(db.String(50), nullable=False)
+    item_type_2 = db.Column(db.String(20), nullable=False)
+    item_id_2 = db.Column(db.String(50), nullable=False)
+    note = db.Column(db.Text, nullable=False)  # Why these items pair well together
+    is_visible = db.Column(db.Boolean, default=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    def __repr__(self):
+        return f'<ContentPairing {self.item_type_1}:{self.item_id_1} + {self.item_type_2}:{self.item_id_2}>'

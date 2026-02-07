@@ -35,3 +35,35 @@ class Movies(db.Model):
 
     def __repr__(self):
         return f'<Movie {self.title} ({self.year})>'
+
+
+class MovieQuote(db.Model):
+    """Movie quotes model"""
+
+    __tablename__ = 'movie_quote'
+
+    id = db.Column(db.Integer, primary_key=True)
+    movie_id = db.Column(db.String(50), nullable=False)
+    quote_text = db.Column(db.Text, nullable=False)
+    character = db.Column(db.String(200))  # Who said it
+    scene_timestamp = db.Column(db.String(20))  # When in the movie (e.g. "01:23:45")
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<MovieQuote from movie {self.movie_id}>'
+
+
+class LikedMovieQuotes(db.Model):
+    """User movie quote likes (many-to-many relationship)"""
+
+    __tablename__ = 'liked_movie_quotes'
+
+    # Composite primary key (user_id + quote_id)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    quote_id = db.Column(db.Integer, db.ForeignKey('movie_quote.id'), primary_key=True)
+
+    # Audit field
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<LikedMovieQuote user={self.user_id} quote={self.quote_id}>'

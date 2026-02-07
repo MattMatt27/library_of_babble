@@ -6,6 +6,7 @@
 
 {% block extra_styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/movies.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/books.css') }}">
 <script src="{{ url_for('static', filename='js/star-rating.js') }}" defer></script>
 {% endblock %}
 
@@ -20,88 +21,583 @@
     </div>
     {% endif %}
 
-    <!-- Movies Section - warm gold accents -->
-    <section class="media-section media-section--film">
-        <div class="media-section-header">
-            <div class="media-section-title">
-                <span class="media-section-icon"><i class="fa-solid fa-film"></i></span>
-                <h2>Recommended Movies</h2>
-            </div>
-        </div>
-        <div class="media-row">
-            {% for rec_movie in recommended_movies %}
-                <div class="media-card">
-                    <div class="media-card-image">
-                        <img src="{{ rec_movie['cover_image_url'] }}" alt="{{ rec_movie['title'] }}">
-                    </div>
-                    <div class="media-card-content">
-                        <div class="media-card-title">{{ rec_movie['title'] }}</div>
-                        <div class="media-card-director">{{ rec_movie['director'] }}</div>
-                        <div class="media-card-year">{{ rec_movie['year'] }}</div>
-                    </div>
+    <!-- Top section: Content Pairing + Quote Card -->
+    <div class="watching-hero">
+        <!-- Content Pairing -->
+        <div class="featured-book-section">
+            <div class="featured-book-header">
+                <h2>A Pairing</h2>
+                <div class="pairing-controls">
+                    {% if content_pairings|length > 1 %}
+                    <button class="pairing-nav-btn" id="prev-pairing" title="Previous pairing">&#8249;</button>
+                    <button class="pairing-nav-btn" id="next-pairing" title="Next pairing">&#8250;</button>
+                    {% endif %}
+                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                    <button class="edit-featured-btn" id="add-pairing-btn" title="Add new pairing">+</button>
+                    <button class="edit-featured-btn" id="edit-pairing-btn" title="Edit pairing">&#9998;</button>
+                    {% endif %}
                 </div>
-            {% endfor %}
-        </div>
-    </section>
-
-    <section class="media-section media-section--film">
-        <div class="media-section-header">
-            <div class="media-section-title">
-                <span class="media-section-icon"><i class="fa-solid fa-film"></i></span>
-                <h2>Recently Watched Movies</h2>
             </div>
-            {% if can_access_page('movies') %}
-            <a href="{{ url_for('movies.index') }}" class="see-all-btn">See All</a>
+            {% if content_pairings %}
+            <div class="book-pairing" id="pairing-display" data-current-index="0">
+                <!-- Mobile: thumbnails on top -->
+                <div class="pairing-books-mobile">
+                    <a href="{{ content_pairings[0].item_1.detail_url }}" class="pairing-book" id="pairing-book-1-mobile">
+                        <img src="{{ content_pairings[0].item_1.cover_image_url }}" alt="{{ content_pairings[0].item_1.title }}">
+                    </a>
+                    <span class="pairing-plus">+</span>
+                    <a href="{{ content_pairings[0].item_2.detail_url }}" class="pairing-book" id="pairing-book-2-mobile">
+                        <img src="{{ content_pairings[0].item_2.cover_image_url }}" alt="{{ content_pairings[0].item_2.title }}">
+                    </a>
+                </div>
+                <!-- Desktop: cover on left -->
+                <a href="{{ content_pairings[0].item_1.detail_url }}" class="pairing-book pairing-book-desktop" id="pairing-book-1">
+                    <img src="{{ content_pairings[0].item_1.cover_image_url }}" alt="{{ content_pairings[0].item_1.title }}">
+                </a>
+                <div class="pairing-content">
+                    <div class="pairing-titles">
+                        <a href="{{ content_pairings[0].item_1.detail_url }}" class="pairing-book-link" id="pairing-title-1">
+                            <span class="pairing-book-title">{{ content_pairings[0].item_1.title }}</span>
+                            <span class="pairing-book-author">{{ content_pairings[0].item_1.subtitle }}</span>
+                        </a>
+                        <span class="pairing-amp">&amp;</span>
+                        <a href="{{ content_pairings[0].item_2.detail_url }}" class="pairing-book-link" id="pairing-title-2">
+                            <span class="pairing-book-title">{{ content_pairings[0].item_2.title }}</span>
+                            <span class="pairing-book-author">{{ content_pairings[0].item_2.subtitle }}</span>
+                        </a>
+                    </div>
+                    <div class="pairing-note" id="pairing-note">{{ content_pairings[0].note }}</div>
+                </div>
+                <!-- Desktop: cover on right -->
+                <a href="{{ content_pairings[0].item_2.detail_url }}" class="pairing-book pairing-book-desktop" id="pairing-book-2">
+                    <img src="{{ content_pairings[0].item_2.cover_image_url }}" alt="{{ content_pairings[0].item_2.title }}">
+                </a>
+            </div>
+            <script>
+                window.contentPairings = {{ content_pairings | tojson | safe }};
+            </script>
+            {% else %}
+            <div class="featured-book-empty">
+                {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                <p>No pairing set. Click the edit button to add one.</p>
+                {% else %}
+                <p>Check back soon for a recommendation.</p>
+                {% endif %}
+            </div>
             {% endif %}
         </div>
-        <div class="media-row">
-            {% for movie in recently_watched_movies %}
-                <div class="media-card">
-                    <div class="media-card-image">
-                        <img src="{{ movie['cover_image_url'] }}" alt="{{ movie['title'] }}">
-                    </div>
-                    <div class="media-card-content">
-                        <div class="media-card-title">{{ movie['title'] }}</div>
-                        <div class="media-card-director">{{ movie['director'] }}</div>
-                        <div class="media-card-year">{{ movie['year'] }}</div>
-                        <div class="media-card-rating">
-                            {% if current_user.is_authenticated and current_user.role == 'admin' %}
-                                <div data-star-rating="{{ movie['my_rating'] or 0 }}"
-                                     data-interactive
-                                     data-item-type="movie"
-                                     data-item-id="{{ movie.id }}"
-                                     data-size="small"></div>
-                            {% else %}
-                                <div data-star-rating="{{ movie['my_rating'] or 0 }}" data-size="small"></div>
-                            {% endif %}
-                        </div>
-                    </div>
+
+        <!-- Quote Card -->
+        <div class="quote-card-section">
+            <div class="quote-card-header">
+                <h2>A Quote</h2>
+                <a href="{{ url_for('watching.quotes') }}" class="see-all-btn">View All &rarr;</a>
+            </div>
+            {% if random_quote %}
+            <div class="quote-card">
+                <blockquote class="quote-text">"{{ random_quote.text }}"</blockquote>
+                <div class="quote-attribution">
+                    <span class="quote-book-link">{{ random_quote.movie_title }}</span>
+                    <span class="quote-author">&mdash; {{ random_quote.movie_director }}</span>
                 </div>
+            </div>
+            {% else %}
+            <div class="quote-card-empty">
+                <p>No quotes saved yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Film Shelves -->
+    <section class="media-shelf-section">
+        <div class="bookshelf-header">
+            <h2>Film</h2>
+            <div class="bookshelf-header-actions">
+                {% if can_access_page('movies') %}
+                <a href="{{ url_for('movies.index') }}" class="see-all-btn">See All Movies</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="media-shelf">
+            <!-- Recently Watched (always first) -->
+            <div class="shelf">
+                <div class="shelf-label">Recently Watched</div>
+                <div class="shelf-inner">
+                    <button class="shelf-arrow shelf-arrow-left hidden" aria-label="Scroll left">&#8249;</button>
+                    <div class="shelf-books">
+                    {% for movie in recently_watched_movies %}
+                        <div class="book-card">
+                            <div class="book-card-image">
+                                <img src="{{ movie['cover_image_url'] }}" alt="{{ movie['title'] }}">
+                            </div>
+                            <div class="book-card-content">
+                                <div class="book-card-title">{{ movie['title'] }}</div>
+                                <div class="book-card-author">{{ movie['director'] }}</div>
+                                <div class="book-card-year">{{ movie['year'] }}</div>
+                                {% if movie['my_rating'] %}
+                                <div class="book-card-rating">
+                                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                        <div data-star-rating="{{ movie['my_rating'] or 0 }}"
+                                             data-interactive
+                                             data-item-type="movie"
+                                             data-item-id="{{ movie.id }}"
+                                             data-size="small"></div>
+                                    {% else %}
+                                        <div data-star-rating="{{ movie['my_rating'] or 0 }}" data-size="small"></div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div>
+                    <button class="shelf-arrow shelf-arrow-right" aria-label="Scroll right">&#8250;</button>
+                </div>
+                <div class="shelf-ledge"></div>
+            </div>
+
+            {% for shelf in movie_shelves %}
+            <div class="shelf">
+                <div class="shelf-label">{{ shelf.display_name }}</div>
+                <div class="shelf-inner">
+                    <button class="shelf-arrow shelf-arrow-left hidden" aria-label="Scroll left">&#8249;</button>
+                    <div class="shelf-books">
+                    {% for item in shelf['items'] %}
+                        <div class="book-card">
+                            <div class="book-card-image">
+                                <img src="{{ item['cover_image_url'] }}" alt="{{ item['title'] }}">
+                            </div>
+                            <div class="book-card-content">
+                                <div class="book-card-title">{{ item['title'] }}</div>
+                                {% if item.get('director') %}
+                                <div class="book-card-author">{{ item['director'] }}</div>
+                                {% endif %}
+                                <div class="book-card-year">{{ item['year'] }}</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div>
+                    <button class="shelf-arrow shelf-arrow-right" aria-label="Scroll right">&#8250;</button>
+                </div>
+                <div class="shelf-ledge"></div>
+            </div>
             {% endfor %}
         </div>
     </section>
 
-    <!-- TV Shows Section - cool blue accents -->
-    <section class="media-section media-section--tv">
-        <div class="media-section-header">
-            <div class="media-section-title">
-                <span class="media-section-icon"><i class="fa-solid fa-tv"></i></span>
-                <h2>Recommended TV Shows</h2>
-            </div>
+    <!-- TV Shelves -->
+    {% if tv_shelves %}
+    <section class="media-shelf-section">
+        <div class="bookshelf-header">
+            <h2>Television</h2>
         </div>
-        <div class="media-row">
-            {% for rec_show in recommended_shows %}
-                <div class="media-card">
-                    <div class="media-card-image">
-                        <img src="{{ rec_show['cover_image_url'] }}" alt="{{ rec_show['title'] }}">
+        <div class="media-shelf media-shelf--tv">
+            {% for shelf in tv_shelves %}
+            <div class="shelf">
+                <div class="shelf-label">{{ shelf.display_name }}</div>
+                <div class="shelf-inner">
+                    <button class="shelf-arrow shelf-arrow-left hidden" aria-label="Scroll left">&#8249;</button>
+                    <div class="shelf-books">
+                    {% for item in shelf['items'] %}
+                        <div class="book-card">
+                            <div class="book-card-image">
+                                <img src="{{ item['cover_image_url'] }}" alt="{{ item['title'] }}">
+                            </div>
+                            <div class="book-card-content">
+                                <div class="book-card-title">{{ item['title'] }}</div>
+                                <div class="book-card-year">{{ item['year'] }}</div>
+                            </div>
+                        </div>
+                    {% endfor %}
                     </div>
-                    <div class="media-card-content">
-                        <div class="media-card-title">{{ rec_show['title'] }}</div>
-                        <div class="media-card-year">{{ rec_show['year'] }}</div>
-                    </div>
+                    <button class="shelf-arrow shelf-arrow-right" aria-label="Scroll right">&#8250;</button>
                 </div>
+                <div class="shelf-ledge"></div>
+            </div>
             {% endfor %}
         </div>
     </section>
+    {% endif %}
 </div>
+
+<!-- Shelf scroll arrows script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.shelf-inner').forEach(function(shelf) {
+        const books = shelf.querySelector('.shelf-books');
+        const leftArrow = shelf.querySelector('.shelf-arrow-left');
+        const rightArrow = shelf.querySelector('.shelf-arrow-right');
+
+        function updateArrows() {
+            if (!books || !leftArrow || !rightArrow) return;
+            const scrollLeft = books.scrollLeft;
+            const maxScroll = books.scrollWidth - books.clientWidth;
+            leftArrow.classList.toggle('hidden', scrollLeft <= 10);
+            rightArrow.classList.toggle('hidden', scrollLeft >= maxScroll - 10);
+        }
+
+        if (leftArrow) {
+            leftArrow.addEventListener('click', function() {
+                books.scrollBy({ left: -300, behavior: 'smooth' });
+            });
+        }
+        if (rightArrow) {
+            rightArrow.addEventListener('click', function() {
+                books.scrollBy({ left: 300, behavior: 'smooth' });
+            });
+        }
+        if (books) {
+            books.addEventListener('scroll', updateArrows);
+            updateArrows();
+        }
+    });
+});
+</script>
+
+<!-- Content Pairing Modal (Admin only) -->
+{% if current_user.is_authenticated and current_user.role == 'admin' %}
+<div id="pairing-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modal-title">Set Pairing</h3>
+            <button class="modal-close" id="close-pairing-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="editing-pairing-id">
+            <div class="form-group">
+                <label for="content-search-1">First Item</label>
+                <input type="text" id="content-search-1" placeholder="Search books, movies, TV shows..." autocomplete="off">
+                <div id="content-search-results-1" class="search-results"></div>
+                <input type="hidden" id="selected-item-id-1">
+                <input type="hidden" id="selected-item-type-1">
+                <div id="selected-item-display-1" class="selected-book-display"></div>
+            </div>
+            <div class="form-group">
+                <label for="content-search-2">Second Item</label>
+                <input type="text" id="content-search-2" placeholder="Search books, movies, TV shows..." autocomplete="off">
+                <div id="content-search-results-2" class="search-results"></div>
+                <input type="hidden" id="selected-item-id-2">
+                <input type="hidden" id="selected-item-type-2">
+                <div id="selected-item-display-2" class="selected-book-display"></div>
+            </div>
+            <div class="form-group">
+                <label for="modal-pairing-note">Why do these pair well?</label>
+                <textarea id="modal-pairing-note" rows="4" placeholder="Describe why these complement each other..."></textarea>
+            </div>
+            <label class="filter-toggle">
+                <input type="checkbox" id="pairing-visible" checked>
+                <span>Visible in rotation</span>
+            </label>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancel-pairing">Cancel</button>
+            <button class="btn btn-primary" id="save-pairing">Save</button>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Pairing cycling
+    const pairings = window.contentPairings || [];
+    let currentIndex = 0;
+
+    const prevBtn = document.getElementById('prev-pairing');
+    const nextBtn = document.getElementById('next-pairing');
+    const pairingDisplay = document.getElementById('pairing-display');
+
+    function updatePairingDisplay() {
+        if (pairings.length === 0) return;
+        const pairing = pairings[currentIndex];
+        const noteEl = document.getElementById('pairing-note');
+
+        // Update item 1 cover (desktop)
+        const item1Cover = document.getElementById('pairing-book-1');
+        item1Cover.href = pairing.item_1.detail_url;
+        item1Cover.querySelector('img').src = pairing.item_1.cover_image_url;
+        item1Cover.querySelector('img').alt = pairing.item_1.title;
+
+        // Update item 1 cover (mobile)
+        const item1CoverMobile = document.getElementById('pairing-book-1-mobile');
+        item1CoverMobile.href = pairing.item_1.detail_url;
+        item1CoverMobile.querySelector('img').src = pairing.item_1.cover_image_url;
+        item1CoverMobile.querySelector('img').alt = pairing.item_1.title;
+
+        // Update item 1 title
+        const item1Title = document.getElementById('pairing-title-1');
+        item1Title.href = pairing.item_1.detail_url;
+        item1Title.querySelector('.pairing-book-title').textContent = pairing.item_1.title;
+        item1Title.querySelector('.pairing-book-author').textContent = pairing.item_1.subtitle;
+
+        // Update item 2 cover (desktop)
+        const item2Cover = document.getElementById('pairing-book-2');
+        item2Cover.href = pairing.item_2.detail_url;
+        item2Cover.querySelector('img').src = pairing.item_2.cover_image_url;
+        item2Cover.querySelector('img').alt = pairing.item_2.title;
+
+        // Update item 2 cover (mobile)
+        const item2CoverMobile = document.getElementById('pairing-book-2-mobile');
+        item2CoverMobile.href = pairing.item_2.detail_url;
+        item2CoverMobile.querySelector('img').src = pairing.item_2.cover_image_url;
+        item2CoverMobile.querySelector('img').alt = pairing.item_2.title;
+
+        // Update item 2 title
+        const item2Title = document.getElementById('pairing-title-2');
+        item2Title.href = pairing.item_2.detail_url;
+        item2Title.querySelector('.pairing-book-title').textContent = pairing.item_2.title;
+        item2Title.querySelector('.pairing-book-author').textContent = pairing.item_2.subtitle;
+
+        noteEl.textContent = pairing.note;
+
+        if (pairingDisplay) {
+            pairingDisplay.dataset.currentIndex = currentIndex;
+        }
+    }
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function() {
+            currentIndex = (currentIndex - 1 + pairings.length) % pairings.length;
+            updatePairingDisplay();
+        });
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function() {
+            currentIndex = (currentIndex + 1) % pairings.length;
+            updatePairingDisplay();
+        });
+    }
+
+    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+    // Admin modal functionality
+    const modal = document.getElementById('pairing-modal');
+    const addBtn = document.getElementById('add-pairing-btn');
+    const editBtn = document.getElementById('edit-pairing-btn');
+    const closeBtn = document.getElementById('close-pairing-modal');
+    const cancelBtn = document.getElementById('cancel-pairing');
+    const saveBtn = document.getElementById('save-pairing');
+    const noteTextarea = document.getElementById('modal-pairing-note');
+    const editingPairingId = document.getElementById('editing-pairing-id');
+    const pairingVisibleCheckbox = document.getElementById('pairing-visible');
+    const modalTitle = document.getElementById('modal-title');
+
+    const contentSearch1 = document.getElementById('content-search-1');
+    const searchResults1 = document.getElementById('content-search-results-1');
+    const selectedItemId1 = document.getElementById('selected-item-id-1');
+    const selectedItemType1 = document.getElementById('selected-item-type-1');
+    const selectedItemDisplay1 = document.getElementById('selected-item-display-1');
+
+    const contentSearch2 = document.getElementById('content-search-2');
+    const searchResults2 = document.getElementById('content-search-results-2');
+    const selectedItemId2 = document.getElementById('selected-item-id-2');
+    const selectedItemType2 = document.getElementById('selected-item-type-2');
+    const selectedItemDisplay2 = document.getElementById('selected-item-display-2');
+
+    let searchTimeout1, searchTimeout2;
+
+    const typeBadgeColors = { Book: '#7aa2c9', Movie: '#d4a574', TVShow: '#a0c9a0' };
+
+    function openModalForNew() {
+        modal.style.display = 'flex';
+        modalTitle.textContent = 'Create Pairing';
+        editingPairingId.value = '';
+        clearSelection(1);
+        clearSelection(2);
+        noteTextarea.value = '';
+        pairingVisibleCheckbox.checked = true;
+    }
+
+    function openModalForEdit() {
+        modal.style.display = 'flex';
+        if (pairings.length > 0) {
+            const pairing = pairings[currentIndex];
+            modalTitle.textContent = 'Edit Pairing';
+            editingPairingId.value = pairing.id;
+
+            selectedItemId1.value = pairing.item_1.id;
+            selectedItemType1.value = pairing.item_1.type;
+            selectedItemDisplay1.innerHTML = `
+                <div class="selected-book">
+                    <span class="type-badge" style="background:${typeBadgeColors[pairing.item_1.type]}">${pairing.item_1.type}</span>
+                    <strong>${pairing.item_1.title}</strong> ${pairing.item_1.subtitle}
+                    <button type="button" class="clear-selection" data-target="1">&times;</button>
+                </div>
+            `;
+            selectedItemDisplay1.querySelector('.clear-selection').addEventListener('click', () => clearSelection(1));
+
+            selectedItemId2.value = pairing.item_2.id;
+            selectedItemType2.value = pairing.item_2.type;
+            selectedItemDisplay2.innerHTML = `
+                <div class="selected-book">
+                    <span class="type-badge" style="background:${typeBadgeColors[pairing.item_2.type]}">${pairing.item_2.type}</span>
+                    <strong>${pairing.item_2.title}</strong> ${pairing.item_2.subtitle}
+                    <button type="button" class="clear-selection" data-target="2">&times;</button>
+                </div>
+            `;
+            selectedItemDisplay2.querySelector('.clear-selection').addEventListener('click', () => clearSelection(2));
+
+            noteTextarea.value = pairing.note || '';
+            pairingVisibleCheckbox.checked = pairing.is_visible !== false;
+        } else {
+            openModalForNew();
+        }
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+        contentSearch1.value = '';
+        contentSearch2.value = '';
+        searchResults1.innerHTML = '';
+        searchResults2.innerHTML = '';
+        clearSelection(1);
+        clearSelection(2);
+        noteTextarea.value = '';
+        editingPairingId.value = '';
+    }
+
+    function clearSelection(num) {
+        if (num === 1) {
+            selectedItemId1.value = '';
+            selectedItemType1.value = '';
+            selectedItemDisplay1.innerHTML = '';
+            contentSearch1.value = '';
+        } else {
+            selectedItemId2.value = '';
+            selectedItemType2.value = '';
+            selectedItemDisplay2.innerHTML = '';
+            contentSearch2.value = '';
+        }
+    }
+
+    function searchContent(query, resultsContainer, num) {
+        if (query.length < 2) {
+            resultsContainer.innerHTML = '';
+            return;
+        }
+        fetch(`/reading/api/content/search?q=${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(items => {
+                if (items.length === 0) {
+                    resultsContainer.innerHTML = '<div class="no-results">No results found</div>';
+                    return;
+                }
+                resultsContainer.innerHTML = items.map(item => `
+                    <div class="search-result-item" data-id="${item.id}" data-type="${item.type}" data-title="${item.title}" data-subtitle="${item.subtitle}" data-num="${num}">
+                        <img src="${item.cover_image_url || ''}" alt="" class="search-result-cover">
+                        <div class="search-result-info">
+                            <span class="type-badge" style="background:${typeBadgeColors[item.type] || '#666'}">${item.type}</span>
+                            <div class="search-result-title">${item.title}</div>
+                            <div class="search-result-author">${item.subtitle}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                resultsContainer.querySelectorAll('.search-result-item').forEach(item => {
+                    item.addEventListener('click', () => selectItem(item, parseInt(item.dataset.num)));
+                });
+            });
+    }
+
+    function selectItem(item, num) {
+        const id = item.dataset.id;
+        const type = item.dataset.type;
+        const title = item.dataset.title;
+        const subtitle = item.dataset.subtitle;
+
+        const selectedId = num === 1 ? selectedItemId1 : selectedItemId2;
+        const selectedType = num === 1 ? selectedItemType1 : selectedItemType2;
+        const display = num === 1 ? selectedItemDisplay1 : selectedItemDisplay2;
+        const search = num === 1 ? contentSearch1 : contentSearch2;
+        const results = num === 1 ? searchResults1 : searchResults2;
+
+        selectedId.value = id;
+        selectedType.value = type;
+        display.innerHTML = `
+            <div class="selected-book">
+                <span class="type-badge" style="background:${typeBadgeColors[type] || '#666'}">${type}</span>
+                <strong>${title}</strong> ${subtitle}
+                <button type="button" class="clear-selection">&times;</button>
+            </div>
+        `;
+        display.querySelector('.clear-selection').addEventListener('click', () => clearSelection(num));
+        search.value = '';
+        results.innerHTML = '';
+    }
+
+    function getCSRFToken() {
+        return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    }
+
+    function savePairing() {
+        const itemId1 = selectedItemId1.value;
+        const itemType1 = selectedItemType1.value;
+        const itemId2 = selectedItemId2.value;
+        const itemType2 = selectedItemType2.value;
+        const note = noteTextarea.value.trim();
+        const pairingId = editingPairingId.value;
+        const isVisible = pairingVisibleCheckbox.checked;
+
+        if (!itemId1 || !itemId2) {
+            alert('Please select two items');
+            return;
+        }
+        if (itemType1 === itemType2 && itemId1 === itemId2) {
+            alert('Please select two different items');
+            return;
+        }
+        if (!note) {
+            alert('Please add a note about why these pair well');
+            return;
+        }
+
+        fetch('/reading/api/pairing', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({
+                id: pairingId ? parseInt(pairingId) : null,
+                item_type_1: itemType1,
+                item_id_1: itemId1,
+                item_type_2: itemType2,
+                item_id_2: itemId2,
+                note: note,
+                is_visible: isVisible
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert(data.error || 'Failed to save');
+            }
+        });
+    }
+
+    if (addBtn) addBtn.addEventListener('click', openModalForNew);
+    if (editBtn) editBtn.addEventListener('click', openModalForEdit);
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+    saveBtn.addEventListener('click', savePairing);
+
+    contentSearch1.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout1);
+        searchTimeout1 = setTimeout(() => searchContent(e.target.value, searchResults1, 1), 300);
+    });
+    contentSearch2.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout2);
+        searchTimeout2 = setTimeout(() => searchContent(e.target.value, searchResults2, 2), 300);
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    {% endif %}
+});
+</script>
 {% endblock %}

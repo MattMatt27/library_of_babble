@@ -67,7 +67,7 @@ class ProductionConfig(Config):
     if not SQLALCHEMY_DATABASE_URI:
         raise ValueError("DATABASE_URL environment variable must be set in production")
 
-    if SECRET_KEY == 'dev-secret-key-change-in-production':
+    if not os.getenv('FLASK_SECRET_KEY'):
         raise ValueError("FLASK_SECRET_KEY environment variable must be set in production")
 
 

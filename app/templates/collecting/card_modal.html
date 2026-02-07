@@ -1,0 +1,268 @@
+<!-- Card Collection Modal -->
+<div class="modal-overlay" id="addCardModal">
+    <div class="modal modal-card">
+        <div class="modal-header">
+            <h3 id="cardModalTitle">Manage Trading Cards</h3>
+            <button class="modal-close" onclick="closeCardModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="card-modal-layout">
+                <!-- Left Panel: Card Identity -->
+                <div class="card-modal-panel" id="cardIdentityPanel">
+                    <h4>Card Identity</h4>
+
+                    <!-- Search existing cards -->
+                    <div class="form-group">
+                        <label for="cardSearch">Search Existing Cards</label>
+                        <input type="text" id="cardSearch" class="form-input"
+                               placeholder="Search by name, set, player..."
+                               autocomplete="off">
+                        <div id="cardSearchResults" class="card-search-results"></div>
+                    </div>
+
+                    <div class="divider-text">or create new</div>
+
+                    <!-- Card details form -->
+                    <div id="cardDetailsForm">
+                        <div class="form-row">
+                            <div class="form-group" style="flex: 2;">
+                                <label for="cardName">Card Subject <span class="required">*</span></label>
+                                <input type="text" id="cardName" class="form-input" required
+                                       placeholder="e.g., Ken Griffey Jr., Charizard, Mickey Mantle">
+                                <small class="form-hint">The player, character, or subject featured on the card</small>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label for="cardNumber">Card #</label>
+                                <input type="text" id="cardNumber" class="form-input" placeholder="e.g., 123">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="cardBrand">Brand</label>
+                                <input type="text" id="cardBrand" class="form-input" placeholder="Topps, Panini, etc.">
+                            </div>
+                            <div class="form-group">
+                                <label for="cardSetName">Set Name</label>
+                                <input type="text" id="cardSetName" class="form-input">
+                            </div>
+                            <div class="form-group" style="max-width: 100px;">
+                                <label for="cardSetYear">Year</label>
+                                <input type="number" id="cardSetYear" class="form-input" min="1800" max="2100">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="cardCategory">Category <span class="required">*</span></label>
+                                <select id="cardCategory" class="form-input" required>
+                                    <option value="">Select...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="cardVariant">Variant</label>
+                                <select id="cardVariant" class="form-input">
+                                    <option value="">Base</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Category-specific fields (dynamic) -->
+                        <div id="categoryFields" class="category-fields"></div>
+
+                        <!-- Special features -->
+                        <div id="specialFeatures" class="special-features"></div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Copy Details -->
+                <div class="card-modal-panel" id="cardCopyPanel">
+                    <h4>Your Copy</h4>
+
+                    <!-- Condition Section -->
+                    <div class="form-group">
+                        <label for="copyCondition">Condition</label>
+                        <select id="copyCondition" class="form-input">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="copyGraded">
+                            <span>Professionally Graded</span>
+                        </label>
+                    </div>
+
+                    <div id="gradedFields" class="graded-fields" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="gradingService">Service</label>
+                                <select id="gradingService" class="form-input">
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="copyGrade">Grade</label>
+                                <input type="text" id="copyGrade" class="form-input" placeholder="10, 9.5, etc.">
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="form-divider">
+
+                    <!-- Storage Section -->
+                    <div class="form-group">
+                        <label for="storageLocation">Storage Location</label>
+                        <input type="text" id="storageLocation" class="form-input"
+                               placeholder="Binder A, Box 12, etc."
+                               list="storageLocationsList"
+                               autocomplete="off">
+                        <datalist id="storageLocationsList">
+                            <!-- Populated dynamically -->
+                        </datalist>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Storage Type</label>
+                        <div class="radio-group" id="storageTypeGroup">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <hr class="form-divider">
+
+                    <!-- Visibility Section -->
+                    <div class="form-group">
+                        <label>Visibility</label>
+                        <div class="radio-group" id="visibilityGroup">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <hr class="form-divider">
+
+                    <!-- Featured Section -->
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="copyFeatured">
+                            <span>Featured (gallery display)</span>
+                        </label>
+                        <small class="form-hint">Featured cards will appear in the gallery with images</small>
+                    </div>
+
+                    <div id="imageUploadFields" style="display: none;">
+                        <div class="form-group">
+                            <label for="imageFront">Front Image</label>
+                            <div class="file-drop-zone" onclick="document.getElementById('imageFront').click()">
+                                <span class="file-drop-text" id="imageFrontName">Click to select image</span>
+                                <input type="file" id="imageFront" accept="image/*" style="display: none;">
+                            </div>
+                            <div id="imageFrontPreview" class="image-preview"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="imageBack">Back Image</label>
+                            <div class="file-drop-zone" onclick="document.getElementById('imageBack').click()">
+                                <span class="file-drop-text" id="imageBackName">Click to select image</span>
+                                <input type="file" id="imageBack" accept="image/*" style="display: none;">
+                            </div>
+                            <div id="imageBackPreview" class="image-preview"></div>
+                        </div>
+                    </div>
+
+                    <hr class="form-divider">
+
+                    <!-- Notes & Date -->
+                    <div class="form-group">
+                        <label for="copyNotes">Notes</label>
+                        <textarea id="copyNotes" class="form-input" rows="2" placeholder="Any additional notes..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dateAcquired">Date Acquired</label>
+                        <input type="date" id="dateAcquired" class="form-input">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Messages -->
+            <div id="cardModalStatus"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeCardModal()">Cancel</button>
+            <button class="btn btn-primary" id="saveCardBtn" onclick="saveCardAndCopy(false)">Save Card</button>
+            <button class="btn btn-primary" id="saveAndAddBtn" onclick="saveCardAndCopy(true)">Save & Add Another</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Copy Modal (simpler, just copy fields) -->
+<div class="modal-overlay" id="editCopyModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Edit Card Copy</h3>
+            <button class="modal-close" onclick="closeModal('editCopyModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="editCopyId">
+
+            <div class="form-group">
+                <label for="editCopyCondition">Condition</label>
+                <select id="editCopyCondition" class="form-input"></select>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="editCopyGraded">
+                    <span>Professionally Graded</span>
+                </label>
+            </div>
+
+            <div id="editGradedFields" class="graded-fields" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editGradingService">Service</label>
+                        <select id="editGradingService" class="form-input"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCopyGrade">Grade</label>
+                        <input type="text" id="editCopyGrade" class="form-input">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="editStorageLocation">Storage Location</label>
+                <input type="text" id="editStorageLocation" class="form-input" list="storageLocationsList">
+            </div>
+
+            <div class="form-group">
+                <label for="editStorageType">Storage Type</label>
+                <select id="editStorageType" class="form-input"></select>
+            </div>
+
+            <div class="form-group">
+                <label for="editVisibility">Visibility</label>
+                <select id="editVisibility" class="form-input"></select>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="editCopyFeatured">
+                    <span>Featured (gallery display)</span>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label for="editCopyNotes">Notes</label>
+                <textarea id="editCopyNotes" class="form-input" rows="2"></textarea>
+            </div>
+
+            <div id="editCopyStatus"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('editCopyModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveEditedCopy()">Save Changes</button>
+        </div>
+    </div>
+</div>

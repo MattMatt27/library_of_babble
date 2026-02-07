@@ -7,6 +7,7 @@
 {% block extra_styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/account.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/galleries.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/cards.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -164,6 +165,10 @@
                 <button class="tool-button" onclick="openModal('uploadArtworkModal')">
                     <span class="tool-icon" data-type="artwork"></span>
                     <span class="tool-label">Upload Artwork</span>
+                </button>
+                <button class="tool-button" onclick="openAddCardModal()">
+                    <span class="tool-icon" data-type="cards"></span>
+                    <span class="tool-label">Manage Cards</span>
                 </button>
                 <button class="tool-button" onclick="openModal('managePublicationsModal')">
                     <span class="tool-icon" data-type="writing"></span>
@@ -567,4 +572,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <script type="module" src="{{ url_for('static', filename='js/account/main.js') }}"></script>
+<script src="{{ url_for('static', filename='js/card-modal.js') }}"></script>
 {% endblock %}

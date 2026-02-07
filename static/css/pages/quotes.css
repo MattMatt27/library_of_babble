@@ -1,0 +1,359 @@
+/**
+ * Quotes Page Styles
+ */
+
+.quotes-page {
+  padding: var(--space-4) 0;
+}
+
+.quotes-header {
+  text-align: center;
+  margin-bottom: var(--space-6);
+}
+
+.quotes-header h1 {
+  font-size: var(--font-3xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.quotes-header p {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Filters */
+.quotes-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  padding: var(--space-4);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.filter-group label {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.filter-group select {
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-base);
+  color: var(--text-primary);
+  font-size: var(--font-sm);
+}
+
+#sort-select {
+  min-width: 140px;
+}
+
+#book-filter {
+  max-width: 200px;
+  text-overflow: ellipsis;
+}
+
+.filter-group select:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+}
+
+/* Filter toggle checkbox */
+.filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+}
+
+.filter-toggle input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition-fast);
+}
+
+.filter-toggle input[type="checkbox"]:checked {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+.filter-toggle input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: translate(-50%, -60%) rotate(45deg);
+}
+
+.filter-toggle input[type="checkbox"]:hover {
+  border-color: var(--accent-blue);
+}
+
+.filter-toggle:hover {
+  color: var(--text-primary);
+}
+
+/* Quotes grid - masonry-like layout */
+.quotes-grid {
+  columns: 3;
+  column-gap: var(--space-5);
+}
+
+.quote-item {
+  break-inside: avoid;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-5);
+  transition: all var(--transition-base);
+}
+
+.quote-item:hover {
+  border-color: var(--accent-blue);
+  box-shadow: var(--shadow-md);
+}
+
+/* Quote item header - text and like button */
+.quote-item-header {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.quote-item-text {
+  flex: 1;
+  font-size: var(--font-base);
+  color: var(--text-primary);
+  line-height: var(--leading-relaxed);
+  margin: 0 0 var(--space-4) 0;
+  font-style: italic;
+  white-space: pre-line;
+}
+
+/* Like button */
+.quote-like-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-tertiary);
+  font-size: var(--font-lg);
+  padding: var(--space-1);
+  border-radius: var(--radius-base);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quote-like-btn:hover {
+  color: var(--accent-blue);
+  background: rgba(88, 166, 255, 0.1);
+}
+
+.quote-like-btn.liked {
+  color: var(--accent-blue);
+}
+
+.quote-like-btn.liked:hover {
+  color: var(--accent-blue-hover);
+}
+
+.quote-like-btn:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+.quote-like-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes heartBeat {
+  0% { transform: scale(1); }
+  15% { transform: scale(1.3); }
+  30% { transform: scale(1); }
+}
+
+.quote-like-btn.animating {
+  animation: heartBeat 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.quote-item-meta {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+}
+
+.quote-item-meta:empty {
+  display: none;
+}
+
+.quote-chapter {
+  font-weight: var(--font-medium);
+}
+
+.quote-item-source {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-primary);
+  text-decoration: none;
+  color: inherit;
+  transition: opacity var(--transition-fast);
+}
+
+.quote-item-source:hover {
+  opacity: 0.8;
+}
+
+.quote-source-cover {
+  width: 40px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.quote-source-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.quote-source-title {
+  font-size: var(--font-sm);
+  font-weight: var(--font-medium);
+  color: var(--accent-blue);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quote-source-author {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+}
+
+.no-quotes {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--space-8);
+  color: var(--text-tertiary);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .quotes-grid {
+    columns: 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .quotes-grid {
+    columns: 1;
+  }
+
+  .quotes-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .filter-group select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  #book-filter {
+    max-width: none;
+  }
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-4);
+  margin: var(--space-5) 0;
+  padding: var(--space-3);
+}
+
+.pagination button {
+  padding: var(--space-2) var(--space-4);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-base);
+  color: var(--text-primary);
+  font-size: var(--font-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pagination button:hover:not(:disabled) {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: var(--text-inverse);
+}
+
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination .page-info {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .pagination {
+    gap: var(--space-2);
+  }
+
+  .pagination button {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .pagination .page-info {
+    font-size: var(--font-xs);
+  }
+}

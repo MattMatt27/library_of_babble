@@ -19,109 +19,1094 @@
         {% endif %}
     </div>
     {% endif %}
-    <section class="books-section">
-        <div class="books-section-header">
-            <h2>Recommended Fiction</h2>
-        </div>
-        <div class="books-grid">
-            {% for fiction_book in recommended_fiction_books %}
-                <a href="{{ url_for('books.detail', book_id=fiction_book.id) }}" class="book-card">
-                    <div class="book-card-image">
-                        <img src="{{ fiction_book['cover_image_url'] }}" alt="{{ fiction_book['title'] }}">
-                    </div>
-                    <div class="book-card-content">
-                        <div class="book-card-title">{{ fiction_book['title'] }}</div>
-                        <div class="book-card-author">{{ fiction_book['author'] }}</div>
-                        <div class="book-card-year">
-                            {% if fiction_book['publication_year'] is not none %}
-                                {% if fiction_book['publication_year'] < 0 %}
-                                    {{ -fiction_book['publication_year'] }} BC
-                                {% else %}
-                                    {{ fiction_book['publication_year'] }}
-                                {% endif %}
-                            {% else %}
-                                Unknown
-                            {% endif %}
-                        </div>
-                    </div>
+
+    <!-- Top section: Book Pairing + Quote Card -->
+    <div class="reading-hero">
+        <!-- Book Pairing -->
+        <div class="featured-book-section">
+            <div class="featured-book-header">
+                <h2>A Pairing</h2>
+                <div class="pairing-controls">
+                    {% if content_pairings|length > 1 %}
+                    <button class="pairing-nav-btn" id="prev-pairing" title="Previous pairing">‹</button>
+                    <button class="pairing-nav-btn" id="next-pairing" title="Next pairing">›</button>
+                    {% endif %}
+                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                    <button class="edit-featured-btn" id="add-pairing-btn" title="Add new pairing">+</button>
+                    <button class="edit-featured-btn" id="edit-pairing-btn" title="Edit book pairing">✎</button>
+                    {% endif %}
+                </div>
+            </div>
+            {% if content_pairings %}
+            <div class="book-pairing" id="pairing-display" data-current-index="0">
+                <!-- Mobile: thumbnails on top -->
+                <div class="pairing-books-mobile">
+                    <a href="{{ content_pairings[0].item_1.detail_url }}" class="pairing-book" id="pairing-book-1-mobile">
+                        <img src="{{ content_pairings[0].item_1.cover_image_url }}" alt="{{ content_pairings[0].item_1.title }}">
+                    </a>
+                    <span class="pairing-plus">+</span>
+                    <a href="{{ content_pairings[0].item_2.detail_url }}" class="pairing-book" id="pairing-book-2-mobile">
+                        <img src="{{ content_pairings[0].item_2.cover_image_url }}" alt="{{ content_pairings[0].item_2.title }}">
+                    </a>
+                </div>
+                <!-- Desktop: thumbnail on left -->
+                <a href="{{ content_pairings[0].item_1.detail_url }}" class="pairing-book pairing-book-desktop" id="pairing-book-1">
+                    <img src="{{ content_pairings[0].item_1.cover_image_url }}" alt="{{ content_pairings[0].item_1.title }}">
                 </a>
-            {% endfor %}
-        </div>
-    </section>
-    <section class="books-section">
-        <div class="books-section-header">
-            <h2>Recommended Non-Fiction</h2>
-        </div>
-        <div class="books-grid">
-            {% for nonfiction_book in recommended_nonfiction_books %}
-                <a href="{{ url_for('books.detail', book_id=nonfiction_book.id) }}" class="book-card">
-                    <div class="book-card-image">
-                        <img src="{{ nonfiction_book['cover_image_url'] }}" alt="{{ nonfiction_book['title'] }}">
+                <div class="pairing-content">
+                    <div class="pairing-titles">
+                        <a href="{{ content_pairings[0].item_1.detail_url }}" class="pairing-book-link" id="pairing-title-1">
+                            <span class="pairing-book-title">{{ content_pairings[0].item_1.title }}</span>
+                            <span class="pairing-book-author">{{ content_pairings[0].item_1.subtitle }}</span>
+                        </a>
+                        <span class="pairing-amp">&</span>
+                        <a href="{{ content_pairings[0].item_2.detail_url }}" class="pairing-book-link" id="pairing-title-2">
+                            <span class="pairing-book-title">{{ content_pairings[0].item_2.title }}</span>
+                            <span class="pairing-book-author">{{ content_pairings[0].item_2.subtitle }}</span>
+                        </a>
                     </div>
-                    <div class="book-card-content">
-                        <div class="book-card-title">{{ nonfiction_book['title'] }}</div>
-                        <div class="book-card-author">{{ nonfiction_book['author'] }}</div>
-                        <div class="book-card-year">
-                            {% if nonfiction_book['publication_year'] is not none %}
-                                {% if nonfiction_book['publication_year'] < 0 %}
-                                    {{ -nonfiction_book['publication_year'] }} BC
-                                {% else %}
-                                    {{ nonfiction_book['publication_year'] }}
-                                {% endif %}
-                            {% else %}
-                                Unknown
-                            {% endif %}
-                        </div>
-                    </div>
+                    <div class="pairing-note" id="pairing-note">{{ content_pairings[0].note }}</div>
+                </div>
+                <!-- Desktop: thumbnail on right -->
+                <a href="{{ content_pairings[0].item_2.detail_url }}" class="pairing-book pairing-book-desktop" id="pairing-book-2">
+                    <img src="{{ content_pairings[0].item_2.cover_image_url }}" alt="{{ content_pairings[0].item_2.title }}">
                 </a>
-            {% endfor %}
-        </div>
-    </section>
-    <section class="books-section">
-        <div class="books-section-header">
-            <h2>Recently Read</h2>
-            {% if can_access_page('books') %}
-            <a href="{{ url_for('reading.books') }}" class="see-all-btn">See All</a>
+            </div>
+            <script>
+                window.contentPairings = {{ content_pairings | tojson | safe }};
+            </script>
+            {% else %}
+            <div class="featured-book-empty">
+                {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                <p>No pairing set. Click the edit button to add one.</p>
+                {% else %}
+                <p>Check back soon for a recommendation.</p>
+                {% endif %}
+            </div>
             {% endif %}
         </div>
-        <div class="books-grid">
-            {% for book in recently_read_books %}
-                <a href="{{ url_for('books.detail', book_id=book.id) }}" class="book-card">
-                    <div class="book-card-image">
-                        <img src="{{ book['cover_image_url'] }}" alt="{{ book['title'] }}">
-                    </div>
-                    <div class="book-card-content">
-                        <div class="book-card-title">{{ book['title'] }}</div>
-                        <div class="book-card-author">{{ book['author'] }}</div>
-                        <div class="book-card-year">
-                            {% if book['publication_year'] is not none %}
-                                {% if book['publication_year'] < 0 %}
-                                    {{ -book['publication_year'] }} BC
-                                {% else %}
-                                    {{ book['publication_year'] }}
+
+        <!-- Quote Card -->
+        <div class="quote-card-section">
+            <div class="quote-card-header">
+                <h2>A Passage</h2>
+                <a href="{{ url_for('reading.quotes') }}" class="see-all-btn">View All →</a>
+            </div>
+            {% if random_quote %}
+            <div class="quote-card">
+                <blockquote class="quote-text">"{{ random_quote.text }}"</blockquote>
+                <div class="quote-attribution">
+                    <a href="{{ url_for('books.detail', book_id=random_quote.book_id) }}" class="quote-book-link">
+                        {{ random_quote.book_title }}
+                    </a>
+                    <span class="quote-author">— {{ random_quote.book_author }}</span>
+                </div>
+            </div>
+            {% else %}
+            <div class="quote-card-empty">
+                <p>No quotes saved yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Bookshelf Section -->
+    <section class="bookshelf-section">
+        <div class="bookshelf-header">
+            <h2>Shelves</h2>
+            <div class="bookshelf-header-actions">
+                {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                <button class="edit-featured-btn" id="reorder-shelves-btn" title="Reorder shelves">⇅</button>
+                <button class="edit-featured-btn" id="add-shelf-btn" title="Add new shelf">+</button>
+                {% endif %}
+                {% if can_access_page('books') %}
+                <a href="{{ url_for('reading.books') }}" class="see-all-btn">See All Books</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="bookshelf">
+            <!-- Shelf: Recently Read (special - always shown first) -->
+            <div class="shelf">
+                <div class="shelf-label">Recently Read</div>
+                <div class="shelf-inner">
+                    <button class="shelf-arrow shelf-arrow-left hidden" aria-label="Scroll left">‹</button>
+                    <div class="shelf-books">
+                    {% for book in recently_read_books %}
+                        <a href="{{ url_for('books.detail', book_id=book.id) }}" class="book-card">
+                            <div class="book-card-image">
+                                <img src="{{ book['cover_image_url'] }}" alt="{{ book['title'] }}">
+                            </div>
+                            <div class="book-card-content">
+                                <div class="book-card-title">{{ book['title'] }}</div>
+                                <div class="book-card-author">{{ book['author'] }}</div>
+                                <div class="book-card-year">
+                                    {% if book['publication_year'] is not none %}
+                                        {% if book['publication_year'] < 0 %}
+                                            {{ -book['publication_year'] }} BC
+                                        {% else %}
+                                            {{ book['publication_year'] }}
+                                        {% endif %}
+                                    {% else %}
+                                        Unknown
+                                    {% endif %}
+                                </div>
+                                {% if book['my_rating'] %}
+                                <div class="book-card-rating">
+                                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                        <div data-star-rating="{{ book['my_rating'] or 0 }}"
+                                             data-interactive
+                                             data-item-type="book"
+                                             data-item-id="{{ book.id }}"
+                                             data-size="small"></div>
+                                    {% else %}
+                                        <div data-star-rating="{{ book['my_rating'] or 0 }}"
+                                             data-size="small"></div>
+                                    {% endif %}
+                                </div>
                                 {% endif %}
-                            {% else %}
-                                Unknown
-                            {% endif %}
-                        </div>
-                        {% if book['my_rating'] %}
-                        <div class="book-card-rating">
-                            {% if current_user.is_authenticated and current_user.role == 'admin' %}
-                                <div data-star-rating="{{ book['my_rating'] or 0 }}"
-                                     data-interactive
-                                     data-item-type="book"
-                                     data-item-id="{{ book.id }}"
-                                     data-size="small"></div>
-                            {% else %}
-                                <div data-star-rating="{{ book['my_rating'] or 0 }}"
-                                     data-size="small"></div>
-                            {% endif %}
-                        </div>
-                        {% endif %}
+                            </div>
+                        </a>
+                    {% endfor %}
                     </div>
-                </a>
+                    <button class="shelf-arrow shelf-arrow-right" aria-label="Scroll right">›</button>
+                </div>
+                <div class="shelf-ledge"></div>
+            </div>
+
+            <!-- Dynamic shelves from database -->
+            {% for shelf in shelves %}
+            <div class="shelf">
+                <div class="shelf-label-row">
+                    <span class="shelf-label">{{ shelf.display_name }}</span>
+                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                    <button class="shelf-edit-btn" data-shelf-id="{{ shelf.id }}" data-shelf-name="{{ shelf.name }}" data-shelf-display="{{ shelf.display_name }}" title="Edit shelf">✎</button>
+                    {% endif %}
+                </div>
+                <div class="shelf-inner">
+                    <button class="shelf-arrow shelf-arrow-left hidden" aria-label="Scroll left">‹</button>
+                    <div class="shelf-books">
+                    {% for book in shelf.books %}
+                        <a href="{{ url_for('books.detail', book_id=book.id) }}" class="book-card">
+                            <div class="book-card-image">
+                                <img src="{{ book['cover_image_url'] }}" alt="{{ book['title'] }}">
+                            </div>
+                            <div class="book-card-content">
+                                <div class="book-card-title">{{ book['title'] }}</div>
+                                <div class="book-card-author">{{ book['author'] }}</div>
+                                <div class="book-card-year">
+                                    {% if book['publication_year'] is not none %}
+                                        {% if book['publication_year'] < 0 %}
+                                            {{ -book['publication_year'] }} BC
+                                        {% else %}
+                                            {{ book['publication_year'] }}
+                                        {% endif %}
+                                    {% else %}
+                                        Unknown
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                    </div>
+                    <button class="shelf-arrow shelf-arrow-right" aria-label="Scroll right">›</button>
+                </div>
+                <div class="shelf-ledge"></div>
+            </div>
             {% endfor %}
         </div>
     </section>
 </div>
+
+<!-- Bookshelf scroll arrows script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.shelf-inner').forEach(function(shelf) {
+        const books = shelf.querySelector('.shelf-books');
+        const leftArrow = shelf.querySelector('.shelf-arrow-left');
+        const rightArrow = shelf.querySelector('.shelf-arrow-right');
+
+        function updateArrows() {
+            if (!books || !leftArrow || !rightArrow) return;
+            const scrollLeft = books.scrollLeft;
+            const maxScroll = books.scrollWidth - books.clientWidth;
+
+            leftArrow.classList.toggle('hidden', scrollLeft <= 10);
+            rightArrow.classList.toggle('hidden', scrollLeft >= maxScroll - 10);
+        }
+
+        if (leftArrow) {
+            leftArrow.addEventListener('click', function() {
+                books.scrollBy({ left: -300, behavior: 'smooth' });
+            });
+        }
+
+        if (rightArrow) {
+            rightArrow.addEventListener('click', function() {
+                books.scrollBy({ left: 300, behavior: 'smooth' });
+            });
+        }
+
+        if (books) {
+            books.addEventListener('scroll', updateArrows);
+            updateArrows();
+        }
+    });
+});
+</script>
+
+<!-- Book Pairing Modal (Admin only) -->
+{% if current_user.is_authenticated and current_user.role == 'admin' %}
+<div id="pairing-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modal-title">Set Content Pairing</h3>
+            <button class="modal-close" id="close-pairing-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="editing-pairing-id">
+            <input type="hidden" id="selected-item-type-1">
+            <input type="hidden" id="selected-item-type-2">
+            <div class="form-group">
+                <label for="book-search-1">First Item</label>
+                <input type="text" id="book-search-1" placeholder="Search books, movies, TV shows..." autocomplete="off">
+                <div id="book-search-results-1" class="search-results"></div>
+                <input type="hidden" id="selected-book-id-1">
+                <div id="selected-book-display-1" class="selected-book-display"></div>
+            </div>
+            <div class="form-group">
+                <label for="book-search-2">Second Item</label>
+                <input type="text" id="book-search-2" placeholder="Search books, movies, TV shows..." autocomplete="off">
+                <div id="book-search-results-2" class="search-results"></div>
+                <input type="hidden" id="selected-book-id-2">
+                <div id="selected-book-display-2" class="selected-book-display"></div>
+            </div>
+            <div class="form-group">
+                <label for="modal-pairing-note">Why do these pair well?</label>
+                <textarea id="modal-pairing-note" rows="4" placeholder="Describe why these complement each other..."></textarea>
+            </div>
+            <label class="filter-toggle">
+                <input type="checkbox" id="pairing-visible" checked>
+                <span>Visible in rotation</span>
+            </label>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancel-pairing">Cancel</button>
+            <button class="btn btn-primary" id="save-pairing">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Reorder Shelves Modal -->
+<div id="reorder-shelves-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Reorder Shelves</h3>
+            <button class="modal-close" id="close-reorder-shelves-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="shelves-reorder-list" class="shelf-books-list">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancel-reorder-shelves">Cancel</button>
+            <button class="btn btn-primary" id="save-reorder-shelves">Save Order</button>
+        </div>
+    </div>
+</div>
+
+<!-- Shelf Modal (Create/Edit) -->
+<div id="shelf-modal">
+    <div class="modal-content shelf-modal-wide">
+        <div class="modal-header">
+            <h3 id="shelf-modal-title">Create New Shelf</h3>
+            <button class="modal-close" id="close-shelf-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="editing-shelf-id">
+            <div class="form-group">
+                <label for="shelf-name">Shelf Name</label>
+                <input type="text" id="shelf-name" placeholder="e.g., Recommended Poetry" autocomplete="off">
+            </div>
+
+            <!-- Book management section (shown when editing) -->
+            <div id="shelf-books-section" class="shelf-books-section" style="display: none;">
+                <div class="form-group">
+                    <label for="shelf-book-search">Add Books</label>
+                    <input type="text" id="shelf-book-search" placeholder="Search for books to add..." autocomplete="off">
+                    <div id="shelf-book-search-results" class="search-results"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Books on this Shelf</label>
+                    <div id="shelf-books-list" class="shelf-books-list">
+                        <p class="no-books-message">No books on this shelf yet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancel-shelf">Cancel</button>
+            <button class="btn btn-primary" id="save-shelf">Save</button>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Pairing cycling (works for all users)
+    const pairings = window.contentPairings || [];
+    let currentIndex = 0;
+
+    const prevBtn = document.getElementById('prev-pairing');
+    const nextBtn = document.getElementById('next-pairing');
+    const pairingDisplay = document.getElementById('pairing-display');
+
+    function updatePairingDisplay() {
+        if (pairings.length === 0) return;
+
+        const pairing = pairings[currentIndex];
+        const noteEl = document.getElementById('pairing-note');
+
+        // Update item 1 cover (desktop)
+        const item1Cover = document.getElementById('pairing-book-1');
+        item1Cover.href = pairing.item_1.detail_url;
+        item1Cover.querySelector('img').src = pairing.item_1.cover_image_url;
+        item1Cover.querySelector('img').alt = pairing.item_1.title;
+
+        // Update item 1 cover (mobile)
+        const item1CoverMobile = document.getElementById('pairing-book-1-mobile');
+        item1CoverMobile.href = pairing.item_1.detail_url;
+        item1CoverMobile.querySelector('img').src = pairing.item_1.cover_image_url;
+        item1CoverMobile.querySelector('img').alt = pairing.item_1.title;
+
+        // Update item 1 title link
+        const item1Title = document.getElementById('pairing-title-1');
+        item1Title.href = pairing.item_1.detail_url;
+        item1Title.querySelector('.pairing-book-title').textContent = pairing.item_1.title;
+        item1Title.querySelector('.pairing-book-author').textContent = pairing.item_1.subtitle;
+
+        // Update item 2 cover (desktop)
+        const item2Cover = document.getElementById('pairing-book-2');
+        item2Cover.href = pairing.item_2.detail_url;
+        item2Cover.querySelector('img').src = pairing.item_2.cover_image_url;
+        item2Cover.querySelector('img').alt = pairing.item_2.title;
+
+        // Update item 2 cover (mobile)
+        const item2CoverMobile = document.getElementById('pairing-book-2-mobile');
+        item2CoverMobile.href = pairing.item_2.detail_url;
+        item2CoverMobile.querySelector('img').src = pairing.item_2.cover_image_url;
+        item2CoverMobile.querySelector('img').alt = pairing.item_2.title;
+
+        // Update item 2 title link
+        const item2Title = document.getElementById('pairing-title-2');
+        item2Title.href = pairing.item_2.detail_url;
+        item2Title.querySelector('.pairing-book-title').textContent = pairing.item_2.title;
+        item2Title.querySelector('.pairing-book-author').textContent = pairing.item_2.subtitle;
+
+        // Update note
+        noteEl.textContent = pairing.note;
+
+        // Update data attribute for editing
+        if (pairingDisplay) {
+            pairingDisplay.dataset.currentIndex = currentIndex;
+        }
+    }
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function() {
+            currentIndex = (currentIndex - 1 + pairings.length) % pairings.length;
+            updatePairingDisplay();
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function() {
+            currentIndex = (currentIndex + 1) % pairings.length;
+            updatePairingDisplay();
+        });
+    }
+
+    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+    // Admin modal functionality
+    const modal = document.getElementById('pairing-modal');
+    const addBtn = document.getElementById('add-pairing-btn');
+    const editBtn = document.getElementById('edit-pairing-btn');
+    const closeBtn = document.getElementById('close-pairing-modal');
+    const cancelBtn = document.getElementById('cancel-pairing');
+    const saveBtn = document.getElementById('save-pairing');
+    const noteTextarea = document.getElementById('modal-pairing-note');
+    const editingPairingId = document.getElementById('editing-pairing-id');
+    const pairingVisibleCheckbox = document.getElementById('pairing-visible');
+    const modalTitle = document.getElementById('modal-title');
+
+    // Item 1 elements
+    const bookSearch1 = document.getElementById('book-search-1');
+    const searchResults1 = document.getElementById('book-search-results-1');
+    const selectedBookId1 = document.getElementById('selected-book-id-1');
+    const selectedItemType1 = document.getElementById('selected-item-type-1');
+    const selectedBookDisplay1 = document.getElementById('selected-book-display-1');
+
+    // Item 2 elements
+    const bookSearch2 = document.getElementById('book-search-2');
+    const searchResults2 = document.getElementById('book-search-results-2');
+    const selectedBookId2 = document.getElementById('selected-book-id-2');
+    const selectedItemType2 = document.getElementById('selected-item-type-2');
+    const selectedBookDisplay2 = document.getElementById('selected-book-display-2');
+
+    const typeBadgeColors = { 'Book': '#7aa2c9', 'Movie': '#d4a574', 'TVShow': '#a0c9a0' };
+
+    let searchTimeout1, searchTimeout2;
+
+    function openModalForNew() {
+        modal.style.display = 'flex';
+        modalTitle.textContent = 'Create Content Pairing';
+        editingPairingId.value = '';
+        selectedBookId1.value = '';
+        selectedBookId2.value = '';
+        selectedItemType1.value = '';
+        selectedItemType2.value = '';
+        selectedBookDisplay1.innerHTML = '';
+        selectedBookDisplay2.innerHTML = '';
+        noteTextarea.value = '';
+        pairingVisibleCheckbox.checked = true;
+    }
+
+    function openModalForEdit() {
+        modal.style.display = 'flex';
+
+        // Load current pairing based on what's displayed
+        if (pairings.length > 0) {
+            const pairing = pairings[currentIndex];
+            modalTitle.textContent = 'Edit Content Pairing';
+            editingPairingId.value = pairing.id;
+
+            // Set item 1
+            selectedBookId1.value = pairing.item_1.id;
+            selectedItemType1.value = pairing.item_1.type;
+            selectedBookDisplay1.innerHTML = `
+                <div class="selected-book">
+                    <span class="type-badge" style="background:${typeBadgeColors[pairing.item_1.type] || '#888'}">${pairing.item_1.type}</span>
+                    <strong>${pairing.item_1.title}</strong> — ${pairing.item_1.subtitle}
+                    <button type="button" class="clear-selection" data-target="1">&times;</button>
+                </div>
+            `;
+            selectedBookDisplay1.querySelector('.clear-selection').addEventListener('click', () => clearSelection(1));
+
+            // Set item 2
+            selectedBookId2.value = pairing.item_2.id;
+            selectedItemType2.value = pairing.item_2.type;
+            selectedBookDisplay2.innerHTML = `
+                <div class="selected-book">
+                    <span class="type-badge" style="background:${typeBadgeColors[pairing.item_2.type] || '#888'}">${pairing.item_2.type}</span>
+                    <strong>${pairing.item_2.title}</strong> — ${pairing.item_2.subtitle}
+                    <button type="button" class="clear-selection" data-target="2">&times;</button>
+                </div>
+            `;
+            selectedBookDisplay2.querySelector('.clear-selection').addEventListener('click', () => clearSelection(2));
+
+            noteTextarea.value = pairing.note || '';
+            pairingVisibleCheckbox.checked = pairing.is_visible !== false;
+        } else {
+            openModalForNew();
+        }
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+        bookSearch1.value = '';
+        bookSearch2.value = '';
+        searchResults1.innerHTML = '';
+        searchResults2.innerHTML = '';
+        selectedBookId1.value = '';
+        selectedBookId2.value = '';
+        selectedItemType1.value = '';
+        selectedItemType2.value = '';
+        selectedBookDisplay1.innerHTML = '';
+        selectedBookDisplay2.innerHTML = '';
+        noteTextarea.value = '';
+        editingPairingId.value = '';
+    }
+
+    function clearSelection(num) {
+        if (num === 1) {
+            selectedBookId1.value = '';
+            selectedItemType1.value = '';
+            selectedBookDisplay1.innerHTML = '';
+            bookSearch1.value = '';
+        } else {
+            selectedBookId2.value = '';
+            selectedItemType2.value = '';
+            selectedBookDisplay2.innerHTML = '';
+            bookSearch2.value = '';
+        }
+    }
+
+    function searchContent(query, resultsContainer, num) {
+        if (query.length < 2) {
+            resultsContainer.innerHTML = '';
+            return;
+        }
+        fetch(`/reading/api/content/search?q=${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(items => {
+                if (items.length === 0) {
+                    resultsContainer.innerHTML = '<div class="no-results">No results found</div>';
+                    return;
+                }
+                resultsContainer.innerHTML = items.map(item => `
+                    <div class="search-result-item" data-id="${item.id}" data-type="${item.type}" data-title="${item.title}" data-subtitle="${item.subtitle}" data-num="${num}">
+                        <img src="${item.cover_image_url || ''}" alt="" class="search-result-cover">
+                        <div class="search-result-info">
+                            <div class="search-result-title">
+                                <span class="type-badge" style="background:${typeBadgeColors[item.type] || '#888'}">${item.type}</span>
+                                ${item.title}
+                            </div>
+                            <div class="search-result-author">${item.subtitle}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                resultsContainer.querySelectorAll('.search-result-item').forEach(item => {
+                    item.addEventListener('click', () => selectItem(item, parseInt(item.dataset.num)));
+                });
+            });
+    }
+
+    function selectItem(item, num) {
+        const id = item.dataset.id;
+        const type = item.dataset.type;
+        const title = item.dataset.title;
+        const subtitle = item.dataset.subtitle;
+
+        const selectedId = num === 1 ? selectedBookId1 : selectedBookId2;
+        const selectedType = num === 1 ? selectedItemType1 : selectedItemType2;
+        const display = num === 1 ? selectedBookDisplay1 : selectedBookDisplay2;
+        const search = num === 1 ? bookSearch1 : bookSearch2;
+        const results = num === 1 ? searchResults1 : searchResults2;
+
+        selectedId.value = id;
+        selectedType.value = type;
+        display.innerHTML = `
+            <div class="selected-book">
+                <span class="type-badge" style="background:${typeBadgeColors[type] || '#888'}">${type}</span>
+                <strong>${title}</strong> — ${subtitle}
+                <button type="button" class="clear-selection">&times;</button>
+            </div>
+        `;
+        display.querySelector('.clear-selection').addEventListener('click', () => clearSelection(num));
+        search.value = '';
+        results.innerHTML = '';
+    }
+
+    function getCSRFToken() {
+        return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    }
+
+    function savePairing() {
+        const itemId1 = selectedBookId1.value;
+        const itemType1 = selectedItemType1.value;
+        const itemId2 = selectedBookId2.value;
+        const itemType2 = selectedItemType2.value;
+        const note = noteTextarea.value.trim();
+        const pairingId = editingPairingId.value;
+        const isVisible = pairingVisibleCheckbox.checked;
+
+        if (!itemId1 || !itemId2) {
+            alert('Please select two items');
+            return;
+        }
+        if (itemType1 === itemType2 && itemId1 === itemId2) {
+            alert('Please select two different items');
+            return;
+        }
+        if (!note) {
+            alert('Please add a note about why these pair well');
+            return;
+        }
+
+        fetch('/reading/api/pairing', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({
+                id: pairingId ? parseInt(pairingId) : null,
+                item_type_1: itemType1,
+                item_id_1: itemId1,
+                item_type_2: itemType2,
+                item_id_2: itemId2,
+                note: note,
+                is_visible: isVisible
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert(data.error || 'Failed to save');
+            }
+        });
+    }
+
+    if (addBtn) addBtn.addEventListener('click', openModalForNew);
+    if (editBtn) editBtn.addEventListener('click', openModalForEdit);
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+    saveBtn.addEventListener('click', savePairing);
+
+    bookSearch1.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout1);
+        searchTimeout1 = setTimeout(() => searchContent(e.target.value, searchResults1, 1), 300);
+    });
+
+    bookSearch2.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout2);
+        searchTimeout2 = setTimeout(() => searchContent(e.target.value, searchResults2, 2), 300);
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    // Shelf modal functionality
+    const shelfModal = document.getElementById('shelf-modal');
+    const shelfModalTitle = document.getElementById('shelf-modal-title');
+    const addShelfBtn = document.getElementById('add-shelf-btn');
+    const closeShelfBtn = document.getElementById('close-shelf-modal');
+    const cancelShelfBtn = document.getElementById('cancel-shelf');
+    const saveShelfBtn = document.getElementById('save-shelf');
+    const shelfNameInput = document.getElementById('shelf-name');
+    const editingShelfId = document.getElementById('editing-shelf-id');
+    const shelfBooksSection = document.getElementById('shelf-books-section');
+    const shelfBooksList = document.getElementById('shelf-books-list');
+    const shelfBookSearch = document.getElementById('shelf-book-search');
+    const shelfBookSearchResults = document.getElementById('shelf-book-search-results');
+
+    let shelfSearchTimeout;
+    let currentShelfBooks = [];
+
+    function openShelfModalForNew() {
+        shelfModal.style.display = 'flex';
+        shelfModalTitle.textContent = 'Create New Shelf';
+        editingShelfId.value = '';
+        shelfNameInput.value = '';
+        shelfBooksSection.style.display = 'none';
+        currentShelfBooks = [];
+        shelfNameInput.focus();
+    }
+
+    function openShelfModalForEdit(id, displayName) {
+        shelfModal.style.display = 'flex';
+        shelfModalTitle.textContent = 'Edit Shelf';
+        editingShelfId.value = id;
+        shelfNameInput.value = displayName;
+        shelfBooksSection.style.display = 'block';
+        loadShelfBooks(id);
+        shelfNameInput.focus();
+    }
+
+    function loadShelfBooks(shelfId) {
+        fetch(`/reading/api/shelf/${shelfId}/books`)
+            .then(res => res.json())
+            .then(books => {
+                currentShelfBooks = books;
+                renderShelfBooks();
+            });
+    }
+
+    function renderShelfBooks() {
+        if (currentShelfBooks.length === 0) {
+            shelfBooksList.innerHTML = '<p class="no-books-message">No books on this shelf yet.</p>';
+            return;
+        }
+
+        shelfBooksList.innerHTML = currentShelfBooks.map((book, index) => `
+            <div class="shelf-book-item" data-item-id="${book.item_id}" draggable="true">
+                <span class="shelf-book-drag">⋮⋮</span>
+                <img src="${book.cover_image_url || ''}" alt="" class="shelf-book-cover">
+                <div class="shelf-book-info">
+                    <div class="shelf-book-title">${book.title}</div>
+                    <div class="shelf-book-author">${book.author}</div>
+                </div>
+                <div class="shelf-book-actions">
+                    <button class="shelf-book-move-up" ${index === 0 ? 'disabled' : ''} title="Move up">↑</button>
+                    <button class="shelf-book-move-down" ${index === currentShelfBooks.length - 1 ? 'disabled' : ''} title="Move down">↓</button>
+                    <button class="shelf-book-remove" title="Remove from shelf">×</button>
+                </div>
+            </div>
+        `).join('');
+
+        // Add event listeners
+        shelfBooksList.querySelectorAll('.shelf-book-remove').forEach((btn, index) => {
+            btn.addEventListener('click', () => removeBookFromShelf(index));
+        });
+
+        shelfBooksList.querySelectorAll('.shelf-book-move-up').forEach((btn, index) => {
+            btn.addEventListener('click', () => moveBook(index, -1));
+        });
+
+        shelfBooksList.querySelectorAll('.shelf-book-move-down').forEach((btn, index) => {
+            btn.addEventListener('click', () => moveBook(index, 1));
+        });
+
+        // Drag and drop
+        setupDragAndDrop();
+    }
+
+    function setupDragAndDrop() {
+        const items = shelfBooksList.querySelectorAll('.shelf-book-item');
+        let draggedItem = null;
+
+        items.forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                draggedItem = item;
+                item.classList.add('dragging');
+            });
+
+            item.addEventListener('dragend', () => {
+                draggedItem.classList.remove('dragging');
+                draggedItem = null;
+                saveBookOrder();
+            });
+
+            item.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                if (draggedItem && draggedItem !== item) {
+                    const rect = item.getBoundingClientRect();
+                    const midY = rect.top + rect.height / 2;
+                    if (e.clientY < midY) {
+                        item.parentNode.insertBefore(draggedItem, item);
+                    } else {
+                        item.parentNode.insertBefore(draggedItem, item.nextSibling);
+                    }
+                }
+            });
+        });
+    }
+
+    function moveBook(index, direction) {
+        const newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= currentShelfBooks.length) return;
+
+        const temp = currentShelfBooks[index];
+        currentShelfBooks[index] = currentShelfBooks[newIndex];
+        currentShelfBooks[newIndex] = temp;
+
+        renderShelfBooks();
+        saveBookOrder();
+    }
+
+    function saveBookOrder() {
+        const shelfId = editingShelfId.value;
+        const items = shelfBooksList.querySelectorAll('.shelf-book-item');
+        const itemIds = Array.from(items).map(item => parseInt(item.dataset.itemId));
+
+        // Update local array order
+        currentShelfBooks = itemIds.map(id => currentShelfBooks.find(b => b.item_id === id));
+
+        fetch(`/reading/api/shelf/${shelfId}/reorder`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ item_ids: itemIds })
+        });
+    }
+
+    function removeBookFromShelf(index) {
+        const book = currentShelfBooks[index];
+        const shelfId = editingShelfId.value;
+
+        fetch(`/reading/api/shelf/${shelfId}/books/${book.item_id}`, {
+            method: 'DELETE',
+            headers: { 'X-CSRFToken': getCSRFToken() }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                currentShelfBooks.splice(index, 1);
+                renderShelfBooks();
+            }
+        });
+    }
+
+    function searchBooksForShelf(query) {
+        if (query.length < 2) {
+            shelfBookSearchResults.innerHTML = '';
+            return;
+        }
+
+        fetch(`/reading/api/books/search?q=${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(books => {
+                // Filter out books already on shelf
+                const existingIds = currentShelfBooks.map(b => b.book_id);
+                const available = books.filter(b => !existingIds.includes(b.id));
+
+                if (available.length === 0) {
+                    shelfBookSearchResults.innerHTML = '<div class="no-results">No matching books found</div>';
+                    return;
+                }
+
+                shelfBookSearchResults.innerHTML = available.map(book => `
+                    <div class="search-result-item" data-id="${book.id}" data-title="${book.title}" data-author="${book.author}" data-cover="${book.cover_image_url || ''}">
+                        <img src="${book.cover_image_url || ''}" alt="" class="search-result-cover">
+                        <div class="search-result-info">
+                            <div class="search-result-title">${book.title}</div>
+                            <div class="search-result-author">${book.author}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                shelfBookSearchResults.querySelectorAll('.search-result-item').forEach(item => {
+                    item.addEventListener('click', () => addBookToShelf(item));
+                });
+            });
+    }
+
+    function addBookToShelf(item) {
+        const shelfId = editingShelfId.value;
+        const bookId = item.dataset.id;
+
+        fetch(`/reading/api/shelf/${shelfId}/books`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ book_id: parseInt(bookId) })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                currentShelfBooks.push({
+                    item_id: data.item_id,
+                    book_id: data.book_id,
+                    title: data.title,
+                    author: data.author,
+                    cover_image_url: data.cover_image_url
+                });
+                renderShelfBooks();
+                shelfBookSearch.value = '';
+                shelfBookSearchResults.innerHTML = '';
+            } else {
+                alert(data.error || 'Failed to add book');
+            }
+        });
+    }
+
+    function closeShelfModal() {
+        shelfModal.style.display = 'none';
+        shelfNameInput.value = '';
+        editingShelfId.value = '';
+        shelfBookSearch.value = '';
+        shelfBookSearchResults.innerHTML = '';
+        currentShelfBooks = [];
+    }
+
+    function saveShelf() {
+        const name = shelfNameInput.value.trim();
+        const shelfId = editingShelfId.value;
+
+        if (!name) {
+            alert('Please enter a shelf name');
+            return;
+        }
+
+        const url = shelfId ? `/reading/api/shelf/${shelfId}` : '/reading/api/shelf';
+        const method = shelfId ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ name: name, display_name: name })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert(data.error || 'Failed to save shelf');
+            }
+        });
+    }
+
+    if (addShelfBtn) addShelfBtn.addEventListener('click', openShelfModalForNew);
+    closeShelfBtn.addEventListener('click', closeShelfModal);
+    cancelShelfBtn.addEventListener('click', closeShelfModal);
+    saveShelfBtn.addEventListener('click', saveShelf);
+
+    shelfBookSearch.addEventListener('input', (e) => {
+        clearTimeout(shelfSearchTimeout);
+        shelfSearchTimeout = setTimeout(() => searchBooksForShelf(e.target.value), 300);
+    });
+
+    // Edit buttons for each shelf
+    document.querySelectorAll('.shelf-edit-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.shelfId;
+            const displayName = this.dataset.shelfDisplay;
+            openShelfModalForEdit(id, displayName);
+        });
+    });
+
+    shelfModal.addEventListener('click', (e) => {
+        if (e.target === shelfModal) closeShelfModal();
+    });
+
+    shelfNameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') saveShelf();
+    });
+
+    // Reorder shelves modal
+    const reorderShelvesModal = document.getElementById('reorder-shelves-modal');
+    const reorderShelvesBtn = document.getElementById('reorder-shelves-btn');
+    const closeReorderShelvesBtn = document.getElementById('close-reorder-shelves-modal');
+    const cancelReorderShelvesBtn = document.getElementById('cancel-reorder-shelves');
+    const saveReorderShelvesBtn = document.getElementById('save-reorder-shelves');
+    const shelvesReorderList = document.getElementById('shelves-reorder-list');
+
+    let currentShelves = [];
+
+    function openReorderShelvesModal() {
+        reorderShelvesModal.style.display = 'flex';
+        loadShelves();
+    }
+
+    function closeReorderShelvesModal() {
+        reorderShelvesModal.style.display = 'none';
+        currentShelves = [];
+    }
+
+    function loadShelves() {
+        fetch('/reading/api/shelves')
+            .then(res => res.json())
+            .then(shelves => {
+                currentShelves = shelves;
+                renderShelvesList();
+            });
+    }
+
+    function renderShelvesList() {
+        if (currentShelves.length === 0) {
+            shelvesReorderList.innerHTML = '<p class="no-books-message">No shelves to reorder.</p>';
+            return;
+        }
+
+        shelvesReorderList.innerHTML = currentShelves.map((shelf, index) => `
+            <div class="shelf-book-item" data-shelf-id="${shelf.id}" draggable="true">
+                <span class="shelf-book-drag">⋮⋮</span>
+                <div class="shelf-book-info">
+                    <div class="shelf-book-title">${shelf.display_name}</div>
+                </div>
+                <div class="shelf-book-actions">
+                    <button class="shelf-book-move-up" ${index === 0 ? 'disabled' : ''} title="Move up">↑</button>
+                    <button class="shelf-book-move-down" ${index === currentShelves.length - 1 ? 'disabled' : ''} title="Move down">↓</button>
+                </div>
+            </div>
+        `).join('');
+
+        // Add event listeners for move buttons
+        shelvesReorderList.querySelectorAll('.shelf-book-move-up').forEach((btn, index) => {
+            btn.addEventListener('click', () => moveShelf(index, -1));
+        });
+
+        shelvesReorderList.querySelectorAll('.shelf-book-move-down').forEach((btn, index) => {
+            btn.addEventListener('click', () => moveShelf(index, 1));
+        });
+
+        // Drag and drop for shelves
+        setupShelvesDragAndDrop();
+    }
+
+    function setupShelvesDragAndDrop() {
+        const items = shelvesReorderList.querySelectorAll('.shelf-book-item');
+        let draggedItem = null;
+
+        items.forEach(item => {
+            item.addEventListener('dragstart', () => {
+                draggedItem = item;
+                item.classList.add('dragging');
+            });
+
+            item.addEventListener('dragend', () => {
+                draggedItem.classList.remove('dragging');
+                draggedItem = null;
+                updateShelvesOrder();
+            });
+
+            item.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                if (draggedItem && draggedItem !== item) {
+                    const rect = item.getBoundingClientRect();
+                    const midY = rect.top + rect.height / 2;
+                    if (e.clientY < midY) {
+                        item.parentNode.insertBefore(draggedItem, item);
+                    } else {
+                        item.parentNode.insertBefore(draggedItem, item.nextSibling);
+                    }
+                }
+            });
+        });
+    }
+
+    function moveShelf(index, direction) {
+        const newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= currentShelves.length) return;
+
+        const temp = currentShelves[index];
+        currentShelves[index] = currentShelves[newIndex];
+        currentShelves[newIndex] = temp;
+
+        renderShelvesList();
+    }
+
+    function updateShelvesOrder() {
+        const items = shelvesReorderList.querySelectorAll('.shelf-book-item');
+        const shelfIds = Array.from(items).map(item => parseInt(item.dataset.shelfId));
+        currentShelves = shelfIds.map(id => currentShelves.find(s => s.id === id));
+    }
+
+    function saveShelvesOrder() {
+        const items = shelvesReorderList.querySelectorAll('.shelf-book-item');
+        const shelfIds = Array.from(items).map(item => parseInt(item.dataset.shelfId));
+
+        fetch('/reading/api/shelves/reorder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ shelf_ids: shelfIds })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert(data.error || 'Failed to save order');
+            }
+        });
+    }
+
+    if (reorderShelvesBtn) reorderShelvesBtn.addEventListener('click', openReorderShelvesModal);
+    closeReorderShelvesBtn.addEventListener('click', closeReorderShelvesModal);
+    cancelReorderShelvesBtn.addEventListener('click', closeReorderShelvesModal);
+    saveReorderShelvesBtn.addEventListener('click', saveShelvesOrder);
+
+    reorderShelvesModal.addEventListener('click', (e) => {
+        if (e.target === reorderShelvesModal) closeReorderShelvesModal();
+    });
+    {% endif %}
+});
+</script>
 {% endblock %}

@@ -1,15 +1,30 @@
 """
 Movies Routes
 """
-from flask import render_template, request, redirect, url_for, jsonify
+from flask import render_template, request, redirect, url_for, jsonify, current_app
 from flask_login import login_required, current_user
 from app.movies import movies_bp
-from app.movies.models import Movies
+from app.movies.models import Movies, MovieQuote, LikedMovieQuotes
 from app.movies.services import read_movies_from_db
 from app.common.models import Reviews
 from app.extensions import db
 from app.utils.security import page_visible
 from app.utils.security import sanitize_html
+
+
+def normalize_quote_text(text):
+    """Normalize quote text to fix encoding issues before saving."""
+    if not text:
+        return text
+    replacements = {
+        '\u0091': "'", '\u0092': "'",
+        '\u0093': '"', '\u0094': '"',
+        '\u0095': '\u2022', '\u0096': '\u2013',
+        '\u0097': '\u2014', '\u0085': '\u2026',
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    return text
 
 
 @movies_bp.route('/')
@@ -114,3 +129,90 @@ def update_rating(movie_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+
+@movies_bp.route('/add_quote/<movie_id>', methods=['POST'])
+@login_required
+def add_quote(movie_id):
+    """Add a quote to a movie (admin only)"""
+    if not current_user.is_admin:
+        return jsonify({'error': 'Permission denied'}), 403
+
+    quote_text = normalize_quote_text(request.form.get('quote_text'))
+    character = request.form.get('character', '').strip()
+    scene_timestamp = request.form.get('scene_timestamp', '').strip()
+
+    if quote_text:
+        new_quote = MovieQuote(
+            movie_id=str(movie_id),
+            quote_text=quote_text,
+            character=character if character else None,
+            scene_timestamp=scene_timestamp if scene_timestamp else None,
+        )
+        db.session.add(new_quote)
+        db.session.commit()
+
+    return redirect(url_for('movies.index'))
+
+
+@movies_bp.route('/update_quote/<int:quote_id>', methods=['POST'])
+@login_required
+def update_quote(quote_id):
+    """Update a movie quote (admin only)"""
+    if not current_user.is_admin:
+        return jsonify({'error': 'Permission denied'}), 403
+
+    quote = MovieQuote.query.get_or_404(quote_id)
+    quote_text = normalize_quote_text(request.form.get('quote_text'))
+    character = request.form.get('character', '').strip()
+    scene_timestamp = request.form.get('scene_timestamp', '').strip()
+
+    if quote_text:
+        quote.quote_text = quote_text
+        quote.character = character if character else None
+        quote.scene_timestamp = scene_timestamp if scene_timestamp else None
+        db.session.commit()
+
+    return redirect(url_for('movies.index'))
+
+
+@movies_bp.route('/like_quote', methods=['POST'])
+@login_required
+def like_quote():
+    """Toggle movie quote like (API endpoint)"""
+    quote_id = request.json.get('quote_id')
+    if not quote_id:
+        return jsonify({'error': 'Quote ID is required'}), 400
+
+    try:
+        quote_id = int(quote_id)
+    except (ValueError, TypeError):
+        return jsonify({'error': 'Invalid quote ID'}), 400
+
+    quote = MovieQuote.query.get(quote_id)
+    if not quote:
+        return jsonify({'error': 'Quote not found'}), 404
+
+    try:
+        liked = LikedMovieQuotes.query.filter_by(
+            user_id=current_user.id,
+            quote_id=quote_id
+        ).first()
+
+        if liked:
+            db.session.delete(liked)
+            db.session.commit()
+            return jsonify({'liked': False})
+        else:
+            new_like = LikedMovieQuotes(
+                user_id=current_user.id,
+                quote_id=quote_id
+            )
+            db.session.add(new_like)
+            db.session.commit()
+            return jsonify({'liked': True})
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error toggling movie quote like: {str(e)}", exc_info=True)
+        return jsonify({'error': 'An error occurred'}), 500

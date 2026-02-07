@@ -73,3 +73,24 @@ class LikedQuotes(db.Model):
 
     def __repr__(self):
         return f'<LikedQuote user={self.user_id} quote={self.quote_id}>'
+
+
+class BookPairing(db.Model):
+    """Admin-curated book pairing - two books that complement each other"""
+
+    __tablename__ = 'book_pairing'
+
+    id = db.Column(db.Integer, primary_key=True)
+    book_id_1 = db.Column(db.Integer, db.ForeignKey('books.id'), nullable=False)
+    book_id_2 = db.Column(db.Integer, db.ForeignKey('books.id'), nullable=False)
+    note = db.Column(db.Text, nullable=False)  # Why these books pair well together
+    is_visible = db.Column(db.Boolean, default=True)  # Whether to include in cycling display
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    # Relationships to get book details easily
+    book_1 = db.relationship('Books', foreign_keys=[book_id_1], lazy='joined')
+    book_2 = db.relationship('Books', foreign_keys=[book_id_2], lazy='joined')
+
+    def __repr__(self):
+        return f'<BookPairing books={self.book_id_1},{self.book_id_2}>'

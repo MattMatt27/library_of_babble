@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Passages{% endblock %}
+
+{% set active_page = 'reading' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/quotes.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="quotes-page">
+        <div class="quotes-header">
+            <h1>Passages</h1>
+            <p>Collected quotes and excerpts from my reading</p>
+        </div>
+
+        <!-- Filters and Sort -->
+        <div class="quotes-filters">
+            <div class="filter-group">
+                <label for="sort-select">Sort:</label>
+                <select id="sort-select">
+                    <option value="random" {% if sort_order == 'random' %}selected{% endif %}>Random</option>
+                    <option value="book-title" {% if sort_order == 'book-title' %}selected{% endif %}>Book Title</option>
+                    <option value="book-year-asc" {% if sort_order == 'book-year-asc' %}selected{% endif %}>Book Year (Oldest)</option>
+                    <option value="book-year-desc" {% if sort_order == 'book-year-desc' %}selected{% endif %}>Book Year (Newest)</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="book-filter">Book:</label>
+                <select id="book-filter">
+                    <option value="">All books</option>
+                    {% for book in books_with_quotes %}
+                    <option value="{{ book.id }}" {% if book_filter == book.id %}selected{% endif %}>{{ book.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {% if current_user.is_authenticated %}
+            <label class="filter-toggle">
+                <input type="checkbox" id="liked-filter" {% if liked_only %}checked{% endif %}>
+                <span>Liked only</span>
+            </label>
+            {% endif %}
+        </div>
+
+        <!-- Quotes grid -->
+        <div class="quotes-grid" id="quotes-grid">
+            {% for quote in quotes %}
+            <div class="quote-item"
+                 data-book-id="{{ quote.book_id }}"
+                 data-book-title="{{ quote.book_title }}"
+                 data-book-year="{{ quote.book_year or 0 }}"
+                 data-liked="{{ 'true' if quote.is_liked else 'false' }}"
+                 data-quote-id="{{ quote.id }}">
+                <div class="quote-item-header">
+                    <blockquote class="quote-item-text">"{{ quote.text }}"</blockquote>
+                    {% if current_user.is_authenticated %}
+                    <button class="quote-like-btn {{ 'liked' if quote.is_liked else '' }}"
+                            data-quote-id="{{ quote.id }}"
+                            aria-label="{{ 'Unlike this quote' if quote.is_liked else 'Like this quote' }}"
+                            aria-pressed="{{ 'true' if quote.is_liked else 'false' }}">
+                        <i class="{{ 'fa-solid' if quote.is_liked else 'fa-regular' }} fa-heart"></i>
+                    </button>
+                    {% endif %}
+                </div>
+                <div class="quote-item-meta">
+                    {% if quote.chapter %}
+                    <span class="quote-chapter">{{ quote.chapter }}</span>
+                    {% endif %}
+                    {% if quote.page_number %}
+                    <span class="quote-page">p. {{ quote.page_number }}</span>
+                    {% endif %}
+                </div>
+                <a href="{{ url_for('books.detail', book_id=quote.book_id) }}" class="quote-item-source">
+                    {% if quote.book_cover %}
+                    <img src="{{ quote.book_cover }}" alt="{{ quote.book_title }}" class="quote-source-cover">
+                    {% endif %}
+                    <div class="quote-source-info">
+                        <span class="quote-source-title">{{ quote.book_title }}</span>
+                        <span class="quote-source-author">{{ quote.book_author }}</span>
+                    </div>
+                </a>
+            </div>
+            {% else %}
+            <div class="no-quotes">
+                <p>No quotes found.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination Controls -->
+        {% if total_pages > 1 %}
+        <div class="pagination">
+            <button id="prev-page" {% if current_page == 1 %}disabled{% endif %}>&lt; Prev</button>
+            <span class="page-info">Page {{ current_page }} of {{ total_pages }} ({{ total_quotes }} quotes)</span>
+            <button id="next-page" {% if current_page == total_pages %}disabled{% endif %}>Next &gt;</button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const bookFilter = document.getElementById('book-filter');
+    const likedFilter = document.getElementById('liked-filter');
+    const sortSelect = document.getElementById('sort-select');
+
+    function getCSRFToken() {
+        return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    }
+
+    // Navigate with updated URL params
+    function updatePage(params) {
+        const url = new URL(window.location.href);
+        Object.keys(params).forEach(key => {
+            if (params[key] === null || params[key] === '' || params[key] === false) {
+                url.searchParams.delete(key);
+            } else {
+                url.searchParams.set(key, params[key]);
+            }
+        });
+        // Reset to page 1 when filters change
+        if (!('page' in params)) {
+            url.searchParams.delete('page');
+        }
+        window.location.href = url.toString();
+    }
+
+    // Filter/sort change handlers
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+            updatePage({ sort: this.value });
+        });
+    }
+
+    if (bookFilter) {
+        bookFilter.addEventListener('change', function() {
+            updatePage({ book: this.value || null });
+        });
+    }
+
+    if (likedFilter) {
+        likedFilter.addEventListener('change', function() {
+            updatePage({ liked: this.checked ? 'true' : null });
+        });
+    }
+
+    // Pagination handlers
+    function goToPage(pageNum) {
+        const params = new URLSearchParams(window.location.search);
+        params.set('page', pageNum);
+        window.location.href = `${window.location.pathname}?${params.toString()}`;
+    }
+
+    const prevBtn = document.getElementById('prev-page');
+    const nextBtn = document.getElementById('next-page');
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if ({{ current_page }} > 1) {
+                goToPage({{ current_page }} - 1);
+            }
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            if ({{ current_page }} < {{ total_pages }}) {
+                goToPage({{ current_page }} + 1);
+            }
+        });
+    }
+
+    // Like toggle (AJAX, no page reload)
+    async function toggleLike(button) {
+        if (button.disabled) return;
+        button.disabled = true;
+
+        const quoteId = parseInt(button.dataset.quoteId);
+        const quoteItem = button.closest('.quote-item');
+
+        try {
+            const response = await fetch('{{ url_for("books.like_quote") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({ quote_id: quoteId })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to toggle like');
+            }
+
+            const data = await response.json();
+            const icon = button.querySelector('i');
+
+            if (data.liked) {
+                button.classList.add('liked');
+                icon.classList.remove('fa-regular');
+                icon.classList.add('fa-solid');
+                button.setAttribute('aria-pressed', 'true');
+                button.setAttribute('aria-label', 'Unlike this quote');
+                quoteItem.dataset.liked = 'true';
+            } else {
+                button.classList.remove('liked');
+                icon.classList.remove('fa-solid');
+                icon.classList.add('fa-regular');
+                button.setAttribute('aria-pressed', 'false');
+                button.setAttribute('aria-label', 'Like this quote');
+                quoteItem.dataset.liked = 'false';
+            }
+
+            // Trigger animation
+            button.classList.add('animating');
+            setTimeout(() => button.classList.remove('animating'), 400);
+
+        } catch (error) {
+            console.error('Error toggling like:', error);
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    // Like buttons
+    document.querySelectorAll('.quote-like-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            toggleLike(this);
+        });
+    });
+});
+</script>
+{% endblock %}

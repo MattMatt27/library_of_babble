@@ -63,7 +63,4 @@ scripts/internal/
 
 scripts/create-parameters.sh
 infra/
-.dockerignore
-Dockerfile
-docker-entrypoint.sh
 docs/DEPLOYMENT_GUIDE.md

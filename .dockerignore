@@ -1,0 +1,59 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Git and GitHub
+.git/
+.github/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+tests/
+
+# Environment files (secrets!)
+.env
+.env.*
+!.env.example
+
+# macOS
+.DS_Store
+
+# Archives and old code
+archive/
+
+# Terraform (not needed in container)
+infra/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Data files (import separately)
+data/
+
+# S3-hosted images (served from S3 in production)
+static/images/artists/
+static/images/creating/
+static/images/antiques/
+static/images/home/
+
+# Scripts not needed in production
+scripts/

@@ -1,0 +1,216 @@
+# ============================================================================
+# GitHub Actions Workflow: Deploy to AWS ECS on Release
+# ============================================================================
+# This workflow automatically deploys your Flask app to AWS when you create
+# a new GitHub release.
+#
+# HOW IT WORKS:
+# 1. Triggers when you create a release in GitHub
+# 2. Builds a Docker image from your code
+# 3. Pushes the image to AWS ECR (Elastic Container Registry)
+# 4. Updates ECS to use the new image
+# 5. ECS automatically does a rolling deployment (zero downtime)
+#
+# SETUP REQUIRED (one-time):
+# 1. Create an ECR repository in AWS:
+#    aws ecr create-repository --repository-name library-of-babble --region us-east-1
+#
+# 2. Create an IAM user for GitHub Actions with these permissions:
+#    - ecr:GetAuthorizationToken
+#    - ecr:BatchCheckLayerAvailability
+#    - ecr:GetDownloadUrlForLayer
+#    - ecr:BatchGetImage
+#    - ecr:PutImage
+#    - ecr:InitiateLayerUpload
+#    - ecr:UploadLayerPart
+#    - ecr:CompleteLayerUpload
+#    - ecs:UpdateService
+#    - ecs:DescribeServices
+#
+# 3. Add these secrets to your GitHub repository (Settings → Secrets and variables → Actions):
+#    - AWS_ACCESS_KEY_ID: Your IAM user access key
+#    - AWS_SECRET_ACCESS_KEY: Your IAM user secret key
+#    - AWS_REGION: us-east-1 (or your region)
+#    - ECR_REPOSITORY: library-of-babble-prod
+#    - ECS_CLUSTER: library-of-babble-prod-cluster (from Terraform output)
+#    - ECS_SERVICE: library-of-babble-prod-service (from Terraform output)
+#    - CLOUDFLARE_API_TOKEN: API token with DNS edit permissions for the zone
+#    - CLOUDFLARE_ZONE_ID: Zone ID from CloudFlare dashboard (Overview page)
+#    - CLOUDFLARE_RECORD_NAME: Domain name (e.g., mattflathers.com)
+# ============================================================================
+
+name: Deploy to AWS ECS
+
+# Trigger on release creation
+on:
+  release:
+    types: [created]
+
+# Environment variables used throughout the workflow
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+  ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+  ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+  CONTAINER_NAME: app # Must match container name in task definition
+
+jobs:
+  deploy:
+    name: Deploy to ECS
+    runs-on: ubuntu-latest
+
+    steps:
+      # ========================================
+      # Step 1: Checkout code
+      # ========================================
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ========================================
+      # Step 2: Configure AWS credentials
+      # ========================================
+      # Uses secrets from GitHub to authenticate with AWS
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # ========================================
+      # Step 3: Login to Amazon ECR
+      # ========================================
+      # Gets temporary credentials to push Docker images to ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # ========================================
+      # Step 4: Build, tag, and push Docker image to ECR
+      # ========================================
+      # Builds your Docker image and pushes it to ECR with two tags:
+      # 1. The release tag (e.g., v1.2.3)
+      # 2. "latest" tag for convenience
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          # Build Docker image
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+
+          # Push both tags to ECR
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+          # Output the image URI for next steps
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      # ========================================
+      # Step 5: Download current task definition
+      # ========================================
+      # Gets the current ECS task definition as a JSON file
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition $(aws ecs describe-services \
+              --cluster $ECS_CLUSTER \
+              --services $ECS_SERVICE \
+              --query 'services[0].taskDefinition' \
+              --output text | cut -d'/' -f2) \
+            --query 'taskDefinition' \
+            > task-definition.json
+
+      # ========================================
+      # Step 6: Update task definition with new image
+      # ========================================
+      # Modifies the task definition JSON to use the new Docker image
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+
+      # ========================================
+      # Step 7: Deploy updated task definition to ECS
+      # ========================================
+      # Deploys the new task definition to ECS
+      # ECS will automatically do a rolling deployment:
+      # 1. Start new container with new image
+      # 2. Wait for health checks to pass
+      # 3. Stop old container
+      # This ensures zero downtime!
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      # ========================================
+      # Step 8: Update CloudFlare DNS with new ECS IP
+      # ========================================
+      # After deployment, the new ECS task gets a new public IP.
+      # wait-for-service-stability in Step 7 ensures the task is already
+      # running and healthy by this point, so no sleep needed.
+      - name: Update CloudFlare DNS
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          CF_RECORD_NAME: ${{ secrets.CLOUDFLARE_RECORD_NAME }}
+        run: |
+          # Get the running task ARN
+          TASK_ARN=$(aws ecs list-tasks \
+            --cluster $ECS_CLUSTER \
+            --service-name $ECS_SERVICE \
+            --desired-status RUNNING \
+            --query 'taskArns[0]' --output text)
+
+          # Get the ENI (network interface) ID from the task
+          ENI_ID=$(aws ecs describe-tasks \
+            --cluster $ECS_CLUSTER \
+            --tasks $TASK_ARN \
+            --query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' \
+            --output text)
+
+          # Get the public IP from the ENI
+          NEW_IP=$(aws ec2 describe-network-interfaces \
+            --network-interface-ids $ENI_ID \
+            --query 'NetworkInterfaces[0].Association.PublicIp' \
+            --output text)
+
+          echo "New ECS public IP: $NEW_IP"
+
+          # Find the existing DNS record ID
+          RECORD_ID=$(curl -s -X GET \
+            "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records?type=A&name=$CF_RECORD_NAME" \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            | jq -r '.result[0].id')
+
+          echo "CloudFlare record ID: $RECORD_ID"
+
+          # Update the A record with the new IP (proxied through CloudFlare)
+          curl -s -X PUT \
+            "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records/$RECORD_ID" \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data "{\"type\":\"A\",\"name\":\"$CF_RECORD_NAME\",\"content\":\"$NEW_IP\",\"ttl\":1,\"proxied\":true}" \
+            | jq '.success'
+
+          echo "CloudFlare DNS updated to $NEW_IP"
+
+      # ========================================
+      # Step 9: Summary
+      # ========================================
+      - name: Deployment summary
+        run: |
+          echo "Deployment successful!"
+          echo "Image: ${{ steps.build-image.outputs.image }}"
+          echo "ECS Service: ${{ env.ECS_SERVICE }}"
+          echo "Cluster: ${{ env.ECS_CLUSTER }}"

@@ -9,7 +9,7 @@ from app.extensions import db
 from app.artworks.models import Artworks, LikedArtworks
 from app.books.models import LikedQuotes, BookQuote, Books
 from app.auth.models import User
-from app.utils.security import run_etl_script, run_pg_dump, sanitize_path, sanitize_directory_name, sanitize_artist_name, validate_file_path, admin_required
+from app.utils.security import run_etl_script, run_pg_dump, sanitize_path, sanitize_directory_name, sanitize_artist_name, validate_file_path, admin_required, validate_csv_file, validate_image_file
 import json
 import csv
 import tempfile
@@ -333,6 +333,10 @@ def import_goodreads():
     if not file.filename.endswith('.csv'):
         return jsonify({'success': False, 'error': 'File must be a CSV'}), 400
 
+    is_valid, error_msg = validate_csv_file(file.stream)
+    if not is_valid:
+        return jsonify({'success': False, 'error': error_msg}), 400
+
     backup_file = None
     temp_file_path = None
 
@@ -429,6 +433,11 @@ def import_letterboxd():
 
     if not ratings_file.filename.endswith('.csv') or not reviews_file.filename.endswith('.csv'):
         return jsonify({'success': False, 'error': 'Both files must be CSV files'}), 400
+
+    for f, label in [(ratings_file, 'Ratings'), (reviews_file, 'Reviews')]:
+        is_valid, error_msg = validate_csv_file(f.stream)
+        if not is_valid:
+            return jsonify({'success': False, 'error': f'{label} file: {error_msg}'}), 400
 
     ratings_temp_path = None
     reviews_temp_path = None
@@ -553,6 +562,10 @@ def import_boredom_killer():
             file = request.files[file_key]
             if file.filename != '' and not file.filename.endswith('.csv'):
                 return jsonify({'success': False, 'error': f'{file_key} must be a CSV file'}), 400
+            if file.filename != '':
+                is_valid, error_msg = validate_csv_file(file.stream)
+                if not is_valid:
+                    return jsonify({'success': False, 'error': f'{file_key}: {error_msg}'}), 400
 
     temp_files = {}
 
@@ -721,6 +734,10 @@ def import_shows():
     if not file.filename.endswith('.csv'):
         return jsonify({'success': False, 'error': 'File must be a CSV'}), 400
 
+    is_valid, error_msg = validate_csv_file(file.stream)
+    if not is_valid:
+        return jsonify({'success': False, 'error': error_msg}), 400
+
     try:
         # Create database backup before import
         backup_success, backup_info = create_database_backup()
@@ -850,6 +867,10 @@ def upload_artwork():
     if file_ext not in allowed_extensions:
         return jsonify({'success': False, 'error': f'Invalid file type. Allowed: {", ".join(allowed_extensions)}'}), 400
 
+    is_valid, error_msg = validate_image_file(file.stream, file.filename)
+    if not is_valid:
+        return jsonify({'success': False, 'error': error_msg}), 400
+
     # Get form data
     artist = request.form.get('artist', '').strip()
     title = request.form.get('title', '').strip()
@@ -959,6 +980,10 @@ def import_artworks_csv():
 
     if not file.filename.endswith('.csv'):
         return jsonify({'success': False, 'error': 'File must be a CSV'}), 400
+
+    is_valid, error_msg = validate_csv_file(file.stream)
+    if not is_valid:
+        return jsonify({'success': False, 'error': error_msg}), 400
 
     temp_file_path = None
 

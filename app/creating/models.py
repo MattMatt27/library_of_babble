@@ -68,6 +68,20 @@ class Project(db.Model):
         return f'<Project {self.title}>'
 
 
+class ProjectRelation(db.Model):
+    """Links between related projects across categories"""
+
+    __tablename__ = 'project_relations'
+
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
+    related_project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
+    note = db.Column(db.String(200))  # e.g., "Built to support this project"
+
+    def __repr__(self):
+        return f'<ProjectRelation {self.project_id} -> {self.related_project_id}>'
+
+
 class ProjectImage(db.Model):
     """Images associated with a project"""
 

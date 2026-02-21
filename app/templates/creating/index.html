@@ -410,13 +410,13 @@
     // Must be defined before tab navigation IIFE
     // ========================================
     const STATIC_BASE_URL = "{{ static_url('') }}";
-    let allGeneratedImages = {{ generated_images | tojson | safe }};
+    let allGeneratedImages = {{ generated_images | tojson }};
     let selectedArtists = [];
     let currentGeneratedImageIndex = 0;
 
     // Extract unique artist names from generated_images
     let allArtists = [...new Set(allGeneratedImages.flatMap(img => img.artist_palette))].map(name => {
-        let artistImages = {{ artists | tojson | safe }}.filter(a => a.name === name).map(a => a.image);
+        let artistImages = {{ artists | tojson }}.filter(a => a.name === name).map(a => a.image);
         return {
             name,
             images: artistImages

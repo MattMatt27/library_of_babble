@@ -239,9 +239,9 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const artistSearch = $('#artist-search');
-        const selectedArtists = new Set({{ selected_artists|tojson|safe }});
-        const selectedCollections = new Set({{ selected_collections|tojson|safe }});
-        const allArtists = {{ all_artists|tojson|safe }};
+        const selectedArtists = new Set({{ selected_artists|tojson }});
+        const selectedCollections = new Set({{ selected_collections|tojson }});
+        const allArtists = {{ all_artists|tojson }};
 
         // Autocomplete for artist search
         artistSearch.autocomplete({

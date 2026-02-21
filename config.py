@@ -60,6 +60,10 @@ class ProductionConfig(Config):
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
+    PERMANENT_SESSION_LIFETIME = 1800  # 30 minute inactivity timeout
+    REMEMBER_COOKIE_SECURE = True
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SAMESITE = 'Lax'
 
     # In production, DATABASE_URL and SECRET_KEY must be set
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')

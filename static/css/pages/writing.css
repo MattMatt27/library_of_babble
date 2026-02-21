@@ -42,6 +42,38 @@
   margin: 0;
 }
 
+/* Header logo link (e.g. Google Scholar next to Academic) */
+.header-logo-link {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: var(--space-3);
+  text-decoration: none;
+}
+
+.header-logo-link .tool-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-base);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.header-logo-link .tool-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.header-logo-link:hover .tool-icon {
+  border-color: var(--accent-blue);
+  background: white;
+  transform: scale(1.1);
+}
+
 /* Publication cards */
 .publication-list {
   display: flex;

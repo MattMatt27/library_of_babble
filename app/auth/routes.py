@@ -114,6 +114,15 @@ def delete_user(user_id):
         return redirect(url_for('account.index'))
 
     username = user.username
+
+    # Delete related records to avoid foreign key constraint errors
+    from app.books.models import LikedQuotes
+    from app.movies.models import LikedMovieQuotes
+    from app.artworks.models import LikedArtworks
+    LikedQuotes.query.filter_by(user_id=user.id).delete()
+    LikedMovieQuotes.query.filter_by(user_id=user.id).delete()
+    LikedArtworks.query.filter_by(user_id=user.id).delete()
+
     db.session.delete(user)
     db.session.commit()
 

@@ -8,7 +8,7 @@ import os
 from flask import Flask, render_template
 from flask_wtf.csrf import CSRFProtect
 from config import config
-from app.extensions import db, login_manager, migrate
+from app.extensions import db, login_manager, migrate, limiter
 
 csrf = CSRFProtect()
 
@@ -42,6 +42,7 @@ def create_app(config_name=None):
     login_manager.init_app(app)
     migrate.init_app(app, db)
     csrf.init_app(app)
+    limiter.init_app(app)
 
     # Import all models so Alembic can detect them for migrations
     from app import models  # noqa: F401

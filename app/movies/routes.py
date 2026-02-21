@@ -7,7 +7,7 @@ from app.movies import movies_bp
 from app.movies.models import Movies, MovieQuote, LikedMovieQuotes
 from app.movies.services import read_movies_from_db
 from app.common.models import Reviews
-from app.extensions import db
+from app.extensions import db, limiter
 from app.utils.security import page_visible, user_required
 from app.utils.security import sanitize_html
 
@@ -177,6 +177,7 @@ def update_quote(quote_id):
 
 
 @movies_bp.route('/like_quote', methods=['POST'])
+@limiter.limit("60 per minute")
 @user_required
 def like_quote():
     """Toggle movie quote like (API endpoint)"""

@@ -7,7 +7,7 @@ from app.artworks import artworks_bp
 from app.utils.security import user_required
 from app.artworks.models import Artworks, LikedArtworks
 from app.artworks.services import get_approved_artworks_from_db, get_all_artworks
-from app.extensions import db
+from app.extensions import db, limiter
 import time
 
 
@@ -174,6 +174,7 @@ def artwork_to_dict(artwork):
 
 
 @artworks_bp.route('/like_artwork', methods=['POST'])
+@limiter.limit("60 per minute")
 @user_required
 def like_artwork():
     """Toggle artwork like (API endpoint)"""

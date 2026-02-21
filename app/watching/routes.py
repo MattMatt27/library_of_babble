@@ -82,7 +82,7 @@ def index():
 
 
 @watching_bp.route('/quotes')
-@page_visible('watching')
+@page_visible('watching-quotes')
 def quotes():
     """Movie quotes exploration page with pagination"""
     page = request.args.get('page', 1, type=int)

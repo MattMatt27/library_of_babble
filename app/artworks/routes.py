@@ -4,6 +4,7 @@ Artworks Routes
 from flask import render_template, request, jsonify, session
 from flask_login import login_required, current_user
 from app.artworks import artworks_bp
+from app.utils.security import user_required
 from app.artworks.models import Artworks, LikedArtworks
 from app.artworks.services import get_approved_artworks_from_db, get_all_artworks
 from app.extensions import db
@@ -173,7 +174,7 @@ def artwork_to_dict(artwork):
 
 
 @artworks_bp.route('/like_artwork', methods=['POST'])
-@login_required
+@user_required
 def like_artwork():
     """Toggle artwork like (API endpoint)"""
     artwork_id = request.json.get('artwork_id')

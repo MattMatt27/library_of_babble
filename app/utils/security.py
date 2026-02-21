@@ -43,6 +43,17 @@ def admin_required(f):
     return decorated_function
 
 
+def user_required(f):
+    """Require user role or higher (user or admin). Viewers are excluded."""
+    @wraps(f)
+    @login_required
+    def decorated_function(*args, **kwargs):
+        if current_user.role not in ('user', 'admin'):
+            return jsonify({'error': 'User access required'}), 403
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 # ==============================================================================
 # HTML Sanitization (XSS Protection)
 # ==============================================================================

@@ -8,7 +8,7 @@ from app.books.models import Books, BookQuote, LikedQuotes
 from app.books.services import truncate_title
 from app.common.models import Reviews
 from app.extensions import db
-from app.utils.security import page_visible
+from app.utils.security import page_visible, user_required
 from app.utils.security import sanitize_html
 import html
 
@@ -271,7 +271,7 @@ def update_rating(book_id):
 
 
 @books_bp.route('/like_quote', methods=['POST'])
-@login_required
+@user_required
 def like_quote():
     """Toggle quote like (API endpoint)"""
     # Input validation

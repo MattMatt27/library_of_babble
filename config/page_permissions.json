@@ -42,6 +42,16 @@
     },
     {
       "admin": true,
+      "display_name": "Passages",
+      "page_name": "reading-quotes",
+      "public": false,
+      "route_name": "reading.quotes",
+      "show_in_navbar": false,
+      "user": true,
+      "viewer": true
+    },
+    {
+      "admin": true,
       "display_name": "Books",
       "page_name": "books",
       "public": false,
@@ -72,6 +82,16 @@
     },
     {
       "admin": true,
+      "display_name": "Movie Quotes",
+      "page_name": "watching-quotes",
+      "public": false,
+      "route_name": "watching.quotes",
+      "show_in_navbar": false,
+      "user": true,
+      "viewer": true
+    },
+    {
+      "admin": true,
       "display_name": "Movies",
       "page_name": "movies",
       "public": false,
@@ -87,8 +107,8 @@
       "public": false,
       "route_name": "music.index",
       "show_in_navbar": true,
-      "user": false,
-      "viewer": true
+      "user": true,
+      "viewer": false
     },
     {
       "admin": true,
@@ -98,7 +118,7 @@
       "route_name": "collecting.index",
       "show_in_navbar": true,
       "user": false,
-      "viewer": true
+      "viewer": false
     },
     {
       "admin": true,
@@ -107,8 +127,8 @@
       "public": false,
       "route_name": "artworks.pondering",
       "show_in_navbar": true,
-      "user": false,
-      "viewer": true
+      "user": true,
+      "viewer": false
     }
   ]
 }

@@ -59,10 +59,12 @@
                     <option value="">Select Collections</option>
                 </select>
                 <div class="custom-dropdown multiselect-dropdown" id="collection-filter-dropdown">
+                    {% if current_user.role != 'viewer' %}
                     <label class="dropdown-option multiselect-option">
                         <input type="checkbox" value="my_likes" {% if 'my_likes' in selected_collections %}checked{% endif %}>
                         <span>My Likes</span>
                     </label>
+                    {% endif %}
                     {% for gallery in all_galleries %}
                     <label class="dropdown-option multiselect-option">
                         <input type="checkbox" value="{{ gallery.id }}" {% if gallery.id in selected_collections %}checked{% endif %}>
@@ -132,14 +134,20 @@
         <span id="current-page">Page {{ current_page }} of {{ total_pages }}</span>
         <button id="next-page" {% if current_page == total_pages %}disabled{% endif %}>Next &gt;</button>
     </div>
+
+    <div class="alert alert-info" style="margin-top: var(--space-6);">
+        <small>All artwork is displayed for personal reflection and educational appreciation. No copyright ownership is claimed. All rights belong to the original artists and rights holders.</small>
+    </div>
 </div>
 
 <div id="image-viewer" class="image-viewer">
     <button id="close-viewer" class="close-viewer">&times;</button>
     <div class="viewer-actions">
+        {% if current_user.role != 'viewer' %}
         <button class="like-button" data-artwork-id="">
             <img src="{{ static_url('images/assets/hearts/heart_outline.png') }}" alt="Heart Icon" class="heart-icon">
         </button>
+        {% endif %}
         {% if current_user.is_authenticated and current_user.is_admin %}
         <button class="edit-button" id="edit-artwork-btn" title="Edit Artwork">
             ✎
@@ -231,9 +239,9 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const artistSearch = $('#artist-search');
-        const selectedArtists = new Set({{ selected_artists|tojson|safe }});
-        const selectedCollections = new Set({{ selected_collections|tojson|safe }});
-        const allArtists = {{ all_artists|tojson|safe }};
+        const selectedArtists = new Set({{ selected_artists|tojson }});
+        const selectedCollections = new Set({{ selected_collections|tojson }});
+        const allArtists = {{ all_artists|tojson }};
 
         // Autocomplete for artist search
         artistSearch.autocomplete({

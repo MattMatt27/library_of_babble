@@ -2,34 +2,303 @@
  * Creating Page Styles
  */
 
-/* Category Sections */
-.creating-category {
-  margin-bottom: var(--space-12);
+/* ============================================
+   Folder Tabs
+   ============================================ */
+.folder-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 0 var(--space-4);
+  position: relative;
+  z-index: 1;
+  margin-top: var(--space-6);
 }
 
-.category-header {
-  margin-bottom: var(--space-8);
-  padding-bottom: var(--space-4);
-  border-bottom: 2px solid var(--border-primary);
-  text-align: center;
+.folder-tab {
+  padding: var(--space-3) var(--space-6);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-bottom: none;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--font-base);
+  font-weight: var(--font-medium);
+  font-family: var(--font-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+  top: 1px;
 }
 
-.category-title {
-  font-size: var(--font-2xl);
-  font-weight: var(--font-semibold);
+.folder-tab:hover {
+  background: var(--bg-secondary);
   color: var(--text-primary);
-  margin: 0 0 var(--space-2) 0;
 }
 
-.category-title i {
+.folder-tab.active {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-weight: var(--font-semibold);
+  border-color: var(--border-primary);
+  z-index: 2;
+}
+
+.folder-tab i {
   margin-right: var(--space-2);
   color: var(--accent-blue);
+}
+
+.folder-tab-add {
+  padding: var(--space-3) var(--space-4);
+  color: var(--text-tertiary);
+  border-style: dashed;
+}
+
+.folder-tab-add i {
+  margin-right: 0;
+  color: inherit;
+}
+
+.folder-tab-add:hover {
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+/* ============================================
+   Folder Panels (tab content)
+   ============================================ */
+.folder-panel {
+  display: none;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 0 var(--radius-lg) var(--radius-lg) var(--radius-lg);
+  padding: var(--space-8);
+  position: relative;
+  z-index: 0;
+}
+
+.folder-panel.active {
+  display: block;
 }
 
 .category-description {
   font-size: var(--font-base);
   color: var(--text-secondary);
-  margin: 0;
+  margin: 0 0 var(--space-6) 0;
+}
+
+/* ============================================
+   Related Project Cards
+   ============================================ */
+.related-projects {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-secondary);
+}
+
+.related-label {
+  font-size: var(--font-sm);
+  color: var(--text-tertiary);
+  font-weight: var(--font-medium);
+  white-space: nowrap;
+}
+
+.related-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  max-width: 350px;
+}
+
+.related-card:hover {
+  border-color: var(--accent-blue);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.related-card img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.related-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.related-card-title {
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  font-size: var(--font-sm);
+}
+
+.related-card-category {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+}
+
+.related-card-note {
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* ============================================
+   Admin Controls
+   ============================================ */
+
+/* Override components.css default (display: flex) so modals start hidden */
+.modal-overlay {
+  display: none;
+}
+
+.project-admin-bar {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  margin-bottom: var(--space-2);
+  /* Span full width in split (grid) layouts */
+  grid-column: 1 / -1;
+}
+
+.project-admin-bar .btn-icon-sm {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-secondary);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  padding: 0;
+}
+
+.project-admin-bar .btn-edit:hover {
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+.project-admin-bar .btn-toggle-vis:hover {
+  border-color: var(--accent-yellow, #fbbf24);
+  color: var(--accent-yellow, #fbbf24);
+}
+
+.project-admin-bar .btn-delete:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
+
+.project-hidden {
+  opacity: 0.5;
+  border-style: dashed;
+}
+
+.status-hidden {
+  background: rgba(156, 163, 175, 0.2);
+  color: #9ca3af;
+}
+
+.admin-panel-controls {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px dashed var(--border-secondary);
+  display: flex;
+  gap: var(--space-3);
+}
+
+/* Project modal form layout */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.form-group {
+  margin-bottom: var(--space-4);
+}
+
+.form-group label {
+  display: block;
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-1);
+  font-weight: var(--font-medium);
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  padding-top: var(--space-6);
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+/* Relation picker in modal */
+.relation-add-row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin-top: var(--space-2);
+}
+
+.relation-add-row select {
+  flex: 1;
+}
+
+.relation-add-row input {
+  flex: 1;
+}
+
+.relation-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-2);
+}
+
+.relation-title {
+  font-weight: var(--font-semibold);
+  font-size: var(--font-sm);
+  color: var(--text-primary);
+}
+
+.relation-note {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+  font-style: italic;
+  flex: 1;
+}
+
+.relation-row .btn-delete {
+  flex-shrink: 0;
 }
 
 /* Status Badges */
@@ -523,6 +792,29 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  .folder-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0 var(--space-2);
+  }
+
+  .folder-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .folder-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--font-sm);
+  }
+
+  .folder-panel {
+    padding: var(--space-4);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  }
+
   .creating-section {
     padding: var(--space-4);
     margin-bottom: var(--space-4);
@@ -530,6 +822,16 @@
 
   .image-container {
     flex-direction: column;
+  }
+
+  .related-projects {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .related-card {
+    max-width: 100%;
+    width: 100%;
   }
 
   #selected-artists-display {

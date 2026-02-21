@@ -17,7 +17,7 @@ class Config:
 
     # CSRF Protection
     WTF_CSRF_ENABLED = True
-    WTF_CSRF_TIME_LIMIT = None  # No time limit for CSRF tokens
+    WTF_CSRF_TIME_LIMIT = 3600  # CSRF tokens expire after 1 hour
 
     # SQLAlchemy
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -56,11 +56,23 @@ class ProductionConfig(Config):
     DEBUG = False
     TESTING = False
 
-    # In production, DATABASE_URL must be set
+    # Session cookie security
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    PERMANENT_SESSION_LIFETIME = 1800  # 30 minute inactivity timeout
+    REMEMBER_COOKIE_SECURE = True
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SAMESITE = 'Lax'
+
+    # In production, DATABASE_URL and SECRET_KEY must be set
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
 
     if not SQLALCHEMY_DATABASE_URI:
         raise ValueError("DATABASE_URL environment variable must be set in production")
+
+    if not os.getenv('FLASK_SECRET_KEY'):
+        raise ValueError("FLASK_SECRET_KEY environment variable must be set in production")
 
 
 class TestingConfig(Config):

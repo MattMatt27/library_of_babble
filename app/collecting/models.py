@@ -87,6 +87,11 @@ class Card(db.Model):
     # Flexible details (category-specific + special features)
     details = db.Column(db.JSON, default=dict)
 
+    # External API data (e.g., Pokemon TCG API)
+    external_api_id = db.Column(db.String(100))
+    external_image_url = db.Column(db.String(500))
+    external_market_data = db.Column(db.JSON)  # Price snapshot from API (tcgplayer, cardmarket)
+
     # Audit
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -101,6 +106,7 @@ class Card(db.Model):
         db.Index('idx_card_set', 'set_name', 'set_year'),
         db.Index('idx_card_category', 'category'),
         db.Index('idx_card_brand', 'brand'),
+        db.Index('idx_card_external_api_id', 'external_api_id'),
     )
 
     def __repr__(self):

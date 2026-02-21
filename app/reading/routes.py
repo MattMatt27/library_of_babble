@@ -203,7 +203,7 @@ def search_books():
 
 
 @reading_bp.route('/quotes')
-@page_visible('reading')
+@page_visible('reading-quotes')
 def quotes():
     """Quotes exploration page with pagination"""
     from flask import session

@@ -480,6 +480,13 @@
                     <div class="form-group">
                         <label for="password">Password</label>
                         <input type="password" id="password" name="password" class="form-input" required autocomplete="new-password">
+                        <div class="password-requirements" id="createPasswordReqs">
+                            <small class="req" data-req="length">12+ characters</small>
+                            <small class="req" data-req="upper">Uppercase letter</small>
+                            <small class="req" data-req="lower">Lowercase letter</small>
+                            <small class="req" data-req="number">Number</small>
+                            <small class="req" data-req="special">Special character</small>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="role">Role</label>
@@ -516,6 +523,13 @@
                 <div class="form-group">
                     <label for="new_password">New Password</label>
                     <input type="password" id="new_password" name="new_password" class="form-input" required autocomplete="new-password">
+                    <div class="password-requirements" id="changePasswordReqs">
+                        <small class="req" data-req="length">12+ characters</small>
+                        <small class="req" data-req="upper">Uppercase letter</small>
+                        <small class="req" data-req="lower">Lowercase letter</small>
+                        <small class="req" data-req="number">Number</small>
+                        <small class="req" data-req="special">Special character</small>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -579,7 +593,56 @@
     </div>
 </div>
 
+<style>
+.password-requirements {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+    margin-top: var(--space-2);
+}
+.password-requirements .req {
+    color: var(--text-secondary);
+    opacity: 0.5;
+    transition: opacity 0.2s, color 0.2s;
+}
+.password-requirements .req.met {
+    color: var(--success, #4caf50);
+    opacity: 1;
+}
+.password-requirements .req::before {
+    content: '✕ ';
+    font-size: 0.7em;
+}
+.password-requirements .req.met::before {
+    content: '✓ ';
+}
+</style>
+
 <script>
+function checkPasswordRequirements(password, container) {
+    const reqs = container.querySelectorAll('.req');
+    const checks = {
+        length: password.length >= 12,
+        upper: /[A-Z]/.test(password),
+        lower: /[a-z]/.test(password),
+        number: /[0-9]/.test(password),
+        special: /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/~`]/.test(password)
+    };
+    reqs.forEach(req => {
+        const key = req.dataset.req;
+        req.classList.toggle('met', checks[key]);
+    });
+    return Object.values(checks).every(Boolean);
+}
+
+document.getElementById('password').addEventListener('input', function() {
+    checkPasswordRequirements(this.value, document.getElementById('createPasswordReqs'));
+});
+
+document.getElementById('new_password').addEventListener('input', function() {
+    checkPasswordRequirements(this.value, document.getElementById('changePasswordReqs'));
+});
+
 function switchUserTab(tabName) {
     // Hide all tabs
     document.querySelectorAll('#manageUsersModal .tab-content').forEach(tab => {
@@ -629,8 +692,23 @@ function openDeleteUserModal(userId, username) {
 }
 
 function submitCreateUser() {
+    const password = document.getElementById('password').value;
+    const valid = checkPasswordRequirements(password, document.getElementById('createPasswordReqs'));
+    if (!valid) {
+        document.getElementById('password').focus();
+        return;
+    }
     document.getElementById('createUserForm').submit();
 }
+
+document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+    const password = document.getElementById('new_password').value;
+    const valid = checkPasswordRequirements(password, document.getElementById('changePasswordReqs'));
+    if (!valid) {
+        e.preventDefault();
+        document.getElementById('new_password').focus();
+    }
+});
 </script>
 
 <!-- Manage Pages Modal -->

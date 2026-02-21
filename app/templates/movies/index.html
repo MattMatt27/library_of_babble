@@ -264,7 +264,7 @@
                                 {% endif %}
 
                                 <div class="review-preview" id="preview-{{ movie.id }}">
-                                    {{ movie['my_review']|safe }}
+                                    {{ movie['my_review']|safe_html }}
                                 </div>
 
                                 {% if current_user.is_authenticated and current_user.role == 'admin' %}

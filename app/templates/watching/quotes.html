@@ -38,7 +38,7 @@
                 </select>
             </div>
 
-            {% if current_user.is_authenticated %}
+            {% if current_user.is_authenticated and current_user.role != 'viewer' %}
             <label class="filter-toggle">
                 <input type="checkbox" id="liked-filter" {% if liked_only %}checked{% endif %}>
                 <span>Liked only</span>
@@ -57,7 +57,7 @@
                  data-quote-id="{{ quote.id }}">
                 <div class="quote-item-header">
                     <blockquote class="quote-item-text">"{{ quote.text }}"</blockquote>
-                    {% if current_user.is_authenticated %}
+                    {% if current_user.is_authenticated and current_user.role != 'viewer' %}
                     <button class="quote-like-btn {{ 'liked' if quote.is_liked else '' }}"
                             data-quote-id="{{ quote.id }}"
                             aria-label="{{ 'Unlike this quote' if quote.is_liked else 'Like this quote' }}"
@@ -99,6 +99,10 @@
             <button id="next-page" {% if current_page == total_pages %}disabled{% endif %}>Next &gt;</button>
         </div>
         {% endif %}
+
+        <div class="alert alert-info" style="margin-top: var(--space-6);">
+            <small>All quotes are excerpted from their respective films for personal reflection and commentary. No copyright ownership is claimed. All rights belong to the original creators and studios.</small>
+        </div>
     </div>
 </div>
 {% endblock %}

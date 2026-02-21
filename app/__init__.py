@@ -8,7 +8,7 @@ import os
 from flask import Flask, render_template
 from flask_wtf.csrf import CSRFProtect
 from config import config
-from app.extensions import db, login_manager, migrate
+from app.extensions import db, login_manager, migrate, limiter
 
 csrf = CSRFProtect()
 
@@ -42,6 +42,7 @@ def create_app(config_name=None):
     login_manager.init_app(app)
     migrate.init_app(app, db)
     csrf.init_app(app)
+    limiter.init_app(app)
 
     # Import all models so Alembic can detect them for migrations
     from app import models  # noqa: F401
@@ -58,6 +59,9 @@ def create_app(config_name=None):
 
     # Register context processors
     register_context_processors(app)
+
+    # Register custom Jinja2 filters
+    register_template_filters(app)
 
     # Add security headers
     register_security_headers(app)
@@ -249,6 +253,16 @@ def register_context_processors(app):
                 return f"/static/{encoded_path}"
 
         return {'static_url': static_url}
+
+
+def register_template_filters(app):
+    """Register custom Jinja2 template filters"""
+    from app.utils.security import sanitize_html
+
+    @app.template_filter('safe_html')
+    def safe_html_filter(content):
+        """Sanitize HTML on render — use instead of |safe for user content"""
+        return sanitize_html(content)
 
 
 def register_security_headers(app):

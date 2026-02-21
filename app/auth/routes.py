@@ -5,9 +5,9 @@ from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.security import check_password_hash, generate_password_hash
 from app.auth import auth_bp
-from app.extensions import db, login_manager
+from app.extensions import db, login_manager, limiter
 from app.auth.models import User
-from app.utils.security import is_safe_url
+from app.utils.security import is_safe_url, validate_password_strength
 
 
 @login_manager.user_loader
@@ -29,6 +29,7 @@ def check_login():
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit("10 per minute")
 def login():
     """User login"""
     if request.method == 'POST':
@@ -81,6 +82,12 @@ def create_user():
         flash(f'User "{username}" already exists', 'error')
         return redirect(url_for('account.index'))
 
+    # Validate password strength
+    is_valid, error_msg = validate_password_strength(password)
+    if not is_valid:
+        flash(error_msg, 'error')
+        return redirect(url_for('account.index'))
+
     # Create new user
     hashed_password = generate_password_hash(password)
     new_user = User(username=username, password=hashed_password, role=role)
@@ -126,6 +133,12 @@ def change_password(user_id):
 
     if not new_password:
         flash('Password is required', 'error')
+        return redirect(url_for('account.index'))
+
+    # Validate password strength
+    is_valid, error_msg = validate_password_strength(new_password)
+    if not is_valid:
+        flash(error_msg, 'error')
         return redirect(url_for('account.index'))
 
     user.password = generate_password_hash(new_password)

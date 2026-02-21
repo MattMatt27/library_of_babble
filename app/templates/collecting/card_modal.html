@@ -25,6 +25,40 @@
                     <!-- Card details form -->
                     <div id="cardDetailsForm">
                         <div class="form-row">
+                            <div class="form-group">
+                                <label for="cardCategory">Category <span class="required">*</span></label>
+                                <select id="cardCategory" class="form-input" required>
+                                    <option value="">Select...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="cardVariant">Variant</label>
+                                <select id="cardVariant" class="form-input">
+                                    <option value="">Base</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Pokemon API search (shown only when category = pokemon) -->
+                        <div id="pokemonApiSearch" style="display: none;">
+                            <div class="form-group">
+                                <label>Search Pokemon TCG Database</label>
+                                <div class="pokemon-search-row">
+                                    <input type="text" id="pokemonApiQuery" class="form-input"
+                                           placeholder="Search by Pokemon name..."
+                                           autocomplete="off">
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                            onclick="searchPokemonApi()">Search</button>
+                                </div>
+                                <div id="pokemonApiResults" class="pokemon-api-results"></div>
+                                <div id="pokemonApiSelected" class="pokemon-api-selected" style="display: none;"></div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="externalApiId">
+                        <input type="hidden" id="externalImageUrl">
+                        <input type="hidden" id="externalMarketData">
+
+                        <div class="form-row">
                             <div class="form-group" style="flex: 2;">
                                 <label for="cardName">Card Subject <span class="required">*</span></label>
                                 <input type="text" id="cardName" class="form-input" required
@@ -49,21 +83,6 @@
                             <div class="form-group" style="max-width: 100px;">
                                 <label for="cardSetYear">Year</label>
                                 <input type="number" id="cardSetYear" class="form-input" min="1800" max="2100">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="cardCategory">Category <span class="required">*</span></label>
-                                <select id="cardCategory" class="form-input" required>
-                                    <option value="">Select...</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="cardVariant">Variant</label>
-                                <select id="cardVariant" class="form-input">
-                                    <option value="">Base</option>
-                                </select>
                             </div>
                         </div>
 

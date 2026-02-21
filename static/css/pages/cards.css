@@ -327,6 +327,95 @@
 }
 
 /* =============================================================================
+   Pokemon API Search
+   ============================================================================= */
+
+.pokemon-search-row {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.pokemon-search-row .form-input {
+    flex: 1;
+}
+
+.pokemon-api-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: var(--space-2);
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: var(--space-2);
+}
+
+.pokemon-api-card {
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+.pokemon-api-card:hover {
+    border-color: var(--accent-blue);
+    transform: scale(1.05);
+}
+
+.pokemon-api-card img {
+    width: 100%;
+    display: block;
+}
+
+.pokemon-api-card-price {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 2px 0;
+    background: rgba(0, 0, 0, 0.75);
+    color: var(--accent-green);
+    font-size: 10px;
+    font-weight: var(--font-semibold);
+    text-align: center;
+}
+
+.pokemon-api-selected {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--accent-blue);
+    border-radius: var(--radius-md);
+    margin-top: var(--space-2);
+}
+
+.pokemon-api-selected img {
+    width: 80px;
+    border-radius: var(--radius-sm);
+}
+
+.pokemon-api-selected-info {
+    flex: 1;
+}
+
+.pokemon-api-price {
+    margin-top: var(--space-1);
+    font-weight: var(--font-semibold);
+    color: var(--accent-green);
+    font-size: var(--font-sm);
+}
+
+.pokemon-api-loading,
+.pokemon-api-empty {
+    text-align: center;
+    padding: var(--space-4);
+    color: var(--text-tertiary);
+    font-size: var(--font-sm);
+}
+
+/* =============================================================================
    Image Upload
    ============================================================================= */
 

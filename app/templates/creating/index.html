@@ -10,31 +10,45 @@
 
 {% block content %}
 <div class="container">
-    {% if page_header and page_header.title %}
-    <div class="page-header">
-        <h1>{{ page_header.title }}</h1>
-        {% if page_header.subtitle %}
-        <p class="page-subtitle">{{ page_header.subtitle }}</p>
+    {% if projects_by_category %}
+    <!-- Folder Tabs -->
+    <div class="folder-tabs">
+        {% for category, projects in projects_by_category.items() %}
+        <button class="folder-tab {% if loop.first %}active{% endif %}"
+                data-category="{{ category.slug }}">
+            {% if category.icon %}<i class="{{ category.icon }}"></i> {% endif %}
+            {{ category.name }}
+        </button>
+        {% endfor %}
+        {% if current_user.is_authenticated and current_user.is_admin %}
+        <button type="button" class="folder-tab folder-tab-add" onclick="openCategoryModal()" title="Add category">
+            <i class="fa-solid fa-plus"></i>
+        </button>
         {% endif %}
     </div>
-    {% endif %}
 
-    <!-- Database-driven Projects by Category -->
+    <!-- Tab Panels -->
     {% for category, projects in projects_by_category.items() %}
-    <section class="creating-category" id="category-{{ category.slug }}">
-        <div class="category-header">
-            <h2 class="category-title">
-                {% if category.icon %}<i class="{{ category.icon }}"></i> {% endif %}
-                {{ category.name }}
-            </h2>
-            {% if category.description %}
-            <p class="category-description">{{ category.description }}</p>
-            {% endif %}
-        </div>
+    <div class="folder-panel {% if loop.first %}active{% endif %}"
+         id="panel-{{ category.slug }}">
+
+        {% if category.description %}
+        <p class="category-description">{{ category.description }}</p>
+        {% endif %}
 
         {% for project in projects %}
-        <div class="creating-section {% if project.layout_type == 'split' %}creating-section-split{% endif %}"
-             id="project-{{ project.slug }}">
+        <div class="creating-section {% if project.layout_type == 'split' %}creating-section-split{% endif %}{% if not project.is_public %} project-hidden{% endif %}"
+             id="project-{{ project.slug }}" data-project-id="{{ project.id }}">
+
+            {% if current_user.is_authenticated and current_user.is_admin %}
+            <div class="project-admin-bar">
+                <button type="button" class="btn-icon-sm btn-edit" onclick="openEditProjectModal({{ project.id }})" title="Edit project">&#9998;</button>
+                <button type="button" class="btn-icon-sm btn-toggle-vis" onclick="toggleProjectVisibility({{ project.id }})" title="{% if project.is_public %}Hide project{% else %}Show project{% endif %}">
+                    <i class="fa-solid fa-{% if project.is_public %}eye{% else %}eye-slash{% endif %}"></i>
+                </button>
+                <button type="button" class="btn-icon-sm btn-delete" onclick="confirmDeleteProject({{ project.id }}, '{{ project.title | e }}')" title="Delete project">&times;</button>
+            </div>
+            {% endif %}
 
             {% if project.layout_type == 'split' and project.hero_image %}
             <div class="section-image">
@@ -46,6 +60,9 @@
             <div class="section-content">
                 <h2>
                     {{ project.title }}
+                    {% if not project.is_public %}
+                    <span class="status-badge status-hidden">Hidden</span>
+                    {% endif %}
                     {% if project.status == 'in_development' %}
                     <span class="status-badge status-development">In Development</span>
                     {% elif project.status == 'archived' %}
@@ -53,7 +70,7 @@
                     {% endif %}
                 </h2>
 
-                {{ project.full_description | safe }}
+                {{ project.full_description | safe_html }}
 
                 {% if project.tech_stack %}
                 <div class="tech-stack">
@@ -84,6 +101,29 @@
                     {% endfor %}
                 </div>
                 {% endif %}
+
+                <!-- Related project cards -->
+                {% if project.id in project_relations %}
+                <div class="related-projects">
+                    <span class="related-label">Related</span>
+                    {% for related in project_relations[project.id] %}
+                    <a href="#" class="related-card"
+                       data-target-category="{{ related.category_slug }}"
+                       data-target-project="{{ related.slug }}">
+                        {% if related.hero_image %}
+                        <img src="{{ static_url(related.hero_image) }}" alt="{{ related.title }}">
+                        {% endif %}
+                        <div class="related-card-info">
+                            <span class="related-card-title">{{ related.title }}</span>
+                            <span class="related-card-category">{{ related.category_name }}</span>
+                            {% if related.note %}
+                            <span class="related-card-note">{{ related.note }}</span>
+                            {% endif %}
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
 
             <!-- Special handling for Lunacy interactive section -->
@@ -110,11 +150,19 @@
             {% endif %}
         </div>
         {% endfor %}
-    </section>
+
+        {% if current_user.is_authenticated and current_user.is_admin %}
+        <div class="admin-panel-controls">
+            <button type="button" class="btn btn-primary btn-sm" onclick="openAddProjectModal({{ category.id }})">
+                <i class="fa-solid fa-plus"></i> Add Project
+            </button>
+        </div>
+        {% endif %}
+    </div>
     {% endfor %}
 
+    {% else %}
     <!-- Fallback: Show hardcoded content if no database projects exist -->
-    {% if not projects_by_category %}
     <!-- Museum Interpolations Section -->
     <section class="creating-section creating-section-split">
         <div class="section-image">
@@ -188,6 +236,158 @@
     {% endif %}
 </div>
 
+{% if current_user.is_authenticated and current_user.is_admin %}
+<!-- Add/Edit Project Modal -->
+<div class="modal-overlay" id="projectModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="projectModalTitle">Add Project</h3>
+            <button type="button" class="modal-close" onclick="closeProjectModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="editProjectId" value="">
+            <div class="form-group">
+                <label for="projectTitle">Title</label>
+                <input type="text" id="projectTitle" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label for="projectCategory">Category</label>
+                <select id="projectCategory" class="form-input">
+                    {% for cat in all_categories %}
+                    <option value="{{ cat.id }}">{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="projectShortDesc">Short Description</label>
+                <input type="text" id="projectShortDesc" class="form-input">
+            </div>
+            <div class="form-group">
+                <label for="projectFullDesc">Full Description (HTML)</label>
+                <textarea id="projectFullDesc" class="form-textarea" rows="5"></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="projectStatus">Status</label>
+                    <select id="projectStatus" class="form-input">
+                        <option value="active">Active</option>
+                        <option value="in_development">In Development</option>
+                        <option value="archived">Archived</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="projectLayout">Layout</label>
+                    <select id="projectLayout" class="form-input">
+                        <option value="standard">Standard</option>
+                        <option value="split">Split (with hero image)</option>
+                        <option value="interactive">Interactive</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="projectTechStack">Tech Stack</label>
+                <input type="text" id="projectTechStack" class="form-input" placeholder="e.g. Flask, React, PostgreSQL">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="projectUrl">Project URL</label>
+                    <input type="text" id="projectUrl" class="form-input" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                    <label for="projectGithub">GitHub URL</label>
+                    <input type="text" id="projectGithub" class="form-input" placeholder="https://github.com/...">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="projectOrder">Display Order</label>
+                    <input type="number" id="projectOrder" class="form-input" value="0" min="0">
+                </div>
+                <div class="form-group checkbox-group">
+                    <label>
+                        <input type="checkbox" id="projectPublic" checked> Visible to public
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Related Projects</label>
+                <div id="relationsContainer"></div>
+                <div class="relation-add-row">
+                    <select id="relationProjectSelect" class="form-input">
+                        <option value="">Link a project...</option>
+                        {% for p in all_projects_list %}
+                        <option value="{{ p.id }}">{{ p.title }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="text" id="relationNote" class="form-input" placeholder="Note (optional)">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="addRelation()">+</button>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeProjectModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="saveProject()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteProjectModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Delete Project</h3>
+            <button type="button" class="modal-close" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-description warning">
+                Are you sure you want to delete <strong id="deleteProjectName"></strong>?
+                This cannot be undone.
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+        </div>
+    </div>
+</div>
+<!-- Add Category Modal -->
+<div class="modal-overlay" id="categoryModal">
+    <div class="modal modal-sm">
+        <div class="modal-header">
+            <h3>New Category</h3>
+            <button type="button" class="modal-close" onclick="closeCategoryModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="categoryName">Name</label>
+                <input type="text" id="categoryName" class="form-input" required placeholder="e.g. Research">
+            </div>
+            <div class="form-group">
+                <label for="categorySlug">Slug</label>
+                <input type="text" id="categorySlug" class="form-input" placeholder="auto-generated from name">
+            </div>
+            <div class="form-group">
+                <label for="categoryIcon">Icon (Font Awesome class)</label>
+                <input type="text" id="categoryIcon" class="form-input" placeholder="e.g. fa-solid fa-flask">
+            </div>
+            <div class="form-group">
+                <label for="categoryDesc">Description</label>
+                <input type="text" id="categoryDesc" class="form-input">
+            </div>
+            <div class="form-group checkbox-group" style="padding-top: 0;">
+                <label>
+                    <input type="checkbox" id="categoryPublic" checked> Visible to public
+                </label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="saveCategory()">Create</button>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Zoomable Image Overlay -->
 <div class="image-zoom-overlay" id="imageZoomOverlay">
     <button class="zoom-close" id="zoomClose">&times;</button>
@@ -205,25 +405,27 @@
 
 {% block extra_scripts %}
 <script type="text/javascript">
+    // ========================================
+    // Lunacy Interactive Section (data + functions)
+    // Must be defined before tab navigation IIFE
+    // ========================================
     const STATIC_BASE_URL = "{{ static_url('') }}";
-    let allGeneratedImages = {{ generated_images | tojson | safe }};
+    let allGeneratedImages = {{ generated_images | tojson }};
     let selectedArtists = [];
     let currentGeneratedImageIndex = 0;
 
     // Extract unique artist names from generated_images
     let allArtists = [...new Set(allGeneratedImages.flatMap(img => img.artist_palette))].map(name => {
-        // Find all images for this artist from the artists data
-        let artistImages = {{ artists | tojson | safe }}.filter(a => a.name === name).map(a => a.image);
+        let artistImages = {{ artists | tojson }}.filter(a => a.name === name).map(a => a.image);
         return {
             name,
             images: artistImages
         };
     });
 
-    function initializeApp() {
+    function initializeLunacy() {
         displayArtistOptions();
         updateDisplay();
-
         setInterval(updateGeneratedImageDisplay, 20000);
     }
 
@@ -406,7 +608,333 @@
         generatedImageContainer.style.display = 'none';
     }
 
-    initializeApp();
+    // ========================================
+    // Folder Tab Navigation
+    // ========================================
+    (function() {
+        const tabs = document.querySelectorAll('.folder-tab');
+        const panels = document.querySelectorAll('.folder-panel');
+        let lunacyInitialized = false;
+
+        function activateTab(slug) {
+            tabs.forEach(t => t.classList.remove('active'));
+            panels.forEach(p => p.classList.remove('active'));
+
+            const targetTab = document.querySelector(`.folder-tab[data-category="${slug}"]`);
+            const targetPanel = document.getElementById(`panel-${slug}`);
+
+            if (targetTab && targetPanel) {
+                targetTab.classList.add('active');
+                targetPanel.classList.add('active');
+
+                // Adjust top-left border-radius based on active tab position
+                const isFirst = targetTab === tabs[0];
+                targetPanel.style.borderTopLeftRadius = isFirst ? '0' : '';
+            }
+
+            // Lazy-init Lunacy when its panel becomes active
+            if (!lunacyInitialized && targetPanel && targetPanel.querySelector('#artist-selection')) {
+                lunacyInitialized = true;
+                initializeLunacy();
+            }
+        }
+
+        // Tab click handlers
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const slug = this.dataset.category;
+                activateTab(slug);
+                history.replaceState(null, '', `#${slug}`);
+            });
+        });
+
+        // Related card click → switch tab + scroll to project
+        document.querySelectorAll('.related-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetCategory = this.dataset.targetCategory;
+                const targetProject = this.dataset.targetProject;
+
+                activateTab(targetCategory);
+                history.replaceState(null, '', `#${targetCategory}`);
+
+                const projectEl = document.getElementById(`project-${targetProject}`);
+                if (projectEl) {
+                    setTimeout(() => {
+                        projectEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                }
+            });
+        });
+
+        // Deep link from URL hash on load
+        const hash = window.location.hash.replace('#', '');
+        if (hash) {
+            activateTab(hash);
+        } else {
+            // Initialize first tab (including Lunacy if it's on the first tab)
+            const firstTab = tabs[0];
+            if (firstTab) {
+                activateTab(firstTab.dataset.category);
+            }
+        }
+    })();
+
+    {% if current_user.is_authenticated and current_user.is_admin %}
+    // ========================================
+    // Admin Project CRUD
+    // ========================================
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+    // All projects lookup for relation picker
+    const allProjectsList = {{ all_projects_list | tojson }};
+    let modalRelations = []; // [{project_id, title, note}]
+
+    function renderRelations() {
+        const container = document.getElementById('relationsContainer');
+        container.innerHTML = '';
+        const editingId = parseInt(document.getElementById('editProjectId').value) || 0;
+
+        // Filter select options to exclude self and already-linked projects
+        const select = document.getElementById('relationProjectSelect');
+        const linkedIds = new Set(modalRelations.map(r => r.project_id));
+        select.innerHTML = '<option value="">Link a project...</option>';
+        allProjectsList.forEach(p => {
+            if (p.id !== editingId && !linkedIds.has(p.id)) {
+                select.innerHTML += `<option value="${p.id}">${p.title}</option>`;
+            }
+        });
+
+        modalRelations.forEach((rel, i) => {
+            const row = document.createElement('div');
+            row.className = 'relation-row';
+            row.innerHTML = `
+                <span class="relation-title">${rel.title}</span>
+                <span class="relation-note">${rel.note || ''}</span>
+                <button type="button" class="btn-icon-sm btn-delete" onclick="removeRelation(${i})">&times;</button>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function addRelation() {
+        const select = document.getElementById('relationProjectSelect');
+        const noteInput = document.getElementById('relationNote');
+        const projectId = parseInt(select.value);
+        if (!projectId) return;
+
+        const project = allProjectsList.find(p => p.id === projectId);
+        if (!project) return;
+
+        modalRelations.push({
+            project_id: projectId,
+            title: project.title,
+            note: noteInput.value.trim(),
+        });
+        noteInput.value = '';
+        renderRelations();
+    }
+
+    function removeRelation(index) {
+        modalRelations.splice(index, 1);
+        renderRelations();
+    }
+
+    function openAddProjectModal(categoryId) {
+        document.getElementById('projectModalTitle').textContent = 'Add Project';
+        document.getElementById('editProjectId').value = '';
+        document.getElementById('projectTitle').value = '';
+        document.getElementById('projectCategory').value = categoryId;
+        document.getElementById('projectShortDesc').value = '';
+        document.getElementById('projectFullDesc').value = '';
+        document.getElementById('projectTechStack').value = '';
+        document.getElementById('projectUrl').value = '';
+        document.getElementById('projectGithub').value = '';
+        document.getElementById('projectStatus').value = 'active';
+        document.getElementById('projectLayout').value = 'standard';
+        document.getElementById('projectOrder').value = '0';
+        document.getElementById('projectPublic').checked = true;
+        modalRelations = [];
+        renderRelations();
+        document.getElementById('projectModal').style.display = 'flex';
+    }
+
+    function openEditProjectModal(projectId) {
+        fetch(`/creating/api/project/${projectId}`, {
+            headers: { 'X-CSRFToken': csrfToken }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) return alert('Failed to load project');
+            const p = data.project;
+            document.getElementById('projectModalTitle').textContent = 'Edit Project';
+            document.getElementById('editProjectId').value = p.id;
+            document.getElementById('projectTitle').value = p.title;
+            document.getElementById('projectCategory').value = p.category_id;
+            document.getElementById('projectShortDesc').value = p.short_description;
+            document.getElementById('projectFullDesc').value = p.full_description;
+            document.getElementById('projectTechStack').value = p.tech_stack;
+            document.getElementById('projectUrl').value = p.project_url;
+            document.getElementById('projectGithub').value = p.github_url;
+            document.getElementById('projectStatus').value = p.status;
+            document.getElementById('projectLayout').value = p.layout_type;
+            document.getElementById('projectOrder').value = p.display_order;
+            document.getElementById('projectPublic').checked = p.is_public;
+            modalRelations = (p.relations || []).map(r => ({
+                project_id: r.project_id,
+                title: r.title,
+                note: r.note || '',
+            }));
+            renderRelations();
+            document.getElementById('projectModal').style.display = 'flex';
+        });
+    }
+
+    function closeProjectModal() {
+        document.getElementById('projectModal').style.display = 'none';
+    }
+
+    function saveProject() {
+        const projectId = document.getElementById('editProjectId').value;
+        const payload = {
+            title: document.getElementById('projectTitle').value,
+            category_id: parseInt(document.getElementById('projectCategory').value),
+            short_description: document.getElementById('projectShortDesc').value,
+            full_description: document.getElementById('projectFullDesc').value,
+            tech_stack: document.getElementById('projectTechStack').value,
+            project_url: document.getElementById('projectUrl').value,
+            github_url: document.getElementById('projectGithub').value,
+            status: document.getElementById('projectStatus').value,
+            layout_type: document.getElementById('projectLayout').value,
+            display_order: parseInt(document.getElementById('projectOrder').value) || 0,
+            is_public: document.getElementById('projectPublic').checked,
+            relations: modalRelations.map(r => ({
+                project_id: r.project_id,
+                note: r.note,
+            })),
+        };
+
+        const url = projectId
+            ? `/creating/api/project/${projectId}`
+            : '/creating/api/project';
+        const method = projectId ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify(payload),
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.error || 'Save failed');
+            }
+        });
+    }
+
+    function toggleProjectVisibility(projectId) {
+        fetch(`/creating/api/project/${projectId}/toggle-visibility`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken },
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) location.reload();
+        });
+    }
+
+    let pendingDeleteId = null;
+
+    function confirmDeleteProject(projectId, title) {
+        pendingDeleteId = projectId;
+        document.getElementById('deleteProjectName').textContent = title;
+        document.getElementById('deleteProjectModal').style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteProjectModal').style.display = 'none';
+        pendingDeleteId = null;
+    }
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+        if (!pendingDeleteId) return;
+        fetch(`/creating/api/project/${pendingDeleteId}`, {
+            method: 'DELETE',
+            headers: { 'X-CSRFToken': csrfToken },
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) location.reload();
+            else alert('Delete failed');
+        });
+    });
+
+    // Category modal
+    function openCategoryModal() {
+        document.getElementById('categoryName').value = '';
+        document.getElementById('categorySlug').value = '';
+        document.getElementById('categoryIcon').value = '';
+        document.getElementById('categoryDesc').value = '';
+        document.getElementById('categoryPublic').checked = true;
+        document.getElementById('categoryModal').style.display = 'flex';
+    }
+
+    function closeCategoryModal() {
+        document.getElementById('categoryModal').style.display = 'none';
+    }
+
+    // Auto-generate slug from name
+    document.getElementById('categoryName').addEventListener('input', function() {
+        const slugField = document.getElementById('categorySlug');
+        if (!slugField.dataset.manual) {
+            slugField.value = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        }
+    });
+    document.getElementById('categorySlug').addEventListener('input', function() {
+        this.dataset.manual = this.value ? '1' : '';
+    });
+
+    function saveCategory() {
+        const name = document.getElementById('categoryName').value.trim();
+        if (!name) return alert('Name is required');
+
+        fetch('/creating/api/category', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify({
+                name: name,
+                slug: document.getElementById('categorySlug').value.trim() || undefined,
+                icon: document.getElementById('categoryIcon').value.trim() || undefined,
+                description: document.getElementById('categoryDesc').value.trim() || undefined,
+                is_public: document.getElementById('categoryPublic').checked,
+            }),
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) location.reload();
+            else alert(data.error || 'Failed to create category');
+        });
+    }
+
+    // Close modals on overlay click
+    document.getElementById('projectModal').addEventListener('click', function(e) {
+        if (e.target === this) closeProjectModal();
+    });
+    document.getElementById('deleteProjectModal').addEventListener('click', function(e) {
+        if (e.target === this) closeDeleteModal();
+    });
+    document.getElementById('categoryModal').addEventListener('click', function(e) {
+        if (e.target === this) closeCategoryModal();
+    });
+    {% endif %}
 
     // ========================================
     // Zoomable Image Viewer

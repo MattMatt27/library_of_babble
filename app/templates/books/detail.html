@@ -612,7 +612,7 @@
 
                             <div class="review-preview" id="review-preview-{{ review.id }}">
                                 {% if review.my_review %}
-                                    <div class="review-content">{{ review.my_review|safe }}</div>
+                                    <div class="review-content">{{ review.my_review|safe_html }}</div>
                                 {% else %}
                                     <p class="no-review">No written review</p>
                                 {% endif %}

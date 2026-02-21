@@ -3,6 +3,10 @@ Collecting Routes
 
 Handles pins, alcohol labels, trading cards, and general collecting page
 """
+import os
+import time
+import requests as http_requests
+
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import current_user
 from app.collecting import collecting_bp
@@ -232,6 +236,130 @@ def cards_schemas():
     })
 
 
+# ============ Pokemon TCG API Proxy ============
+
+# Simple in-memory cache: {cache_key: (data, timestamp)}
+_pokemon_api_cache = {}
+_POKEMON_CACHE_TTL = 300  # 5 minutes
+
+
+@collecting_bp.route('/cards/pokemon-search')
+@admin_required
+def pokemon_search():
+    """Proxy search to the Pokemon TCG API"""
+    query = request.args.get('q', '').strip()
+    page = request.args.get('page', 1, type=int)
+
+    if not query:
+        return jsonify({'cards': [], 'total': 0, 'page': 1, 'total_pages': 0})
+
+    cache_key = f"{query.lower()}:{page}"
+    now = time.time()
+
+    # Check cache
+    if cache_key in _pokemon_api_cache:
+        cached_data, cached_at = _pokemon_api_cache[cache_key]
+        if now - cached_at < _POKEMON_CACHE_TTL:
+            return jsonify(cached_data)
+
+    headers = {}
+    api_key = os.environ.get('POKEMON_TCG_API_KEY')
+    if api_key:
+        headers['X-Api-Key'] = api_key
+
+    try:
+        resp = http_requests.get(
+            'https://api.pokemontcg.io/v2/cards',
+            params={
+                'q': f'name:{query}',
+                'pageSize': 12,
+                'page': page,
+            },
+            headers=headers,
+            timeout=15,
+        )
+        resp.raise_for_status()
+        api_data = resp.json()
+    except http_requests.Timeout:
+        return jsonify({'cards': [], 'total': 0, 'page': page, 'total_pages': 0,
+                        'error': 'Pokemon TCG API timed out - try again in a moment'})
+    except http_requests.RequestException:
+        return jsonify({'cards': [], 'total': 0, 'page': page, 'total_pages': 0,
+                        'error': 'Pokemon TCG API unavailable - the external service may be down'})
+    except ValueError:
+        return jsonify({'cards': [], 'total': 0, 'page': page, 'total_pages': 0,
+                        'error': 'Invalid response from Pokemon TCG API'})
+
+    total = api_data.get('totalCount', 0)
+    page_size = 12
+    total_pages = (total + page_size - 1) // page_size if total > 0 else 0
+
+    cards = []
+    for c in api_data.get('data', []):
+        card_set = c.get('set', {})
+
+        # Extract pricing data
+        tcgplayer = c.get('tcgplayer', {})
+        cardmarket = c.get('cardmarket', {})
+        market_data = {}
+        if tcgplayer:
+            market_data['tcgplayer'] = {
+                'url': tcgplayer.get('url', ''),
+                'updated_at': tcgplayer.get('updatedAt', ''),
+                'prices': tcgplayer.get('prices', {}),
+            }
+        if cardmarket:
+            market_data['cardmarket'] = {
+                'url': cardmarket.get('url', ''),
+                'updated_at': cardmarket.get('updatedAt', ''),
+                'prices': cardmarket.get('prices', {}),
+            }
+
+        # Pick a display price: prefer tcgplayer market price
+        market_price = None
+        if tcgplayer.get('prices'):
+            for price_type in ('holofoil', 'normal', 'reverseHolofoil',
+                               '1stEditionHolofoil', '1stEditionNormal'):
+                bucket = tcgplayer['prices'].get(price_type, {})
+                if bucket.get('market'):
+                    market_price = bucket['market']
+                    break
+
+        cards.append({
+            'api_id': c.get('id', ''),
+            'name': c.get('name', ''),
+            'set_name': card_set.get('name', ''),
+            'set_year': int(card_set.get('releaseDate', '0000')[:4]) or None,
+            'card_number': c.get('number', ''),
+            'image_small': c.get('images', {}).get('small', ''),
+            'image_large': c.get('images', {}).get('large', ''),
+            'hp': c.get('hp', ''),
+            'types': c.get('types', []),
+            'subtypes': c.get('subtypes', []),
+            'rarity': c.get('rarity', ''),
+            'artist': c.get('artist', ''),
+            'market_price': market_price,
+            'market_data': market_data,
+        })
+
+    result = {
+        'cards': cards,
+        'total': total,
+        'page': page,
+        'total_pages': total_pages,
+    }
+
+    # Store in cache
+    _pokemon_api_cache[cache_key] = (result, now)
+
+    # Prune expired entries
+    expired = [k for k, (_, ts) in _pokemon_api_cache.items() if now - ts >= _POKEMON_CACHE_TTL]
+    for k in expired:
+        del _pokemon_api_cache[k]
+
+    return jsonify(result)
+
+
 # ============ Card CRUD (Admin Only) ============
 
 @collecting_bp.route('/cards', methods=['POST'])
@@ -260,7 +388,10 @@ def create_card_route():
         card_number=data.get('card_number'),
         variant=data.get('variant'),
         details=data.get('details', {}),
-        created_by=current_user.id
+        created_by=current_user.id,
+        external_api_id=data.get('external_api_id'),
+        external_image_url=data.get('external_image_url'),
+        external_market_data=data.get('external_market_data'),
     )
 
     return jsonify({

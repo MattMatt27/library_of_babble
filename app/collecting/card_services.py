@@ -41,6 +41,7 @@ def search_cards(query='', category=None, set_name=None, brand=None,
                 Card.set_name.ilike(search_term),
                 Card.brand.ilike(search_term),
                 Card.details['player'].astext.ilike(search_term),
+                Card.external_api_id.ilike(search_term),
             )
         )
 
@@ -77,7 +78,9 @@ def get_card_copy_by_id(copy_id):
 
 
 def create_card(name, category, brand=None, set_name=None, set_year=None,
-                card_number=None, variant=None, details=None, created_by=None):
+                card_number=None, variant=None, details=None, created_by=None,
+                external_api_id=None, external_image_url=None,
+                external_market_data=None):
     """
     Create a new card record.
 
@@ -91,6 +94,9 @@ def create_card(name, category, brand=None, set_name=None, set_year=None,
         variant: Card variant (base, foil, etc.)
         details: Category-specific details dict
         created_by: User ID of creator
+        external_api_id: External API identifier (e.g., Pokemon TCG API)
+        external_image_url: Hi-res image URL from external API
+        external_market_data: Price/market data snapshot from external API
 
     Returns:
         Created Card object
@@ -104,7 +110,10 @@ def create_card(name, category, brand=None, set_name=None, set_year=None,
         category=category,
         variant=variant,
         details=details or {},
-        created_by=created_by
+        created_by=created_by,
+        external_api_id=external_api_id,
+        external_image_url=external_image_url,
+        external_market_data=external_market_data,
     )
     db.session.add(card)
     db.session.commit()
@@ -125,7 +134,9 @@ def update_card(card_id, **kwargs):
     card = Card.query.get_or_404(card_id)
 
     allowed_fields = ['name', 'brand', 'set_name', 'set_year', 'card_number',
-                      'category', 'variant', 'details']
+                      'category', 'variant', 'details',
+                      'external_api_id', 'external_image_url',
+                      'external_market_data']
 
     for field in allowed_fields:
         if field in kwargs:
@@ -269,6 +280,9 @@ def format_card_for_response(card, include_hidden=False):
         'category': card.category,
         'variant': card.variant,
         'details': card.details,
+        'external_api_id': card.external_api_id,
+        'external_image_url': card.external_image_url,
+        'external_market_data': card.external_market_data,
         'copies': [format_copy_for_response(c) for c in copies]
     }
 

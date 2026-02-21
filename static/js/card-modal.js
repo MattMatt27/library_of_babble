@@ -137,6 +137,17 @@ function setupEventListeners() {
         });
     }
 
+    // Pokemon API search - Enter key
+    const pokemonQueryInput = document.getElementById('pokemonApiQuery');
+    if (pokemonQueryInput) {
+        pokemonQueryInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchPokemonApi();
+            }
+        });
+    }
+
     // Graded checkbox toggle
     const gradedCheckbox = document.getElementById('copyGraded');
     if (gradedCheckbox) {
@@ -250,6 +261,11 @@ function resetCardModal() {
     const specialFeatures = document.getElementById('specialFeatures');
     if (specialFeatures) specialFeatures.innerHTML = '';
 
+    // Clear Pokemon API search state
+    clearPokemonSelection();
+    const pokemonSearch = document.getElementById('pokemonApiSearch');
+    if (pokemonSearch) pokemonSearch.style.display = 'none';
+
     // Reset copy fields
     const conditionSelect = document.getElementById('copyCondition');
     if (conditionSelect) conditionSelect.selectedIndex = 1; // Near Mint default
@@ -310,6 +326,15 @@ function updateCategoryFields() {
     const category = document.getElementById('cardCategory').value;
     const categoryFieldsContainer = document.getElementById('categoryFields');
     const specialFeaturesContainer = document.getElementById('specialFeatures');
+
+    // Show/hide Pokemon API search
+    const pokemonSearch = document.getElementById('pokemonApiSearch');
+    if (pokemonSearch) {
+        pokemonSearch.style.display = category === 'pokemon' ? '' : 'none';
+        if (category !== 'pokemon') {
+            clearPokemonSelection();
+        }
+    }
 
     if (!category || !cardSchemas) {
         categoryFieldsContainer.innerHTML = '';
@@ -598,8 +623,10 @@ function collectCardData() {
     });
 
     const setYear = document.getElementById('cardSetYear').value;
+    const externalApiId = document.getElementById('externalApiId').value || null;
+    const externalImageUrl = document.getElementById('externalImageUrl').value || null;
 
-    return {
+    const data = {
         name: document.getElementById('cardName').value.trim(),
         brand: document.getElementById('cardBrand').value.trim() || null,
         set_name: document.getElementById('cardSetName').value.trim() || null,
@@ -609,6 +636,17 @@ function collectCardData() {
         variant: document.getElementById('cardVariant').value || 'base',
         details: details
     };
+
+    if (externalApiId) data.external_api_id = externalApiId;
+    if (externalImageUrl) data.external_image_url = externalImageUrl;
+
+    const externalMarketData = document.getElementById('externalMarketData').value;
+    if (externalMarketData) {
+        try { data.external_market_data = JSON.parse(externalMarketData); }
+        catch (e) { /* skip if invalid */ }
+    }
+
+    return data;
 }
 
 function collectCopyData() {
@@ -784,6 +822,137 @@ async function deleteCopy(copyId) {
         alert('An error occurred');
     }
 }
+
+// =============================================================================
+// Pokemon TCG API Search
+// =============================================================================
+
+let pokemonSearchTimeout = null;
+
+async function searchPokemonApi() {
+    const query = document.getElementById('pokemonApiQuery').value.trim();
+    const resultsContainer = document.getElementById('pokemonApiResults');
+
+    if (!query) {
+        resultsContainer.innerHTML = '';
+        return;
+    }
+
+    resultsContainer.innerHTML = '<div class="pokemon-api-loading">Searching...</div>';
+
+    try {
+        const response = await fetch(`/collecting/cards/pokemon-search?q=${encodeURIComponent(query)}`);
+        if (!response.ok) throw new Error('Search failed');
+
+        const data = await response.json();
+
+        if (data.error) {
+            resultsContainer.innerHTML = `<div class="pokemon-api-empty">${escapeHtml(data.error)}</div>`;
+            return;
+        }
+
+        if (data.cards.length === 0) {
+            resultsContainer.innerHTML = '<div class="pokemon-api-empty">No Pokemon cards found</div>';
+            return;
+        }
+
+        resultsContainer.innerHTML = data.cards.map((card, i) => {
+            const priceStr = card.market_price ? `$${card.market_price.toFixed(2)}` : '';
+            return `
+            <div class="pokemon-api-card" onclick='selectPokemonCard(${JSON.stringify(card)})' title="${escapeHtml(card.name)} - ${escapeHtml(card.set_name)}${priceStr ? ' - ' + priceStr : ''}">
+                <img src="${escapeHtml(card.image_small)}" alt="${escapeHtml(card.name)}" loading="lazy">
+                ${priceStr ? `<div class="pokemon-api-card-price">${priceStr}</div>` : ''}
+            </div>`;
+        }).join('');
+
+    } catch (error) {
+        console.error('Pokemon API search error:', error);
+        resultsContainer.innerHTML = '<div class="pokemon-api-empty">Search failed - please try again</div>';
+    }
+}
+
+function selectPokemonCard(card) {
+    // Auto-fill core fields
+    document.getElementById('cardName').value = card.name || '';
+    document.getElementById('cardSetName').value = card.set_name || '';
+    document.getElementById('cardSetYear').value = card.set_year || '';
+    document.getElementById('cardNumber').value = card.card_number || '';
+    document.getElementById('cardBrand').value = 'The Pokemon Company';
+
+    // Hidden external fields
+    document.getElementById('externalApiId').value = card.api_id || '';
+    document.getElementById('externalImageUrl').value = card.image_large || '';
+    document.getElementById('externalMarketData').value = card.market_data ? JSON.stringify(card.market_data) : '';
+
+    // Auto-fill category-specific detail fields if they exist
+    const pokemonName = document.getElementById('detail_pokemon_name');
+    if (pokemonName) pokemonName.value = card.name || '';
+
+    const pokemonType = document.getElementById('detail_pokemon_type');
+    if (pokemonType) pokemonType.value = (card.types && card.types[0]) || '';
+
+    const hp = document.getElementById('detail_hp');
+    if (hp) hp.value = card.hp || '';
+
+    const stage = document.getElementById('detail_stage');
+    if (stage && card.subtypes && card.subtypes.length) {
+        // Map API subtypes to our select options
+        const subtypeMap = {
+            'Basic': 'Basic',
+            'Stage 1': 'Stage 1',
+            'Stage 2': 'Stage 2',
+            'VMAX': 'VMAX',
+            'V': 'V',
+            'EX': 'EX',
+            'ex': 'EX',
+            'GX': 'GX',
+        };
+        const mapped = subtypeMap[card.subtypes[0]] || 'Other';
+        stage.value = mapped;
+    }
+
+    // Show selected card preview
+    const priceDisplay = card.market_price ? `<div class="pokemon-api-price">Market: $${card.market_price.toFixed(2)}</div>` : '';
+    const selectedContainer = document.getElementById('pokemonApiSelected');
+    selectedContainer.style.display = 'flex';
+    selectedContainer.innerHTML = `
+        <img src="${escapeHtml(card.image_small)}" alt="${escapeHtml(card.name)}">
+        <div class="pokemon-api-selected-info">
+            <strong>${escapeHtml(card.name)}</strong><br>
+            <small>${escapeHtml(card.set_name)} #${escapeHtml(card.card_number)}</small><br>
+            <small>${escapeHtml(card.rarity || '')} ${card.artist ? '- ' + escapeHtml(card.artist) : ''}</small>
+            ${priceDisplay}
+        </div>
+        <button type="button" class="btn-clear" onclick="clearPokemonSelection()">Clear</button>
+    `;
+
+    // Hide the search results
+    document.getElementById('pokemonApiResults').innerHTML = '';
+}
+
+function clearPokemonSelection() {
+    // Clear external fields
+    const externalApiId = document.getElementById('externalApiId');
+    if (externalApiId) externalApiId.value = '';
+    const externalImageUrl = document.getElementById('externalImageUrl');
+    if (externalImageUrl) externalImageUrl.value = '';
+    const externalMarketData = document.getElementById('externalMarketData');
+    if (externalMarketData) externalMarketData.value = '';
+
+    // Clear search input and results
+    const queryInput = document.getElementById('pokemonApiQuery');
+    if (queryInput) queryInput.value = '';
+    const results = document.getElementById('pokemonApiResults');
+    if (results) results.innerHTML = '';
+
+    // Hide selected preview
+    const selected = document.getElementById('pokemonApiSelected');
+    if (selected) {
+        selected.style.display = 'none';
+        selected.innerHTML = '';
+    }
+}
+
 
 // =============================================================================
 // Utilities

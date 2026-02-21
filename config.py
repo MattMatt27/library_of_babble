@@ -17,7 +17,7 @@ class Config:
 
     # CSRF Protection
     WTF_CSRF_ENABLED = True
-    WTF_CSRF_TIME_LIMIT = None  # No time limit for CSRF tokens
+    WTF_CSRF_TIME_LIMIT = 3600  # CSRF tokens expire after 1 hour
 
     # SQLAlchemy
     SQLALCHEMY_TRACK_MODIFICATIONS = False

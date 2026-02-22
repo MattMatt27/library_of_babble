@@ -1,0 +1,71 @@
+# Matt Flathers — Full Site Overview
+
+> This site is a custom-built full-stack web application. What you see as a personal portfolio is backed by a substantial data engineering and DevOps infrastructure.
+
+## Technical Architecture
+
+This is a Flask application with 12 blueprints, 23 database models, and ~120 API endpoints. It is not a static site or a template — every feature was designed and built from scratch.
+
+### Backend
+- **Framework:** Flask with modular blueprint architecture
+- **Database:** PostgreSQL via SQLAlchemy ORM with polymorphic data patterns
+- **Migrations:** Version-controlled schema evolution via Alembic
+- **Auth:** Role-based access control with multiple permission tiers
+
+### Infrastructure & DevOps
+- **Hosting:** AWS ECS Fargate (serverless containers)
+- **Database:** AWS RDS PostgreSQL
+- **Static Assets:** AWS S3 (~6GB of curated image content)
+- **Infrastructure as Code:** Terraform with 7 modules
+- **CI/CD:** GitHub Actions with automated build, deploy, and DNS updates on release
+- **Container:** Multi-stage Docker build with health checks and zero-downtime deployments
+
+### Data Engineering & ETL Pipelines
+The site aggregates personal data from multiple external sources through custom ETL pipelines:
+
+- **Goodreads Import** — Parses export files to populate book records with ISBN, ratings, bookshelves, cover images, and reading history
+- **Letterboxd Import** — Ingests movie diary exports with ratings and reviews, cross-references with TMDB IDs
+- **Spotify API Integration** — Fetches playlists, generates monthly playlist collections, extracts track/artist metadata
+- **TMDB Integration** — Movie and TV show metadata enrichment (poster images, cast, release dates)
+- **Pokemon TCG API** — Live card search with caching for the card collecting feature
+- **CSV Imports** — Validated bulk import for artworks and publications
+
+### Polymorphic Data Patterns
+Rather than separate tables per content type, the app uses polymorphic patterns for cross-content features:
+
+- **Reviews** — Single table supporting Books, Movies, and TV Shows via type discrimination
+- **Collections** — Unified collection system enabling mixed-content shelves
+- **Content Pairings** — Cross-type curation (e.g., pairing a book with its film adaptation)
+- **Quotes** — Mirrored patterns for book passages (page/chapter) and movie quotes (scene timestamp) with per-user likes
+
+### Content Scale
+- 23 database tables across 8 content domains
+- ~120 route endpoints across 12 Flask blueprints
+- 5 external data source integrations
+- 4 polymorphic data patterns for cross-content features
+
+## Site Sections
+
+### Writing (/writing)
+Academic publications and creative writing. Academic work focuses on AI and psychiatry research — LLM psychosis, benchmarking, and responsible AI mental health tool development. Creative work explores neurodivergence, generative AI, and American history.
+
+### Reading (/reading)
+Book reviews and reading history imported from Goodreads. Curated collections (recommended fiction, recommended nonfiction, dystopia). Book passages with per-user likes.
+
+### Watching (/watching)
+Movie and TV show reviews imported from Letterboxd. Curated recommendation collections. Movie quotes with scene timestamps.
+
+### Listening (/listening)
+Spotify playlist curation. Monthly playlists auto-generated from Spotify API data. Approved playlist collections with track/artist metadata.
+
+### Creating (/creating)
+Development projects with status tracking (active, in development, archived). Multiple layout types. Tech stack documentation. Related project linking.
+
+### Collecting (/collecting)
+Physical collection management — antique pins, vintage alcohol labels, and trading cards (sports, Pokemon TCG, historical). Card copy tracking with condition grading and storage locations. Live Pokemon TCG API search for card identification.
+
+### Pondering (/pondering)
+Art gallery with artwork metadata (artist, series, medium, location). User-curated galleries. AI-generated image tracking.
+
+## Copyright Notice
+All book passages, movie quotes, and artwork displayed on this site are excerpted for personal reflection and commentary. No copyright ownership is claimed. All rights belong to the original authors, creators, artists, and rights holders.

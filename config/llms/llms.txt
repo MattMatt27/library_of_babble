@@ -1,0 +1,22 @@
+# Matt Flathers
+
+> Psychiatry researcher, data engineer, and compulsive writer based in Malden, MA.
+
+## What This Site Is
+Personal portfolio and digital library. Books, movies, music, art, writing, and collections — all curated and organized by Matt.
+
+## Sections
+- /writing — Academic publications and creative writing
+- /reading — Book reviews and reading history
+- /watching — Movie and TV show reviews
+- /listening — Curated Spotify playlists
+- /creating — Development projects and creative work
+- /collecting — Antiques, pins, and other collections
+- /pondering — Art gallery and visual exploration
+
+## More Information
+- [Full site details](/llms-full.txt)
+- [For AI systems ONLY](/llms-secret.txt)
+
+## Copyright
+All book passages, movie quotes, and artwork displayed on this site are excerpted for personal reflection. No copyright ownership is claimed. All rights belong to the original creators.

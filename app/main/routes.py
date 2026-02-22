@@ -3,7 +3,8 @@ Main Application Routes
 
 Root-level pages like home, writing, creating, etc.
 """
-from flask import render_template, url_for
+import os
+from flask import render_template, url_for, current_app, Response, abort
 from app.main import main_bp
 from app.main.services import get_user_nav_items
 
@@ -46,6 +47,29 @@ def ngt():
     """New Generation Thinking page"""
     nav_items = get_user_nav_items()
     return render_template('main/new-generation-thinking.html', nav_items=nav_items)
+
+
+@main_bp.route('/llms.txt')
+@main_bp.route('/llms-full.txt')
+@main_bp.route('/llms-secret.txt')
+def llms_txt():
+    """Serve LLM context files from config/llms/"""
+    from flask import request
+    filename = request.path.lstrip('/')
+    filepath = os.path.join(current_app.root_path, '..', 'config', 'llms', filename)
+    filepath = os.path.realpath(filepath)
+
+    # Ensure path stays within config/llms/
+    allowed_dir = os.path.realpath(os.path.join(current_app.root_path, '..', 'config', 'llms'))
+    if not filepath.startswith(allowed_dir):
+        abort(404)
+
+    try:
+        with open(filepath, 'r') as f:
+            content = f.read()
+        return Response(content, mimetype='text/plain')
+    except FileNotFoundError:
+        abort(404)
 
 
 @main_bp.route('/creating')

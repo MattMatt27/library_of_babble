@@ -179,6 +179,8 @@ def create_project():
         category_id=data['category_id'],
         short_description=data.get('short_description', ''),
         full_description=data.get('full_description', ''),
+        hero_image=data.get('hero_image', ''),
+        hero_image_alt=data.get('hero_image_alt', ''),
         tech_stack=data.get('tech_stack', ''),
         project_url=data.get('project_url', ''),
         github_url=data.get('github_url', ''),
@@ -232,6 +234,8 @@ def get_project(project_id):
             'category_id': project.category_id,
             'short_description': project.short_description or '',
             'full_description': project.full_description or '',
+            'hero_image': project.hero_image or '',
+            'hero_image_alt': project.hero_image_alt or '',
             'tech_stack': project.tech_stack or '',
             'project_url': project.project_url or '',
             'github_url': project.github_url or '',
@@ -262,6 +266,10 @@ def update_project(project_id):
         project.short_description = data['short_description']
     if 'full_description' in data:
         project.full_description = data['full_description']
+    if 'hero_image' in data:
+        project.hero_image = data['hero_image']
+    if 'hero_image_alt' in data:
+        project.hero_image_alt = data['hero_image_alt']
     if 'tech_stack' in data:
         project.tech_stack = data['tech_stack']
     if 'project_url' in data:

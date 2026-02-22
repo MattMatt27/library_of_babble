@@ -284,6 +284,16 @@
                     </select>
                 </div>
             </div>
+            <div id="heroImageFields" style="display: none;">
+                <div class="form-group">
+                    <label for="projectHeroImage">Hero Image (S3 path)</label>
+                    <input type="text" id="projectHeroImage" class="form-input" placeholder="e.g. images/creating/project-logo.png">
+                </div>
+                <div class="form-group">
+                    <label for="projectHeroImageAlt">Hero Image Alt Text</label>
+                    <input type="text" id="projectHeroImageAlt" class="form-input" placeholder="Descriptive alt text for the image">
+                </div>
+            </div>
             <div class="form-group">
                 <label for="projectTechStack">Tech Stack</label>
                 <input type="text" id="projectTechStack" class="form-input" placeholder="e.g. Flask, React, PostgreSQL">
@@ -686,6 +696,13 @@
     // ========================================
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
+    // Toggle hero image fields based on layout selection
+    function toggleHeroImageFields() {
+        const layout = document.getElementById('projectLayout').value;
+        document.getElementById('heroImageFields').style.display = layout === 'split' ? '' : 'none';
+    }
+    document.getElementById('projectLayout').addEventListener('change', toggleHeroImageFields);
+
     // All projects lookup for relation picker
     const allProjectsList = {{ all_projects_list | tojson }};
     let modalRelations = []; // [{project_id, title, note}]
@@ -747,6 +764,8 @@
         document.getElementById('projectCategory').value = categoryId;
         document.getElementById('projectShortDesc').value = '';
         document.getElementById('projectFullDesc').value = '';
+        document.getElementById('projectHeroImage').value = '';
+        document.getElementById('projectHeroImageAlt').value = '';
         document.getElementById('projectTechStack').value = '';
         document.getElementById('projectUrl').value = '';
         document.getElementById('projectGithub').value = '';
@@ -756,6 +775,7 @@
         document.getElementById('projectPublic').checked = true;
         modalRelations = [];
         renderRelations();
+        toggleHeroImageFields();
         document.getElementById('projectModal').style.display = 'flex';
     }
 
@@ -773,6 +793,8 @@
             document.getElementById('projectCategory').value = p.category_id;
             document.getElementById('projectShortDesc').value = p.short_description;
             document.getElementById('projectFullDesc').value = p.full_description;
+            document.getElementById('projectHeroImage').value = p.hero_image;
+            document.getElementById('projectHeroImageAlt').value = p.hero_image_alt;
             document.getElementById('projectTechStack').value = p.tech_stack;
             document.getElementById('projectUrl').value = p.project_url;
             document.getElementById('projectGithub').value = p.github_url;
@@ -786,6 +808,7 @@
                 note: r.note || '',
             }));
             renderRelations();
+            toggleHeroImageFields();
             document.getElementById('projectModal').style.display = 'flex';
         });
     }
@@ -801,6 +824,8 @@
             category_id: parseInt(document.getElementById('projectCategory').value),
             short_description: document.getElementById('projectShortDesc').value,
             full_description: document.getElementById('projectFullDesc').value,
+            hero_image: document.getElementById('projectHeroImage').value,
+            hero_image_alt: document.getElementById('projectHeroImageAlt').value,
             tech_stack: document.getElementById('projectTechStack').value,
             project_url: document.getElementById('projectUrl').value,
             github_url: document.getElementById('projectGithub').value,

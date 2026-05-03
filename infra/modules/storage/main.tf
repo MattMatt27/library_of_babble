@@ -33,6 +33,10 @@ variable "bucket_name" {
 # ============================================================================
 # S3 Bucket
 # ============================================================================
+# tfsec:ignore:aws-s3-encryption-customer-key — SSE-S3 is sufficient for
+#   public static assets. CMK adds cost without security benefit here.
+# tfsec:ignore:aws-s3-enable-bucket-logging — Bucket is fronted by Cloudflare;
+#   request logs live there. S3 access logs would be redundant.
 resource "aws_s3_bucket" "static" {
   bucket = var.bucket_name != "" ? var.bucket_name : "${var.name_prefix}-static"
 
@@ -42,15 +46,46 @@ resource "aws_s3_bucket" "static" {
 }
 
 # ============================================================================
+# Server-Side Encryption (SSE-S3)
+# ============================================================================
+# AWS enables SSE-S3 by default for new buckets, but declaring it explicitly
+# documents intent and satisfies static-analysis tools.
+resource "aws_s3_bucket_server_side_encryption_configuration" "static" {
+  bucket = aws_s3_bucket.static.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+# ============================================================================
+# Versioning
+# ============================================================================
+# Protects against accidental overwrites/deletes of artwork files.
+resource "aws_s3_bucket_versioning" "static" {
+  bucket = aws_s3_bucket.static.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# ============================================================================
 # Public Access Configuration
 # ============================================================================
-# Allow public read access for static assets
+# Block ACL-based public access (defense-in-depth) but allow our bucket policy
+# to grant public read for serving static assets.
+# tfsec:ignore:aws-s3-block-public-policy — Required false; the bucket's
+#   public-read policy below is the intended access mechanism.
+# tfsec:ignore:aws-s3-no-public-buckets — Required false for the same reason.
 resource "aws_s3_bucket_public_access_block" "static" {
   bucket = aws_s3_bucket.static.id
 
-  block_public_acls       = false
+  block_public_acls       = true
   block_public_policy     = false
-  ignore_public_acls      = false
+  ignore_public_acls      = true
   restrict_public_buckets = false
 }
 

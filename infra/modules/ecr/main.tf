@@ -28,6 +28,12 @@ variable "name_prefix" {
 # ============================================================================
 # Private Docker image registry
 # WHY: Stores your Flask app Docker images securely in AWS
+# tfsec:ignore:aws-ecr-enforce-immutable-repository — The deploy workflow
+#   pushes a moving `:latest` tag on every release, which requires MUTABLE.
+#   Each release also gets a unique SemVer tag (which is effectively immutable
+#   in practice since release tags aren't reused). Could be tightened by
+#   dropping `:latest` and referencing images by SHA, but that's a separate
+#   refactor of deploy.yml and the task definition.
 resource "aws_ecr_repository" "app" {
   name                 = var.name_prefix
   image_tag_mutability = "MUTABLE" # Allows overwriting tags like "latest"

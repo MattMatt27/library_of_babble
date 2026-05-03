@@ -93,6 +93,11 @@ data "aws_ssm_parameter" "db_password" {
 # RDS PostgreSQL Instance
 # ============================================================================
 # The actual managed database server
+# tfsec:ignore:aws-rds-enable-iam-auth — Flask app authenticates via password
+#   from SSM. IAM auth would require app-side changes (token refresh, IAM policy
+#   plumbing). Defer until/unless we move auth concerns to AWS-native.
+# tfsec:ignore:aws-rds-enable-performance-insights — Free for 7 days but adds
+#   noise. Re-enable if DB perf debugging becomes a recurring need.
 resource "aws_db_instance" "main" {
   identifier = "${var.name_prefix}-db"
 
@@ -133,7 +138,7 @@ resource "aws_db_instance" "main" {
   # WHY 7 days: Allows recovery from mistakes within a week
   # WHY 3am UTC: Low traffic time for backups (minimal performance impact)
   # WHY CloudWatch logs: Helps debug database issues and track upgrades
-  backup_retention_period   = 1 # Free tier max; increase to 7 after upgrading account
+  backup_retention_period   = 7 # Daily snapshots kept 7 days
   backup_window             = "03:00-04:00" # UTC time for daily backups
   maintenance_window        = "mon:04:00-mon:05:00" # UTC time for updates
   enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"] # Send logs to CloudWatch
@@ -153,7 +158,7 @@ resource "aws_db_instance" "main" {
   # accidental deletion. For dev/test, false allows easier teardown.
   # skip_final_snapshot = true means no snapshot is taken on deletion
   # (faster but can't recover data)
-  deletion_protection       = false
+  deletion_protection       = true
   skip_final_snapshot       = true
   final_snapshot_identifier = "${var.name_prefix}-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
 

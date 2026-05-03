@@ -1,0 +1,32 @@
+# ============================================================================
+# TERRAFORM VARIABLES EXAMPLE
+# ============================================================================
+# Copy this to terraform.tfvars and fill in your values:
+#   cp terraform.tfvars.example terraform.tfvars
+#
+# IMPORTANT: terraform.tfvars is gitignored - never commit it!
+# ============================================================================
+
+# Basic Configuration
+project_name = "library-of-babble"
+environment  = "prod"
+aws_region   = "us-east-1"
+
+# Database configuration (credentials stored in Parameter Store)
+db_username = "dbadmin"
+
+# Docker image - leave empty to use ECR repository created by Terraform
+# After first deploy, images are pushed to ECR automatically via GitHub Actions
+docker_image = ""
+
+# CloudFlare configuration (optional)
+# Leave empty if not using CloudFlare - you can access via ECS public IP
+cloudflare_zone_id = ""
+domain_name        = ""
+
+# Optional: Override resource sizing defaults
+# db_instance_class    = "db.t4g.micro"   # ~$13/month
+# db_allocated_storage = 20               # GB
+# ecs_task_cpu         = 256              # 0.25 vCPU (~$9/month)
+# ecs_task_memory      = 512              # MB RAM (~$2/month)
+# ecs_desired_count    = 1                # Number of containers

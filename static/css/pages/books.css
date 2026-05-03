@@ -2,130 +2,87 @@
  * Books Pages Styles
  */
 
-/* Reading Hero Section - Featured Book + Quote */
-.reading-hero {
-  display: grid;
-  grid-template-columns: 70fr 30fr;
-  gap: var(--space-6);
-  margin-top: var(--space-4);
-  margin-bottom: var(--space-4);
+:root {
+  --serif: "Newsreader", Georgia, "Iowan Old Style", serif;
+  --paper: #f4ead4;
+  --paper-edge: #d9c79a;
+  --paper-text: #3a2c1a;
+  --paper-text-soft: #6e5536;
+  --pairing-book-w: 170px;
+  --pairing-book-h: calc(var(--pairing-book-w) * 1.5); /* 2:3 aspect */
 }
 
-.featured-book-section,
-.quote-card-section {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
+/* ============================================================================
+ * Top shelf: A Pairing
+ * Two book covers flanking a paper "rec card" pinned between them.
+ * ============================================================================ */
+.shelf-pairing {
+  margin-bottom: var(--space-3);
 }
 
-.quote-card-section {
+.shelf-pairing .pairing-controls {
+  margin-top: 1px; /* small offset for descender on italic "Pairing" */
+}
+
+.shelf-pairing .shelf-inner {
   display: flex;
-  flex-direction: column;
-}
-
-.quote-card {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
   justify-content: center;
-  padding-bottom: var(--space-6);
+  padding: var(--space-3) var(--space-2) var(--space-2);
 }
 
-.featured-book-header,
-.quote-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-4);
-}
-
-.featured-book-header h2,
-.quote-card-header h2 {
-  font-size: var(--font-lg);
-  font-weight: var(--font-semibold);
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.pairing-controls {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.pairing-nav-btn {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-base);
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: var(--font-lg);
-  color: var(--text-secondary);
-  transition: all var(--transition-fast);
-  line-height: 1;
-}
-
-.pairing-nav-btn:hover {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  border-color: var(--accent-blue);
-}
-
-.edit-featured-btn {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-base);
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: var(--font-base);
-  color: var(--text-secondary);
-  transition: all var(--transition-fast);
-}
-
-.edit-featured-btn:hover {
-  background: var(--accent-blue);
-  color: var(--text-inverse);
-  border-color: var(--accent-blue);
-}
-
-/* Book Pairing */
 .book-pairing {
   display: flex;
-  gap: var(--space-4);
+  gap: var(--space-5);
   align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .pairing-book {
   display: block;
   text-decoration: none;
-  transition: transform var(--transition-fast);
   flex-shrink: 0;
+  transition: transform var(--transition-fast);
 }
 
 .pairing-book:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
 }
 
 .pairing-book img {
-  width: 130px;
+  width: var(--pairing-book-w);
   aspect-ratio: 2 / 3;
   object-fit: cover;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
+  border-radius: 2px;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 6px 14px rgba(0, 0, 0, 0.35);
 }
 
-.pairing-content {
-  flex: 1;
-  min-width: 0;
+/* The rec card: cream paper between the books.
+   Height is locked to book height; width is set by JS to fit content. */
+.pairing-rec-card {
+  position: relative;
+  flex: 0 0 auto;
+  width: 380px;        /* initial width; JS adjusts to fit content */
+  min-width: 260px;
+  max-width: 900px;
+  height: var(--pairing-book-h);
+  box-sizing: border-box;
+  background: var(--paper);
+  color: var(--paper-text);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--paper-edge);
+  border-radius: 2px;
+  transform: rotate(-0.6deg);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.25),
+    0 8px 18px rgba(0, 0, 0, 0.35);
+  font-family: var(--serif);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
 }
 
 .pairing-titles {
@@ -133,7 +90,10 @@
   align-items: baseline;
   flex-wrap: wrap;
   gap: var(--space-1);
-  margin-bottom: var(--space-2);
+  margin: 0 0 var(--space-2) 0;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid rgba(58, 44, 26, 0.15);
+  flex-shrink: 0;
 }
 
 .pairing-book-link {
@@ -142,79 +102,370 @@
 }
 
 .pairing-book-link:hover .pairing-book-title {
-  color: var(--accent-blue);
+  color: #8b3a1a;
 }
 
 .pairing-book-title {
-  font-size: var(--font-sm);
-  font-weight: var(--font-semibold);
-  color: var(--text-primary);
+  font-family: var(--serif);
+  font-size: var(--font-md);
+  font-weight: 500;
+  color: var(--paper-text);
+  line-height: 1.25;
   transition: color var(--transition-fast);
 }
 
-.pairing-book-author {
-  font-size: var(--font-xs);
-  color: var(--text-tertiary);
-  margin-left: var(--space-1);
-}
-
 .pairing-amp {
-  font-size: var(--font-sm);
-  color: var(--text-tertiary);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: var(--font-md);
+  color: var(--paper-text-soft);
   margin: 0 var(--space-1);
 }
 
 .pairing-note {
-  font-size: var(--font-sm);
-  color: var(--text-secondary);
+  font-family: var(--serif);
   font-style: italic;
-  line-height: var(--leading-relaxed);
+  font-size: var(--font-base);
+  color: var(--paper-text);
+  line-height: 1.5;
+  margin: 0;
 }
 
-.featured-book-empty,
-.quote-card-empty {
-  color: var(--text-tertiary);
-  font-size: var(--font-sm);
+/* Pairing nav buttons + admin controls (in the wood palette) */
+.pairing-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pairing-nav-btn {
+  background: rgba(60, 45, 35, 0.8);
+  border: 1px solid #5a4a3a;
+  border-radius: var(--radius-base);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: var(--font-lg);
+  color: #d4b892;
+  transition: all var(--transition-fast);
+  line-height: 1;
+  padding: 0 0 3px 0; /* glyph (‹ ›) sits below box center; nudge up */
+}
+
+.pairing-nav-btn:hover {
+  background: rgba(80, 60, 45, 0.95);
+  color: #fff;
+}
+
+/* Empty state */
+.shelf-empty {
+  color: #b89968;
+  font-style: italic;
   text-align: center;
   padding: var(--space-6);
 }
 
-/* Quote Card */
-.quote-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+/* ============================================================================
+ * Pairing trigger + overlay
+ * Used on (a) mobile viewports and (b) desktop when the inline card can't
+ * fit the note within its max-width. JS toggles `.pairing-overflow` on the
+ * `.book-pairing` container to flip into trigger mode.
+ * ============================================================================ */
+
+/* Defaults: trigger / close / backdrop hidden */
+.pairing-rec-trigger,
+.pairing-rec-close,
+.pairing-rec-backdrop {
+  display: none;
 }
 
-.quote-text {
-  font-size: var(--font-base);
-  color: var(--text-primary);
-  line-height: var(--leading-relaxed);
-  margin: 0;
+/* Folded-paper trigger styling — defined regardless of viewport so
+   `.pairing-overflow` can show it on desktop too. */
+.pairing-rec-trigger {
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 56px;
+  height: 72px;
+  padding: 0;
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  border-radius: 2px;
+  transform: rotate(-3deg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  position: relative;
+}
+.pairing-rec-trigger::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background:
+    linear-gradient(225deg,
+      rgba(0, 0, 0, 0.15) 0%,
+      rgba(0, 0, 0, 0.05) 50%,
+      var(--paper) 50%);
+}
+.pairing-rec-trigger-glyph {
+  display: block;
+  width: 32px;
+  height: 18px;
+  background-image:
+    linear-gradient(to right, var(--paper-text-soft) 26px, transparent 26px),
+    linear-gradient(to right, var(--paper-text-soft) 32px, transparent 32px),
+    linear-gradient(to right, var(--paper-text-soft) 22px, transparent 22px);
+  background-size: 100% 2px;
+  background-position: 0 0, 0 8px, 0 16px;
+  background-repeat: no-repeat;
+  opacity: 0.75;
+}
+
+/* Mobile: always trigger mode */
+@media (max-width: 768px) {
+  :root {
+    --pairing-book-w: 110px;
+  }
+  .pairing-rec-card {
+    display: none;
+  }
+  .pairing-rec-trigger {
+    display: flex;
+  }
+}
+
+/* Desktop overflow: same trigger mode, JS-driven */
+.book-pairing.pairing-overflow .pairing-rec-card {
+  display: none;
+}
+.book-pairing.pairing-overflow .pairing-rec-trigger {
+  display: flex;
+}
+
+/* Open overlay state — applies regardless of how it was triggered */
+.pairing-rec-backdrop.is-open {
+  display: block;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 999;
+}
+
+.book-pairing .pairing-rec-card.is-open {
+  display: flex;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-0.6deg);
+  width: calc(100vw - 40px);
+  max-width: 480px;
+  height: auto;
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 1000;
+  padding: var(--space-5) var(--space-5) var(--space-4);
+}
+
+.pairing-rec-card.is-open .pairing-rec-close {
+  display: block;
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  color: var(--paper-text-soft);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ============================================================================
+ * Passage scrap + overlay
+ * Small cream "scrap of paper" tucked at the start of Recently Read.
+ * Tap → opens a passage modal styled like the rec card but content-focused.
+ * ============================================================================ */
+.passage-trigger {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 5;
+  width: 40px;
+  height: 56px;
+  padding: 0;
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  border-radius: 2px;
+  transform: rotate(-5deg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--transition-fast);
+}
+.passage-trigger:hover {
+  transform: rotate(-5deg) translateY(-2px);
+}
+.passage-trigger::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background:
+    linear-gradient(225deg,
+      rgba(0, 0, 0, 0.15) 0%,
+      rgba(0, 0, 0, 0.05) 50%,
+      var(--paper) 50%);
+}
+.passage-trigger-glyph {
+  font-family: var(--serif);
+  font-size: 38px;
   font-style: italic;
+  line-height: 1;
+  color: var(--paper-text-soft);
+  /* Newsreader's ldquo glyph sits in the upper-left of its em-box;
+     nudge down-and-right to land it visually centered. */
+  transform: translate(-2px, 8px);
+}
+
+/* Backdrop + card defaults (hidden) */
+.passage-card,
+.passage-backdrop {
+  display: none;
+}
+
+.passage-backdrop.is-open {
+  display: block;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 999;
+}
+
+.passage-card.is-open {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-0.4deg);
+  width: calc(100vw - 40px);
+  max-width: 520px;
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 1000;
+  background: var(--paper);
+  color: var(--paper-text);
+  padding: var(--space-8) var(--space-6) var(--space-5);
+  border: 1px solid var(--paper-edge);
+  border-radius: 2px;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.25),
+    0 8px 18px rgba(0, 0, 0, 0.35);
+}
+
+.passage-text {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: var(--font-lg);
+  line-height: 1.6;
+  color: var(--paper-text);
+  margin: 0;
   white-space: pre-line;
 }
 
-.quote-attribution {
+.passage-attribution {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: baseline;
   gap: var(--space-1);
+  margin: 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid rgba(58, 44, 26, 0.18);
 }
 
-.quote-book-link {
-  font-size: var(--font-sm);
-  color: var(--accent-blue);
+.passage-book-link {
+  font-family: var(--serif);
+  font-size: var(--font-base);
+  font-weight: 500;
+  color: var(--paper-text);
   text-decoration: none;
-  font-weight: var(--font-medium);
+  transition: color var(--transition-fast);
 }
 
-.quote-book-link:hover {
-  text-decoration: underline;
+.passage-book-link:hover {
+  color: #8b3a1a;
 }
 
-.quote-author {
+.passage-author {
+  font-family: var(--font-primary);
   font-size: var(--font-sm);
-  color: var(--text-tertiary);
+  color: var(--paper-text-soft);
+}
+
+.passage-view-all {
+  font-family: var(--font-primary);
+  font-size: var(--font-sm);
+  color: var(--paper-text-soft);
+  text-decoration: none;
+  align-self: flex-end;
+  letter-spacing: 0.02em;
+  font-style: italic;
+  margin: 0;
+  transition: color var(--transition-fast);
+}
+
+.passage-view-all:hover {
+  color: #8b3a1a;
+}
+
+.passage-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  color: var(--paper-text-soft);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.55;
+  transition: opacity var(--transition-fast);
+}
+
+.passage-close:hover {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .passage-trigger {
+    width: 34px;
+    height: 50px;
+  }
+  .passage-trigger-glyph {
+    font-size: 30px;
+    margin-top: 12px;
+  }
+  .passage-text {
+    font-size: var(--font-md);
+  }
+  .passage-card.is-open {
+    padding: var(--space-5) var(--space-5) var(--space-4);
+  }
 }
 
 /* Book Pairing Modal */
@@ -727,51 +978,6 @@
   background: var(--bg-primary);
 }
 
-/* Mobile thumbnails hidden on desktop */
-.pairing-books-mobile {
-  display: none;
-}
-
-.pairing-plus {
-  font-size: var(--font-xl);
-  font-weight: var(--font-light);
-  color: var(--text-tertiary);
-}
-
-/* Responsive - reading page switches earlier */
-@media (max-width: 900px) {
-  .reading-hero {
-    grid-template-columns: 1fr;
-    gap: var(--space-4);
-  }
-
-  .book-pairing {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  /* Show mobile thumbnails, hide desktop ones */
-  .pairing-books-mobile {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: var(--space-3);
-    margin-bottom: var(--space-3);
-  }
-
-  .pairing-book-desktop {
-    display: none;
-  }
-
-  .pairing-content {
-    width: 100%;
-  }
-
-  .pairing-titles {
-    justify-content: center;
-  }
-}
 
 /* Bookshelf Section */
 .bookshelf-section {
@@ -779,27 +985,36 @@
   margin-bottom: var(--space-6);
 }
 
-.bookshelf-header {
+/* Footer plaque inside the bookshelf — see-all link + admin controls */
+.bookshelf-footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-4);
+  justify-content: flex-end;
+  padding: var(--space-4) var(--space-2) 0;
+  margin-top: var(--space-2);
 }
 
-.bookshelf-header h2 {
-  font-size: var(--font-2xl);
-  font-weight: var(--font-semibold);
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.bookshelf-header-actions {
+.bookshelf-footer-actions {
   display: flex;
   align-items: center;
   gap: var(--space-3);
 }
 
+.bookshelf-see-all {
+  font-size: var(--font-sm);
+  color: #d4b892;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  font-style: italic;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: color var(--transition-fast);
+}
+
+.bookshelf-see-all:hover {
+  color: #fff;
+}
+
 .bookshelf {
+  position: relative; /* anchor for absolute children (e.g., passage trigger) */
   background:
     /* Wood grain lines - fine horizontal texture */
     repeating-linear-gradient(
@@ -854,20 +1069,26 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  margin-top: var(--space-3);
   margin-bottom: var(--space-3);
   padding-left: var(--space-2);
 }
 
 .shelf-label {
-  font-size: var(--font-lg);
-  font-weight: var(--font-semibold);
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: var(--font-xl);
+  line-height: 1;
   color: #d4b892;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  margin-top: var(--space-3);
   margin-bottom: var(--space-3);
   padding-left: var(--space-2);
 }
 
 .shelf-label-row .shelf-label {
+  margin-top: 0;
   margin-bottom: 0;
   padding-left: 0;
 }
@@ -924,6 +1145,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 0 3px 0; /* glyph (‹ ›) sits below box center; nudge up */
   transition: all var(--transition-fast);
   z-index: 10;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
@@ -948,39 +1170,102 @@
   pointer-events: none;
 }
 
+/* Shelf books: cover-only by default, info overlay slides up on hover.
+   Overrides the global .book-card chrome (border, bg, lift, scale) since
+   the bookshelf metaphor wants spines, not cards. */
 .shelf-books .book-card {
   flex-shrink: 0;
-  width: 120px;
-  display: flex;
-  flex-direction: column;
+  width: 140px;
+  display: block;
+  position: relative;
+  background: transparent;
+  border: none;
+  border-radius: 2px;
+  overflow: hidden;
+  text-align: left;
 }
 
+.shelf-books .book-card:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: transparent;
+}
+
+.shelf-books .book-card-image {
+  border-radius: 2px;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+.shelf-books .book-card:hover .book-card-image img {
+  transform: none; /* skip the global zoom-in-on-hover */
+}
+
+/* Info overlay sliding up from the bottom of the cover */
 .shelf-books .book-card-content {
-  padding: var(--space-2);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: var(--space-5) var(--space-2) var(--space-2);
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
+  gap: 2px;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.95) 0%,
+    rgba(0, 0, 0, 0.88) 60%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  border-radius: 0 0 2px 2px;
+  transform: translateY(100%);
+  transition: transform 200ms ease-out;
+  pointer-events: none;
+  text-align: left;
+  flex-grow: 0;
+}
+
+@media (hover: hover) {
+  .shelf-books .book-card:hover .book-card-content {
+    transform: translateY(0);
+  }
 }
 
 .shelf-books .book-card-title {
   font-size: var(--font-xs);
-  flex-grow: 1;
-  line-height: var(--leading-snug);
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
+  font-weight: var(--font-semibold);
+  color: #fff;
+  line-height: 1.25;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex-grow: 0;
 }
 
 .shelf-books .book-card-author {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.3;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .shelf-books .book-card-year {
   font-size: 0.65rem;
-  margin-bottom: 0;
+  color: rgba(255, 255, 255, 0.55);
+  font-style: italic;
+  margin: 0;
 }
 
 .shelf-books .book-card-rating {
-  margin-top: var(--space-1);
+  margin: 2px 0 0 0;
+  justify-content: flex-start;
 }
 
 .shelf-ledge {

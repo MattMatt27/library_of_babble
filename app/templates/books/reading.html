@@ -5,6 +5,9 @@
 {% set active_page = 'reading' %}
 
 {% block extra_styles %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/books.css') }}">
 <script src="{{ url_for('static', filename='js/star-rating.js') }}" defer></script>
 {% endblock %}
@@ -20,111 +23,73 @@
     </div>
     {% endif %}
 
-    <!-- Top section: Book Pairing + Quote Card -->
-    <div class="reading-hero">
-        <!-- Book Pairing -->
-        <div class="featured-book-section">
-            <div class="featured-book-header">
-                <h2>A Pairing</h2>
-                <div class="pairing-controls">
-                    {% if content_pairings|length > 1 %}
-                    <button class="pairing-nav-btn" id="prev-pairing" title="Previous pairing">‹</button>
-                    <button class="pairing-nav-btn" id="next-pairing" title="Next pairing">›</button>
-                    {% endif %}
-                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
-                    <button class="edit-featured-btn" id="add-pairing-btn" title="Add new pairing">+</button>
-                    <button class="edit-featured-btn" id="edit-pairing-btn" title="Edit book pairing">✎</button>
-                    {% endif %}
+    <!-- Bookshelf Section: the page IS the bookshelf -->
+    <section class="bookshelf-section">
+        <div class="bookshelf">
+            {% if random_quote %}
+            <button class="passage-trigger" type="button" aria-label="Open a passage">
+                <span class="passage-trigger-glyph" aria-hidden="true">&ldquo;</span>
+            </button>
+            {% endif %}
+
+            <!-- Top shelf: A Pairing -->
+            <div class="shelf shelf-pairing">
+                <div class="shelf-label-row">
+                    <span class="shelf-label">A Pairing</span>
+                    <div class="pairing-controls">
+                        {% if content_pairings|length > 1 %}
+                        <button class="pairing-nav-btn" id="prev-pairing" title="Previous pairing">‹</button>
+                        <button class="pairing-nav-btn" id="next-pairing" title="Next pairing">›</button>
+                        {% endif %}
+                        {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                        <button class="shelf-edit-btn" id="add-pairing-btn" title="Add new pairing">+</button>
+                        <button class="shelf-edit-btn" id="edit-pairing-btn" title="Edit book pairing">✎</button>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
-            {% if content_pairings %}
-            <div class="book-pairing" id="pairing-display" data-current-index="0">
-                <!-- Mobile: thumbnails on top -->
-                <div class="pairing-books-mobile">
-                    <a href="{{ content_pairings[0].item_1.detail_url }}" class="pairing-book" id="pairing-book-1-mobile">
-                        <img src="{{ content_pairings[0].item_1.cover_image_url }}" alt="{{ content_pairings[0].item_1.title }}">
-                    </a>
-                    <span class="pairing-plus">+</span>
-                    <a href="{{ content_pairings[0].item_2.detail_url }}" class="pairing-book" id="pairing-book-2-mobile">
-                        <img src="{{ content_pairings[0].item_2.cover_image_url }}" alt="{{ content_pairings[0].item_2.title }}">
-                    </a>
-                </div>
-                <!-- Desktop: thumbnail on left -->
-                <a href="{{ content_pairings[0].item_1.detail_url }}" class="pairing-book pairing-book-desktop" id="pairing-book-1">
-                    <img src="{{ content_pairings[0].item_1.cover_image_url }}" alt="{{ content_pairings[0].item_1.title }}">
-                </a>
-                <div class="pairing-content">
-                    <div class="pairing-titles">
-                        <a href="{{ content_pairings[0].item_1.detail_url }}" class="pairing-book-link" id="pairing-title-1">
-                            <span class="pairing-book-title">{{ content_pairings[0].item_1.title }}</span>
-                            <span class="pairing-book-author">{{ content_pairings[0].item_1.subtitle }}</span>
+                {% if content_pairings %}
+                <div class="shelf-inner">
+                    <div class="book-pairing" id="pairing-display" data-current-index="0">
+                        <a href="{{ content_pairings[0].item_1.detail_url }}" class="pairing-book pairing-book-desktop" id="pairing-book-1">
+                            <img src="{{ content_pairings[0].item_1.cover_image_url }}" alt="{{ content_pairings[0].item_1.title }}">
                         </a>
-                        <span class="pairing-amp">&</span>
-                        <a href="{{ content_pairings[0].item_2.detail_url }}" class="pairing-book-link" id="pairing-title-2">
-                            <span class="pairing-book-title">{{ content_pairings[0].item_2.title }}</span>
-                            <span class="pairing-book-author">{{ content_pairings[0].item_2.subtitle }}</span>
+                        <button class="pairing-rec-trigger" type="button" aria-label="Open pairing note">
+                            <span class="pairing-rec-trigger-glyph" aria-hidden="true"></span>
+                        </button>
+                        <div class="pairing-rec-card">
+                            <button class="pairing-rec-close" type="button" aria-label="Close">×</button>
+                            <div class="pairing-titles">
+                                <a href="{{ content_pairings[0].item_1.detail_url }}" class="pairing-book-link" id="pairing-title-1">
+                                    <span class="pairing-book-title">{{ content_pairings[0].item_1.title }}</span>
+                                </a>
+                                <span class="pairing-amp">&</span>
+                                <a href="{{ content_pairings[0].item_2.detail_url }}" class="pairing-book-link" id="pairing-title-2">
+                                    <span class="pairing-book-title">{{ content_pairings[0].item_2.title }}</span>
+                                </a>
+                            </div>
+                            <div class="pairing-note" id="pairing-note">{{ content_pairings[0].note }}</div>
+                        </div>
+                        <a href="{{ content_pairings[0].item_2.detail_url }}" class="pairing-book pairing-book-desktop" id="pairing-book-2">
+                            <img src="{{ content_pairings[0].item_2.cover_image_url }}" alt="{{ content_pairings[0].item_2.title }}">
                         </a>
                     </div>
-                    <div class="pairing-note" id="pairing-note">{{ content_pairings[0].note }}</div>
+                    <div class="pairing-rec-backdrop"></div>
+                    <script>
+                        window.contentPairings = {{ content_pairings | tojson }};
+                    </script>
                 </div>
-                <!-- Desktop: thumbnail on right -->
-                <a href="{{ content_pairings[0].item_2.detail_url }}" class="pairing-book pairing-book-desktop" id="pairing-book-2">
-                    <img src="{{ content_pairings[0].item_2.cover_image_url }}" alt="{{ content_pairings[0].item_2.title }}">
-                </a>
-            </div>
-            <script>
-                window.contentPairings = {{ content_pairings | tojson }};
-            </script>
-            {% else %}
-            <div class="featured-book-empty">
-                {% if current_user.is_authenticated and current_user.role == 'admin' %}
-                <p>No pairing set. Click the edit button to add one.</p>
                 {% else %}
-                <p>Check back soon for a recommendation.</p>
-                {% endif %}
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- Quote Card -->
-        <div class="quote-card-section">
-            <div class="quote-card-header">
-                <h2>A Passage</h2>
-                <a href="{{ url_for('reading.quotes') }}" class="see-all-btn">View All →</a>
-            </div>
-            {% if random_quote %}
-            <div class="quote-card">
-                <blockquote class="quote-text">"{{ random_quote.text }}"</blockquote>
-                <div class="quote-attribution">
-                    <a href="{{ url_for('books.detail', book_id=random_quote.book_id) }}" class="quote-book-link">
-                        {{ random_quote.book_title }}
-                    </a>
-                    <span class="quote-author">— {{ random_quote.book_author }}</span>
+                <div class="shelf-empty">
+                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                    <p>No pairing set. Click the edit button to add one.</p>
+                    {% else %}
+                    <p>Check back soon for a recommendation.</p>
+                    {% endif %}
                 </div>
+                {% endif %}
+                <div class="shelf-ledge"></div>
             </div>
-            {% else %}
-            <div class="quote-card-empty">
-                <p>No quotes saved yet.</p>
-            </div>
-            {% endif %}
-        </div>
-    </div>
 
-    <!-- Bookshelf Section -->
-    <section class="bookshelf-section">
-        <div class="bookshelf-header">
-            <h2>Shelves</h2>
-            <div class="bookshelf-header-actions">
-                {% if current_user.is_authenticated and current_user.role == 'admin' %}
-                <button class="edit-featured-btn" id="reorder-shelves-btn" title="Reorder shelves">⇅</button>
-                <button class="edit-featured-btn" id="add-shelf-btn" title="Add new shelf">+</button>
-                {% endif %}
-                {% if can_access_page('books') %}
-                <a href="{{ url_for('reading.books') }}" class="see-all-btn">See All Books</a>
-                {% endif %}
-            </div>
-        </div>
-        <div class="bookshelf">
             <!-- Shelf: Recently Read (special - always shown first) -->
             <div class="shelf">
                 <div class="shelf-label">Recently Read</div>
@@ -213,9 +178,36 @@
                 <div class="shelf-ledge"></div>
             </div>
             {% endfor %}
+
+            <!-- Bookshelf footer: admin controls + see all -->
+            <div class="bookshelf-footer">
+                <div class="bookshelf-footer-actions">
+                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                    <button class="shelf-edit-btn" id="reorder-shelves-btn" title="Reorder shelves">⇅</button>
+                    <button class="shelf-edit-btn" id="add-shelf-btn" title="Add new shelf">+</button>
+                    {% endif %}
+                    {% if can_access_page('books') %}
+                    <a href="{{ url_for('reading.books') }}" class="bookshelf-see-all">See all books →</a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </section>
 </div>
+
+{% if random_quote %}
+<!-- Passage overlay -->
+<div class="passage-card" role="dialog" aria-modal="true" aria-label="A passage">
+    <button class="passage-close" type="button" aria-label="Close">×</button>
+    <blockquote class="passage-text">{{ random_quote.text }}</blockquote>
+    <div class="passage-attribution">
+        <a href="{{ url_for('books.detail', book_id=random_quote.book_id) }}" class="passage-book-link">{{ random_quote.book_title }}</a>
+        <span class="passage-author">— {{ random_quote.book_author }}</span>
+    </div>
+    <a href="{{ url_for('reading.quotes') }}" class="passage-view-all">View all passages →</a>
+</div>
+<div class="passage-backdrop"></div>
+{% endif %}
 
 <!-- Bookshelf scroll arrows script -->
 <script>
@@ -364,55 +356,164 @@ document.addEventListener('DOMContentLoaded', function() {
     const nextBtn = document.getElementById('next-pairing');
     const pairingDisplay = document.getElementById('pairing-display');
 
+    // Grow the rec card's width until content fits within its fixed height.
+    // Desktop only — on mobile the card opens as an overlay and lets height
+    // flow naturally instead.
+    const isMobileViewport = () => window.matchMedia('(max-width: 768px)').matches;
+
+    function fitPairingCard() {
+        if (isMobileViewport()) return;
+        const card = document.querySelector('.pairing-rec-card');
+        const container = document.getElementById('pairing-display');
+        if (!card || !container) return;
+
+        // Reset to inline mode so we can measure
+        container.classList.remove('pairing-overflow');
+        card.style.width = '';
+
+        const targetH = card.clientHeight;
+        if (!targetH) return; // not visible yet
+
+        // Compute the actual horizontal room available for the card,
+        // given the books and the gaps in the flex container.
+        const bookEls = container.querySelectorAll('.pairing-book-desktop');
+        const cs = getComputedStyle(card);
+        const containerCs = getComputedStyle(container);
+        const gap = parseFloat(containerCs.columnGap || containerCs.gap) || 0;
+        let booksWidth = 0;
+        bookEls.forEach(b => { booksWidth += b.offsetWidth; });
+        const gapsTotal = gap * (bookEls.length + 1); // gaps around card
+        const availableW = container.clientWidth - booksWidth - gapsTotal;
+
+        const minW = parseFloat(cs.minWidth) || 260;
+        const cssMaxW = parseFloat(cs.maxWidth) || 900;
+        const effectiveMaxW = Math.min(cssMaxW, Math.max(minW, availableW));
+        const step = 16;
+        let w = minW;
+        card.style.width = w + 'px';
+        while (w < effectiveMaxW && card.scrollHeight > targetH + 1) {
+            w += step;
+            card.style.width = w + 'px';
+        }
+        // Cap precisely at effective max
+        if (w > effectiveMaxW) {
+            w = effectiveMaxW;
+            card.style.width = w + 'px';
+        }
+
+        // Switch to trigger mode if content still overflows the fixed height
+        // at the largest width that fits horizontally.
+        if (card.scrollHeight > targetH + 1) {
+            container.classList.add('pairing-overflow');
+            card.style.width = '';
+        }
+    }
+
+    // Mobile rec-card open/close
+    function openRecCard() {
+        const card = document.querySelector('.pairing-rec-card');
+        const backdrop = document.querySelector('.pairing-rec-backdrop');
+        if (!card || !backdrop) return;
+        card.classList.add('is-open');
+        backdrop.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeRecCard() {
+        const card = document.querySelector('.pairing-rec-card');
+        const backdrop = document.querySelector('.pairing-rec-backdrop');
+        if (!card || !backdrop) return;
+        card.classList.remove('is-open');
+        backdrop.classList.remove('is-open');
+        document.body.style.overflow = '';
+    }
+    const trigger = document.querySelector('.pairing-rec-trigger');
+    const closeBtn = document.querySelector('.pairing-rec-close');
+    const backdropEl = document.querySelector('.pairing-rec-backdrop');
+    if (trigger) trigger.addEventListener('click', openRecCard);
+    if (closeBtn) closeBtn.addEventListener('click', closeRecCard);
+    if (backdropEl) backdropEl.addEventListener('click', closeRecCard);
+    window.addEventListener('resize', fitPairingCard);
+
+    // Passage scrap open/close
+    function openPassage() {
+        const card = document.querySelector('.passage-card');
+        const backdrop = document.querySelector('.passage-backdrop');
+        if (!card || !backdrop) return;
+        card.classList.add('is-open');
+        backdrop.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closePassage() {
+        const card = document.querySelector('.passage-card');
+        const backdrop = document.querySelector('.passage-backdrop');
+        if (!card || !backdrop) return;
+        card.classList.remove('is-open');
+        backdrop.classList.remove('is-open');
+        if (!document.querySelector('.pairing-rec-card.is-open')) {
+            document.body.style.overflow = '';
+        }
+    }
+    const passageTrigger = document.querySelector('.passage-trigger');
+    const passageClose = document.querySelector('.passage-close');
+    const passageBackdrop = document.querySelector('.passage-backdrop');
+    if (passageTrigger) passageTrigger.addEventListener('click', openPassage);
+    if (passageClose) passageClose.addEventListener('click', closePassage);
+    if (passageBackdrop) passageBackdrop.addEventListener('click', closePassage);
+
+    // Single Escape handler closes whichever overlay is open
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'Escape') return;
+        closeRecCard();
+        closePassage();
+    });
+
     function updatePairingDisplay() {
         if (pairings.length === 0) return;
 
         const pairing = pairings[currentIndex];
-        const noteEl = document.getElementById('pairing-note');
 
-        // Update item 1 cover (desktop)
+        // Item 1: cover + title
         const item1Cover = document.getElementById('pairing-book-1');
-        item1Cover.href = pairing.item_1.detail_url;
-        item1Cover.querySelector('img').src = pairing.item_1.cover_image_url;
-        item1Cover.querySelector('img').alt = pairing.item_1.title;
-
-        // Update item 1 cover (mobile)
-        const item1CoverMobile = document.getElementById('pairing-book-1-mobile');
-        item1CoverMobile.href = pairing.item_1.detail_url;
-        item1CoverMobile.querySelector('img').src = pairing.item_1.cover_image_url;
-        item1CoverMobile.querySelector('img').alt = pairing.item_1.title;
-
-        // Update item 1 title link
+        if (item1Cover) {
+            item1Cover.href = pairing.item_1.detail_url;
+            item1Cover.querySelector('img').src = pairing.item_1.cover_image_url;
+            item1Cover.querySelector('img').alt = pairing.item_1.title;
+        }
         const item1Title = document.getElementById('pairing-title-1');
-        item1Title.href = pairing.item_1.detail_url;
-        item1Title.querySelector('.pairing-book-title').textContent = pairing.item_1.title;
-        item1Title.querySelector('.pairing-book-author').textContent = pairing.item_1.subtitle;
+        if (item1Title) {
+            item1Title.href = pairing.item_1.detail_url;
+            item1Title.querySelector('.pairing-book-title').textContent = pairing.item_1.title;
+        }
 
-        // Update item 2 cover (desktop)
+        // Item 2: cover + title
         const item2Cover = document.getElementById('pairing-book-2');
-        item2Cover.href = pairing.item_2.detail_url;
-        item2Cover.querySelector('img').src = pairing.item_2.cover_image_url;
-        item2Cover.querySelector('img').alt = pairing.item_2.title;
-
-        // Update item 2 cover (mobile)
-        const item2CoverMobile = document.getElementById('pairing-book-2-mobile');
-        item2CoverMobile.href = pairing.item_2.detail_url;
-        item2CoverMobile.querySelector('img').src = pairing.item_2.cover_image_url;
-        item2CoverMobile.querySelector('img').alt = pairing.item_2.title;
-
-        // Update item 2 title link
+        if (item2Cover) {
+            item2Cover.href = pairing.item_2.detail_url;
+            item2Cover.querySelector('img').src = pairing.item_2.cover_image_url;
+            item2Cover.querySelector('img').alt = pairing.item_2.title;
+        }
         const item2Title = document.getElementById('pairing-title-2');
-        item2Title.href = pairing.item_2.detail_url;
-        item2Title.querySelector('.pairing-book-title').textContent = pairing.item_2.title;
-        item2Title.querySelector('.pairing-book-author').textContent = pairing.item_2.subtitle;
+        if (item2Title) {
+            item2Title.href = pairing.item_2.detail_url;
+            item2Title.querySelector('.pairing-book-title').textContent = pairing.item_2.title;
+        }
 
-        // Update note
-        noteEl.textContent = pairing.note;
+        // Note
+        const noteEl = document.getElementById('pairing-note');
+        if (noteEl) noteEl.textContent = pairing.note;
 
-        // Update data attribute for editing
         if (pairingDisplay) {
             pairingDisplay.dataset.currentIndex = currentIndex;
         }
+
+        fitPairingCard();
+    }
+
+    // Initial fit on load (after fonts/images settle)
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(fitPairingCard);
+    } else {
+        window.addEventListener('load', fitPairingCard);
     }
 
     if (prevBtn) {

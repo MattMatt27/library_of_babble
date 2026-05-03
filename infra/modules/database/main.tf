@@ -135,10 +135,12 @@ resource "aws_db_instance" "main" {
   # ========================================
   # Backup Configuration
   # ========================================
-  # WHY 7 days: Allows recovery from mistakes within a week
   # WHY 3am UTC: Low traffic time for backups (minimal performance impact)
   # WHY CloudWatch logs: Helps debug database issues and track upgrades
-  backup_retention_period   = 7 # Daily snapshots kept 7 days
+  # NOTE: AWS RDS free tier caps backup retention at 1 day. Once the account
+  # is off free tier (12 months from creation, or by upgrading), bump this to
+  # 7 — daily snapshots for a week's recovery window.
+  backup_retention_period   = 1
   backup_window             = "03:00-04:00" # UTC time for daily backups
   maintenance_window        = "mon:04:00-mon:05:00" # UTC time for updates
   enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"] # Send logs to CloudWatch

@@ -72,6 +72,11 @@ resource "aws_internet_gateway" "main" {
 #
 # CIDR CALCULATION: cidrsubnet(10.0.0.0/16, 8, 0) = 10.0.0.0/24 (256 IPs)
 #                   cidrsubnet(10.0.0.0/16, 8, 1) = 10.0.1.0/24 (256 IPs)
+# tfsec:ignore:aws-ec2-no-public-ip-subnet — Tasks need outbound internet
+#   access (ECR, AWS APIs, Cloudflare tunnel, external APIs) and we use
+#   public IPs instead of a NAT Gateway ($32/mo) or VPC endpoints. The ECS
+#   security group has zero ingress rules so the public IP is functionally
+#   inert from an external attacker's perspective.
 resource "aws_subnet" "public" {
   count                   = length(var.availability_zones) # Create one per AZ
   vpc_id                  = aws_vpc.main.id
@@ -153,6 +158,62 @@ resource "aws_db_subnet_group" "main" {
 
   tags = {
     Name = "${var.name_prefix}-db-subnet-group"
+  }
+}
+
+# ============================================================================
+# VPC Flow Logs
+# ============================================================================
+# Captures network traffic metadata for forensics and anomaly detection.
+# Useful if anything ever looks suspicious; cheap to keep on at low retention.
+resource "aws_cloudwatch_log_group" "vpc_flow_log" {
+  # tfsec:ignore:aws-cloudwatch-log-group-customer-key — SSE with AWS-managed
+  #   key is sufficient for flow-log metadata. CMK adds cost without value here.
+  name              = "/aws/vpc/${var.name_prefix}-flow-log"
+  retention_in_days = 14
+}
+
+resource "aws_iam_role" "vpc_flow_log" {
+  name = "${var.name_prefix}-vpc-flow-log-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "vpc-flow-logs.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "vpc_flow_log" {
+  name = "${var.name_prefix}-vpc-flow-log-policy"
+  role = aws_iam_role.vpc_flow_log.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "logs:DescribeLogGroups",
+        "logs:DescribeLogStreams",
+      ]
+      Resource = "${aws_cloudwatch_log_group.vpc_flow_log.arn}:*"
+    }]
+  })
+}
+
+resource "aws_flow_log" "main" {
+  iam_role_arn    = aws_iam_role.vpc_flow_log.arn
+  log_destination = aws_cloudwatch_log_group.vpc_flow_log.arn
+  traffic_type    = "ALL"
+  vpc_id          = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.name_prefix}-vpc-flow-log"
   }
 }
 

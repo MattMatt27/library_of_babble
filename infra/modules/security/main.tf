@@ -42,14 +42,14 @@ resource "aws_security_group" "ecs" {
   # EGRESS RULE: Allow all outbound traffic
   # ========================================
   # WHY: ECS containers need to make outbound connections to:
-  # - AWS ECR (to pull Docker images)
-  # - AWS Parameter Store (to fetch secrets)
-  # - RDS database (to query data)
-  # - S3 (to serve artwork and file assets)
-  # - CloudWatch Logs (to send application logs)
-  # - Spotify API (to fetch music data)
-  # - TMDB API (to fetch movie/show data)
-  # - Goodreads/Letterboxd (for ETL scripts)
+  # - Cloudflare's edge (cloudflared tunnel — IPs change frequently)
+  # - AWS ECR / Parameter Store / S3 / CloudWatch (could pin to VPC endpoints
+  #   at ~$7/mo each, currently not justified)
+  # - Spotify / TMDB / Goodreads / Letterboxd (arbitrary public APIs)
+  # tfsec:ignore:aws-ec2-no-public-egress-sgr — Open egress is required for
+  #   the cloudflared tunnel and external APIs; tightening would need an
+  #   egress proxy or ~$30/mo of VPC endpoints. Defense lives at the
+  #   application layer (no inbound, IAM, secrets in SSM).
   egress {
     description = "All outbound traffic"
     from_port   = 0
@@ -95,6 +95,8 @@ resource "aws_security_group" "rds" {
   # WHY: RDS doesn't typically make outbound connections, but AWS requires
   # an egress rule. This allows RDS to communicate with AWS services for
   # management, updates, and backups if needed.
+  # tfsec:ignore:aws-ec2-no-public-egress-sgr — RDS does not initiate outbound
+  #   traffic in normal operation; this rule is essentially inert.
   egress {
     description = "All outbound"
     from_port   = 0

@@ -4,6 +4,9 @@
 {% set active_page = 'writing' %}
 
 {% block extra_styles %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/writing.css') }}">
 {% endblock %}
 
@@ -20,12 +23,9 @@
     <!-- Academic Section -->
     <section class="writing-section">
         <div class="writing-section-header">
-            <h2>Academic
-                <a href="https://scholar.google.com/citations?view_op=list_works&hl=en&hl=en&user=PBX7klMAAAAJ" target="_blank" rel="noopener noreferrer" class="header-logo-link" title="Google Scholar">
-                    <span class="tool-icon"><img src="{{ static_url('images/logos/Google Scholar.png') }}" alt="Google Scholar"></span>
-                </a>
-            </h2>
-            <p>I am a psychiatry researcher and data engineer living in Malden, MA. My current research focus is on the intersection of mental health and AI. Currently working on projects in LLM psychosis, LLM benchmarking, and responsible AI mental health tool development.</p>
+            <h2>Academic</h2>
+            <a href="https://scholar.google.com/citations?view_op=list_works&hl=en&user=PBX7klMAAAAJ" target="_blank" rel="noopener noreferrer" class="scholar-link">View on Google Scholar ↗</a>
+            <p>I was trained as an archaeologist and a signal processing engineer, and I now work in digital psychiatry at Beth Israel Deaconess Medical Center and Harvard Medical School. I am currently studying what happens when generative AI models are used as mental health tools. I am broadly interested in media archaeology, the history of language technologies, and the gap between what AI companies know about their own systems and what independent researchers are allowed to measure.</p>
         </div>
 
         {% for category, pubs in academic_pubs.items() %}
@@ -42,8 +42,8 @@
     <section class="writing-section">
         <div class="writing-section-header">
             <h2>Creative</h2>
-            <p>Outside of work, I enjoy hanging out with my cat Salad Dressing, scouring library used book sales, and making unnecessary spreadsheets. My writing explores neurodivergence, generative AI, and American history/politics. Distilled further, my writing orbits the central theme: miscommunication.</p>
-            <p style="margin-top: var(--space-3);">To see what I have been reading lately, check out the <a href="{{ url_for('reading.index') }}" style="color: var(--accent-blue);">Reading</a> section of my website.</p>
+            <p>My creative writing orbits the central theme of miscommunication. What happens when the systems we build to carry meaning between people start distorting that meaning, or generating meaning of their own, or failing in ways that nobody involved can see from inside the failure.</p>
+            <!-- <p style="margin-top: var(--space-3);">To see what I have been reading lately, check out the <a href="{{ url_for('reading.index') }}" style="color: var(--accent-blue);">Reading</a> section of my website.</p> -->
         </div>
 
         {% for category, pubs in creative_pubs.items() %}

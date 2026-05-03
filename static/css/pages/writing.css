@@ -1,133 +1,152 @@
 /**
- * Writing Page Styles
+ * Writing Page — editorial layout
+ *
+ * Newsreader (variable-axis serif) is loaded in the page template only.
+ * Used for section H2s and publication titles. Everything else stays sans.
  */
 
-/* Section containers */
-.writing-section {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  margin-bottom: var(--space-6);
+:root {
+  --serif: "Newsreader", Georgia, "Iowan Old Style", "Source Serif 4", serif;
 }
 
-.writing-section:first-child {
-  margin-top: var(--space-4);
+/* ============================================================================
+ * Section structure
+ * No outer card. Sections are separated by whitespace and a serif heading.
+ * ============================================================================ */
+.writing-section {
+  margin-bottom: var(--space-16);
+}
+
+.writing-section:first-of-type {
+  margin-top: var(--space-8);
+}
+
+.writing-section + .writing-section {
+  margin-top: var(--space-16);
 }
 
 .writing-section-header {
-  margin-bottom: var(--space-5);
-  padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--border-primary);
+  margin-bottom: var(--space-10);
 }
 
 .writing-section-header h2 {
-  font-size: var(--font-2xl);
-  font-weight: var(--font-semibold);
+  font-family: var(--serif);
+  font-size: var(--font-3xl); /* 36px */
+  font-weight: 500;
+  font-style: italic;
   color: var(--text-primary);
+  letter-spacing: -0.01em;
   margin: 0 0 var(--space-2) 0;
-}
-
-.writing-section-header h3 {
-  font-size: var(--font-lg);
-  font-weight: var(--font-medium);
-  color: var(--text-secondary);
-  margin: var(--space-4) 0 var(--space-3) 0;
 }
 
 .writing-section-header p {
   font-size: var(--font-base);
+  line-height: 1.7;
   color: var(--text-secondary);
-  line-height: 1.6;
+  max-width: 65ch;
+  margin: var(--space-4) 0 0 0;
+}
+
+.writing-section-header p + p {
+  margin-top: var(--space-3);
+}
+
+/* Subtle text link beneath the section heading */
+.scholar-link {
+  display: inline-block;
+  font-size: var(--font-sm);
+  color: var(--accent-blue);
+  text-decoration: none;
+  letter-spacing: 0.01em;
   margin: 0;
 }
 
-/* Header logo link (e.g. Google Scholar next to Academic) */
-.header-logo-link {
-  display: inline-flex;
-  vertical-align: middle;
-  margin-left: var(--space-3);
-  text-decoration: none;
+.scholar-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
 }
 
-.header-logo-link .tool-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-base);
-  background: var(--bg-primary);
-  border: 1px solid var(--border-primary);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-fast);
+/* ============================================================================
+ * Subsection labels (Journal Articles, Fiction, etc.)
+ * Small caps tracking-wide — these are dividers, not headings.
+ * ============================================================================ */
+.subsection-header {
+  font-family: var(--font-primary);
+  font-size: var(--font-xs);
+  font-weight: var(--font-semibold);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin: var(--space-10) 0 var(--space-5) 0;
+  padding: 0;
+  border: none;
 }
 
-.header-logo-link .tool-icon img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+/* First subsection in a section sits closer to the section header */
+.writing-section-header + .subsection-header {
+  margin-top: 0;
 }
 
-.header-logo-link:hover .tool-icon {
-  border-color: var(--accent-blue);
-  background: white;
-  transform: scale(1.1);
-}
-
-/* Publication cards */
+/* ============================================================================
+ * Publication entries
+ * Typographic blocks separated by whitespace; no card chrome.
+ * ============================================================================ */
 .publication-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-6);
 }
 
 .publication-card {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
-  transition: all var(--transition-base);
-  position: relative;
+  display: block;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  position: static;
+  text-decoration: none;
+  color: inherit;
+  transition: none;
 }
 
 .publication-card.linkable {
   cursor: pointer;
 }
 
+/* Override the cards-wide hover that lifts elements, plus the global
+   a:hover underline since the card itself is an <a>. */
 .publication-card.linkable:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--accent-blue);
-  background: var(--bg-secondary);
-}
-
-.publication-card-content {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-}
-
-.publication-card-main {
-  flex: 1;
-  min-width: 0;
+  transform: none;
+  box-shadow: none;
+  background: none;
+  border-color: transparent;
+  text-decoration: none;
 }
 
 .publication-title {
-  font-size: var(--font-base);
-  font-weight: var(--font-semibold);
+  font-family: var(--serif);
+  font-size: var(--font-lg); /* 20px */
+  font-weight: 500;
+  line-height: 1.3;
   color: var(--text-primary);
   margin: 0 0 var(--space-2) 0;
-  line-height: var(--leading-tight);
+  transition: color var(--transition-fast);
 }
 
 .publication-card.linkable .publication-title {
+  color: var(--text-primary);
+}
+
+.publication-card.linkable:hover .publication-title {
   color: var(--accent-blue);
 }
 
 .publication-authors {
   font-size: var(--font-sm);
   color: var(--text-secondary);
-  margin: 0 0 var(--space-2) 0;
+  margin: 0 0 var(--space-1) 0;
   line-height: 1.5;
 }
 
@@ -140,75 +159,61 @@
   font-size: var(--font-sm);
   color: var(--text-secondary);
   font-style: italic;
-  margin: 0 0 var(--space-1) 0;
+  margin: 0;
+  line-height: 1.5;
 }
 
 .publication-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
-  font-size: var(--font-sm);
+  gap: var(--space-3);
+  font-size: var(--font-xs);
   color: var(--text-tertiary);
+  margin-top: var(--space-2);
 }
 
 .publication-doi {
   color: var(--text-tertiary);
 }
 
-.publication-icon {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--accent-blue);
-  font-size: var(--font-lg);
-}
-
-.publication-card:not(.linkable) .publication-icon {
-  color: var(--text-tertiary);
-}
-
-/* Badge for special items */
+/* Badge: italic small-caps, inline with title — not a pill */
 .publication-badge {
-  display: inline-block;
-  padding: var(--space-1) var(--space-2);
-  background: rgba(88, 166, 255, 0.1);
-  border: 1px solid var(--accent-blue);
-  border-radius: var(--radius-base);
-  font-size: var(--font-xs);
-  color: var(--accent-blue);
+  display: inline;
+  font-family: var(--font-primary);
+  font-style: italic;
+  font-size: 0.65em;
   font-weight: var(--font-medium);
-  margin-top: var(--space-2);
+  color: var(--accent-blue);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: var(--space-2);
+  vertical-align: 0.15em;
 }
 
-/* Subsection headers within sections */
-.subsection-header {
-  font-size: var(--font-md);
-  font-weight: var(--font-semibold);
-  color: var(--text-primary);
-  margin: var(--space-5) 0 var(--space-3) 0;
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--border-secondary);
-}
-
-/* Responsive adjustments */
+/* ============================================================================
+ * Responsive
+ * ============================================================================ */
 @media (max-width: 768px) {
   .writing-section {
-    padding: var(--space-4);
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--space-10);
   }
 
-  .publication-card {
-    padding: var(--space-3);
+  .writing-section + .writing-section {
+    margin-top: var(--space-10);
   }
 
-  .publication-card-content {
-    flex-direction: column;
+  .writing-section-header h2 {
+    font-size: var(--font-2xl);
   }
 
-  .publication-icon {
-    align-self: flex-start;
+  .publication-title {
+    font-size: var(--font-md);
+  }
+
+  .publication-list {
+    gap: var(--space-5);
   }
 }

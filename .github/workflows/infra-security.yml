@@ -1,0 +1,37 @@
+# ============================================================================
+# tfsec — static analysis for Terraform
+# ============================================================================
+# Scans infra/ on every PR and push to main. Catches common misconfigurations
+# (overly-broad IAM, public S3, missing encryption, etc.) before they ship.
+#
+# soft_fail is enabled initially so findings are reported but don't block.
+# Once the baseline is clean, flip soft_fail to false to make findings a hard
+# blocker on PRs.
+# ============================================================================
+
+name: Infra Security Scan
+
+on:
+  pull_request:
+    paths:
+      - 'infra/**'
+      - '.github/workflows/infra-security.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'infra/**'
+      - '.github/workflows/infra-security.yml'
+
+jobs:
+  tfsec:
+    name: tfsec
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: infra
+          soft_fail: true

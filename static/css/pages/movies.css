@@ -1295,3 +1295,287 @@
 .media-shelf .shelves-see-all { color: #d4b0b0; }
 .media-shelf--tv .shelves-see-all { color: #b0b0d4; }
 .shelves-see-all:hover { color: #fff; }
+
+/* See-all link inside a shelf-label-row sits flush right */
+.shelf-label-row .shelf-label-link {
+  margin-left: auto;
+  padding-right: var(--space-2);
+}
+
+/* ============================================================================
+ * Pairing modal — marquee aesthetic.
+ * Watching page only loads movies.css now, so the modal needs its own
+ * shell (no fallback to books.css). Page-scoped paint via parent selector,
+ * same architectural pattern as the reading-page paper modals.
+ * ============================================================================ */
+#pairing-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  z-index: 3000;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-4);
+}
+
+#pairing-modal .modal-content {
+  background: var(--marquee-bg);
+  color: var(--marquee-text);
+  border: 1px solid var(--marquee-edge);
+  border-radius: 2px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  font-family: var(--display-serif);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    0 14px 32px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(255, 220, 180, 0.04);
+}
+
+#pairing-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--marquee-edge);
+}
+
+#pairing-modal .modal-header h3 {
+  margin: 0;
+  font-family: var(--display-serif);
+  font-weight: 500;
+  font-size: var(--font-xl);
+  color: var(--marquee-text);
+  letter-spacing: -0.005em;
+}
+
+#pairing-modal .modal-close {
+  background: none;
+  border: none;
+  font-size: var(--font-2xl);
+  color: var(--marquee-text-soft);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color var(--transition-fast);
+}
+#pairing-modal .modal-close:hover {
+  color: var(--marquee-accent);
+}
+
+#pairing-modal .modal-body {
+  padding: var(--space-5);
+}
+
+#pairing-modal .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--marquee-edge);
+}
+
+/* Form labels and inputs inside the marquee modal */
+#pairing-modal label {
+  color: var(--marquee-text);
+  font-family: var(--font-primary);
+  font-size: var(--font-sm);
+  font-weight: 500;
+}
+#pairing-modal input[type="text"],
+#pairing-modal input[type="url"],
+#pairing-modal textarea {
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--marquee-text);
+  border: 1px solid var(--marquee-edge);
+  border-radius: 2px;
+  padding: var(--space-3);
+  width: 100%;
+  font-family: var(--font-primary);
+}
+#pairing-modal input[type="text"]:focus,
+#pairing-modal input[type="url"]:focus,
+#pairing-modal textarea:focus {
+  outline: none;
+  border-color: var(--marquee-accent);
+  box-shadow: 0 0 0 3px rgba(199, 90, 58, 0.18);
+}
+
+/* Buttons inside the marquee modal — only colors are repainted. */
+#pairing-modal .btn-primary {
+  background: var(--marquee-accent);
+  border-color: var(--marquee-accent);
+  color: #f9e8d4;
+}
+#pairing-modal .btn-primary:hover {
+  background: #a8472f;
+  border-color: #a8472f;
+}
+#pairing-modal .btn-secondary {
+  background: transparent;
+  border-color: var(--marquee-edge);
+  color: var(--marquee-text);
+}
+#pairing-modal .btn-secondary:hover {
+  background: rgba(255, 220, 180, 0.06);
+  color: var(--marquee-text);
+}
+
+/* Search results dropdown inside the marquee modal */
+#pairing-modal .search-results {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--marquee-edge);
+  border-radius: 2px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: var(--space-2);
+  display: none;
+}
+#pairing-modal .search-results:not(:empty) {
+  display: block;
+}
+#pairing-modal .search-result-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+#pairing-modal .search-result-item:hover {
+  background: rgba(199, 90, 58, 0.12);
+}
+#pairing-modal .search-result-cover {
+  width: 32px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+#pairing-modal .search-result-title {
+  font-size: var(--font-sm);
+  color: var(--marquee-text);
+  font-weight: 500;
+}
+#pairing-modal .search-result-author {
+  font-size: var(--font-xs);
+  color: var(--marquee-text-soft);
+}
+#pairing-modal .no-results {
+  padding: var(--space-3);
+  text-align: center;
+  color: var(--marquee-text-soft);
+  font-size: var(--font-sm);
+}
+
+/* Selected-item chip inside the marquee modal */
+#pairing-modal .selected-book-display {
+  margin-top: var(--space-2);
+}
+#pairing-modal .selected-book {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--marquee-edge);
+  border-radius: 2px;
+  font-size: var(--font-sm);
+  color: var(--marquee-text);
+}
+#pairing-modal .clear-selection {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--marquee-text-soft);
+  cursor: pointer;
+  font-size: var(--font-lg);
+  padding: 0;
+  line-height: 1;
+  transition: color var(--transition-fast);
+}
+#pairing-modal .clear-selection:hover {
+  color: var(--marquee-accent);
+}
+
+/* Filter toggle inside the marquee modal */
+#pairing-modal .filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  font-size: var(--font-sm);
+  color: var(--marquee-text-soft);
+}
+#pairing-modal .filter-toggle:hover {
+  color: var(--marquee-text);
+}
+#pairing-modal .filter-toggle input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--marquee-edge);
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition-fast);
+}
+#pairing-modal .filter-toggle input[type="checkbox"]:checked {
+  background: var(--marquee-accent);
+  border-color: var(--marquee-accent);
+}
+#pairing-modal .filter-toggle input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: translate(-50%, -60%) rotate(45deg);
+}
+#pairing-modal .filter-toggle input[type="checkbox"]:hover {
+  border-color: var(--marquee-accent);
+}
+
+/* Type badge already styled at .type-badge globally in movies.css —
+   tighten optical centering to match the books.css adjustment. */
+#pairing-modal .type-badge {
+  padding: 3px 9px 1px;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+}
+
+/* Scrollbars on the modal content + scrollable lists — match marquee palette */
+#pairing-modal .modal-content,
+#pairing-modal .search-results {
+  scrollbar-width: thin;
+  scrollbar-color: var(--marquee-edge) transparent;
+}
+#pairing-modal .modal-content::-webkit-scrollbar,
+#pairing-modal .search-results::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+#pairing-modal .modal-content::-webkit-scrollbar-track,
+#pairing-modal .search-results::-webkit-scrollbar-track {
+  background: transparent;
+}
+#pairing-modal .modal-content::-webkit-scrollbar-thumb,
+#pairing-modal .search-results::-webkit-scrollbar-thumb {
+  background: var(--marquee-edge);
+  border-radius: 4px;
+}
+#pairing-modal .modal-content::-webkit-scrollbar-thumb:hover,
+#pairing-modal .search-results::-webkit-scrollbar-thumb:hover {
+  background: var(--marquee-text-soft);
+}

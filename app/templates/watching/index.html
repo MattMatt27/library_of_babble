@@ -94,7 +94,12 @@
 
             <!-- Recently Watched (films) -->
             <div class="shelf">
-                <div class="shelf-label">Recently Watched</div>
+                <div class="shelf-label-row">
+                    <span class="shelf-label">Recently Watched</span>
+                    {% if can_access_page('movies') %}
+                    <a href="{{ url_for('movies.index') }}" class="shelves-see-all shelf-label-link">See all films &rarr;</a>
+                    {% endif %}
+                </div>
                 <div class="shelf-inner">
                     <button class="shelf-arrow shelf-arrow-left hidden" aria-label="Scroll left">&#8249;</button>
                     <div class="shelf-books">
@@ -156,13 +161,6 @@
             </div>
             {% endfor %}
 
-            <div class="shelves-footer">
-                <div class="shelves-footer-actions">
-                    {% if can_access_page('movies') %}
-                    <a href="{{ url_for('movies.index') }}" class="shelves-see-all">See all films &rarr;</a>
-                    {% endif %}
-                </div>
-            </div>
         </div>
     </section>
 

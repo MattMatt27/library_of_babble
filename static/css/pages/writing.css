@@ -9,6 +9,19 @@
   --serif: "Newsreader", Georgia, "Iowan Old Style", "Source Serif 4", serif;
 }
 
+/* Editorial pages need more horizontal breathing room than the default
+   12px container padding — long-form prose against the screen edge reads cramped. */
+.container {
+  padding-left: var(--space-5);
+  padding-right: var(--space-5);
+}
+@media (min-width: 768px) {
+  .container {
+    padding-left: var(--space-8);
+    padding-right: var(--space-8);
+  }
+}
+
 /* ============================================================================
  * Section structure
  * No outer card. Sections are separated by whitespace and a serif heading.

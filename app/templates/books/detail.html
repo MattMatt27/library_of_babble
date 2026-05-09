@@ -6,61 +6,68 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/books.css') }}">
 <script src="{{ url_for('static', filename='js/star-rating.js') }}" defer></script>
 <style>
-/* Book detail page styles - Compact layout */
+/* Book detail page — bookshelf treatment.
+   Wood container holds two sections separated by a shelf ledge:
+   (1) cover + info + reviews, (2) quotes (each on a manila paper card). */
 .book-detail-container {
   margin-top: var(--space-4);
 }
 
-/* Two-column layout: book info + reviews side by side */
-.book-detail-top {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: var(--space-5);
-  margin-bottom: var(--space-5);
+.book-detail-shelf {
+  padding: var(--space-6) var(--space-5);
 }
 
-/* Left card: Cover + info stacked vertically */
+/* Two-column layout: book info + reviews side by side, no card chrome */
+.book-detail-top {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: var(--space-6);
+  align-items: start;
+  padding: var(--space-2) var(--space-2) var(--space-4);
+}
+
 .book-info-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
+  background: transparent;
+  border: none;
+  padding: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  width: 260px;
+  width: 100%;
 }
 
-/* Book cover - compact size */
 .book-cover-section {
   flex-shrink: 0;
-  width: 160px;
+  width: 180px;
   margin-bottom: var(--space-4);
 }
 
-/* Right card: Reviews */
 .reviews-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 
 .reviews-header {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
   font-size: var(--font-xl);
-  font-weight: var(--font-semibold);
-  color: var(--text-primary);
+  color: #d4b892;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   margin: 0 0 var(--space-4) 0;
   padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 1px solid rgba(212, 184, 146, 0.15);
 }
 
 .book-cover-image {
   width: 100%;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-primary);
-  box-shadow: var(--shadow-md);
+  border-radius: 2px;
+  border: none;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 8px 18px rgba(0, 0, 0, 0.45);
 }
 
 /* Cover upload overlay for admin */
@@ -111,28 +118,32 @@
 }
 
 .book-title {
-  font-size: var(--font-lg);
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
+  font-family: var(--serif);
+  font-size: var(--font-xl);
+  font-weight: 500;
+  color: #ecdcb8;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   margin: 0 0 var(--space-1) 0;
   line-height: var(--leading-tight);
 }
 
 .book-author {
+  font-family: var(--serif);
+  font-style: italic;
   font-size: var(--font-base);
-  color: var(--text-secondary);
+  color: #d4b892;
   margin: 0 0 var(--space-1) 0;
 }
 
 .book-year {
   font-size: var(--font-sm);
-  color: var(--text-tertiary);
+  color: #b89770;
   margin: 0;
 }
 
 .review-item {
   padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--border-secondary);
+  border-bottom: 1px solid rgba(212, 184, 146, 0.12);
 }
 
 .review-item:first-child {
@@ -153,7 +164,7 @@
 }
 
 .review-date {
-  color: var(--text-secondary);
+  color: #d4b892;
   font-size: var(--font-sm);
 }
 
@@ -163,23 +174,22 @@
 }
 
 .review-content {
-  color: var(--text-primary);
+  color: #ecdcb8;
   line-height: 1.6;
   font-size: var(--font-base);
 }
 
 .no-review {
-  color: var(--text-tertiary);
+  color: #b89770;
   font-style: italic;
   font-size: var(--font-sm);
 }
 
-/* Quotes section - compact */
+/* Quotes section: header sits on the wood; each quote is a paper card. */
 .quotes-section {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
+  background: transparent;
+  border: none;
+  padding: var(--space-2);
 }
 
 .quotes-header {
@@ -188,24 +198,33 @@
   align-items: center;
   margin-bottom: var(--space-4);
   padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 1px solid rgba(212, 184, 146, 0.15);
 }
 
 .quotes-header h2 {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
   font-size: var(--font-xl);
-  font-weight: var(--font-semibold);
-  color: var(--text-primary);
+  color: #d4b892;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   margin: 0;
 }
 
 .quote-item {
-  margin-bottom: var(--space-4);
-  padding-left: var(--space-4);
-  border-left: 3px solid var(--accent-blue);
+  background: var(--paper);
+  color: var(--paper-text);
+  border: 1px solid var(--paper-edge);
+  border-radius: 2px;
+  padding: var(--space-4) var(--space-4);
+  margin-bottom: var(--space-3);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: var(--space-3);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.25),
+    0 6px 14px rgba(0, 0, 0, 0.3);
 }
 
 .quote-item:last-child {
@@ -217,16 +236,20 @@
 }
 
 .quote-text {
+  font-family: var(--serif);
   font-style: italic;
-  color: var(--text-primary);
+  font-size: var(--font-base);
+  color: var(--paper-text);
   margin-bottom: var(--space-2);
   line-height: 1.6;
   white-space: pre-wrap;
 }
 
 .quote-page {
-  color: var(--text-tertiary);
+  color: var(--paper-text-soft);
+  font-family: var(--serif);
   font-size: var(--font-sm);
+  letter-spacing: 0.02em;
 }
 
 /* Quote like button styles */
@@ -235,12 +258,12 @@
   border: none;
   cursor: pointer;
   padding: var(--space-2);
-  color: var(--text-tertiary);
+  color: var(--paper-text-soft);
   font-size: var(--font-lg);
   transition: all var(--transition-fast);
   border-radius: var(--radius-base);
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 40px;
+  min-height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -248,20 +271,20 @@
 }
 
 .quote-like-btn:hover {
-  color: var(--accent-blue);
-  background: rgba(88, 166, 255, 0.1);
+  color: #8b3a1a;
+  background: rgba(139, 58, 26, 0.08);
 }
 
 .quote-like-btn.liked {
-  color: var(--accent-blue);
+  color: #8b3a1a;
 }
 
 .quote-like-btn.liked:hover {
-  color: var(--accent-blue-hover);
+  color: #6b2a10;
 }
 
 .quote-like-btn:focus-visible {
-  outline: 2px solid var(--accent-blue);
+  outline: 2px solid #8b3a1a;
   outline-offset: 2px;
 }
 
@@ -293,20 +316,20 @@
   border: none;
   padding: var(--space-1) var(--space-3);
   font-size: var(--font-sm);
-  color: var(--text-tertiary);
+  color: var(--paper-text-soft);
   cursor: pointer;
   border-radius: var(--radius-base);
   transition: all var(--transition-fast);
 }
 
 .quote-tab:hover {
-  color: var(--text-primary);
-  background: var(--bg-tertiary);
+  color: var(--paper-text);
+  background: rgba(58, 44, 26, 0.06);
 }
 
 .quote-tab.active {
-  color: var(--accent-blue);
-  background: rgba(88, 166, 255, 0.1);
+  color: #8b3a1a;
+  background: rgba(139, 58, 26, 0.08);
 }
 
 .quote-form {
@@ -346,7 +369,7 @@
 }
 
 .no-content {
-  color: var(--text-tertiary);
+  color: #b89770;
   font-style: italic;
 }
 
@@ -362,20 +385,20 @@
   border: none;
   padding: var(--space-1) var(--space-3);
   font-size: var(--font-sm);
-  color: var(--text-tertiary);
+  color: #b89770;
   cursor: pointer;
   border-radius: var(--radius-base);
   transition: all var(--transition-fast);
 }
 
 .review-tab:hover {
-  color: var(--text-primary);
-  background: var(--bg-tertiary);
+  color: #ecdcb8;
+  background: rgba(212, 184, 146, 0.08);
 }
 
 .review-tab.active {
-  color: var(--accent-blue);
-  background: rgba(88, 166, 255, 0.1);
+  color: #ecdcb8;
+  background: rgba(212, 184, 146, 0.12);
 }
 
 .review-edit {
@@ -395,14 +418,38 @@
   justify-content: flex-end;
 }
 
-/* Quote add form */
+/* Quote add form (admin) — paper card matching the quote items it produces. */
 .quote-form-container {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-base);
+  background: var(--paper);
+  color: var(--paper-text);
+  border: 1px solid var(--paper-edge);
+  border-radius: 2px;
   padding: var(--space-4);
   margin-bottom: var(--space-4);
   display: none;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.25),
+    0 6px 14px rgba(0, 0, 0, 0.3);
+}
+.quote-form-container .form-label {
+  color: var(--paper-text);
+}
+
+/* Inputs inside paper cards (add-quote form + quote-item edit mode) */
+.quote-form-container .form-input,
+.quote-form-container .form-textarea,
+.quote-item .form-input,
+.quote-item .form-textarea {
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--paper-text);
+  border: 1px solid var(--paper-edge);
+}
+.quote-form-container .form-input:focus,
+.quote-form-container .form-textarea:focus,
+.quote-item .form-input:focus,
+.quote-item .form-textarea:focus {
+  border-color: #8b3a1a;
+  box-shadow: 0 0 0 3px rgba(139, 58, 26, 0.12);
 }
 
 .quote-form-container.active {
@@ -542,7 +589,8 @@
 
 {% block content %}
 <div class="container book-detail-container">
-    <!-- Top row: Book info card + Reviews card -->
+  <div class="bookshelf book-detail-shelf">
+    <!-- Top row: Book info + Reviews -->
     <div class="book-detail-top">
         <!-- Left card: Cover + Info -->
         <div class="book-info-card">
@@ -634,6 +682,8 @@
             {% endif %}
         </div>
     </div>
+
+    <div class="shelf-ledge"></div>
 
     <!-- Quotes Section -->
     {% if quotes or (current_user.is_authenticated and current_user.role == 'admin') %}
@@ -727,6 +777,7 @@
         {% endif %}
     </div>
     {% endif %}
+  </div>
 
     <!-- Cover URL Modal (Admin Only) -->
     {% if current_user.is_authenticated and current_user.role == 'admin' %}

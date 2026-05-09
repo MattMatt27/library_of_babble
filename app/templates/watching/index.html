@@ -570,9 +570,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     resultsContainer.innerHTML = '<div class="no-results">No results found</div>';
                     return;
                 }
+                const noCoverPlaceholder = 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg';
                 resultsContainer.innerHTML = items.map(item => `
                     <div class="search-result-item" data-id="${item.id}" data-type="${item.type}" data-title="${item.title}" data-subtitle="${item.subtitle}" data-num="${num}">
-                        <img src="${item.cover_image_url || ''}" alt="" class="search-result-cover">
+                        <img src="${item.cover_image_url || noCoverPlaceholder}" alt="" class="search-result-cover" onerror="this.onerror=null; this.src='${noCoverPlaceholder}';">
                         <div class="search-result-info">
                             <span class="type-badge" style="background:${typeBadgeColors[item.type] || '#666'}">${item.type}</span>
                             <div class="search-result-title">${item.title}</div>

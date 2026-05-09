@@ -92,7 +92,12 @@
 
             <!-- Shelf: Recently Read (special - always shown first) -->
             <div class="shelf">
-                <div class="shelf-label">Recently Read</div>
+                <div class="shelf-label-row">
+                    <span class="shelf-label">Recently Read</span>
+                    {% if can_access_page('books') %}
+                    <a href="{{ url_for('reading.books') }}" class="bookshelf-see-all shelf-label-link">See all books →</a>
+                    {% endif %}
+                </div>
                 <div class="shelf-inner">
                     <button class="shelf-arrow shelf-arrow-left hidden" aria-label="Scroll left">‹</button>
                     <div class="shelf-books">
@@ -179,18 +184,15 @@
             </div>
             {% endfor %}
 
-            <!-- Bookshelf footer: admin controls + see all -->
+            <!-- Bookshelf footer: admin controls (left-aligned) -->
+            {% if current_user.is_authenticated and current_user.role == 'admin' %}
             <div class="bookshelf-footer">
                 <div class="bookshelf-footer-actions">
-                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
                     <button class="shelf-edit-btn" id="reorder-shelves-btn" title="Reorder shelves">⇅</button>
                     <button class="shelf-edit-btn" id="add-shelf-btn" title="Add new shelf">+</button>
-                    {% endif %}
-                    {% if can_access_page('books') %}
-                    <a href="{{ url_for('reading.books') }}" class="bookshelf-see-all">See all books →</a>
-                    {% endif %}
                 </div>
             </div>
+            {% endif %}
         </div>
     </section>
 </div>
@@ -657,9 +659,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     resultsContainer.innerHTML = '<div class="no-results">No results found</div>';
                     return;
                 }
+                const noCoverPlaceholder = 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg';
                 resultsContainer.innerHTML = items.map(item => `
                     <div class="search-result-item" data-id="${item.id}" data-type="${item.type}" data-title="${item.title}" data-subtitle="${item.subtitle}" data-num="${num}">
-                        <img src="${item.cover_image_url || ''}" alt="" class="search-result-cover">
+                        <img src="${item.cover_image_url || noCoverPlaceholder}" alt="" class="search-result-cover" onerror="this.onerror=null; this.src='${noCoverPlaceholder}';">
                         <div class="search-result-info">
                             <div class="search-result-title">
                                 <span class="type-badge" style="background:${typeBadgeColors[item.type] || '#888'}">${item.type}</span>
@@ -1051,8 +1054,10 @@ document.addEventListener('DOMContentLoaded', function() {
         shelfSearchTimeout = setTimeout(() => searchBooksForShelf(e.target.value), 300);
     });
 
-    // Edit buttons for each shelf
-    document.querySelectorAll('.shelf-edit-btn').forEach(btn => {
+    // Edit buttons for each shelf — scoped to per-shelf buttons only
+    // (the .shelf-edit-btn class is shared by the pairing add/edit, reorder,
+    // and add-shelf buttons too, all of which have their own handlers).
+    document.querySelectorAll('.shelf-edit-btn[data-shelf-id]').forEach(btn => {
         btn.addEventListener('click', function() {
             const id = this.dataset.shelfId;
             const displayName = this.dataset.shelfDisplay;

@@ -468,200 +468,314 @@
   }
 }
 
-/* Book Pairing Modal */
-#pairing-modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 3000;
-  justify-content: center;
-  align-items: center;
-}
-
-#pairing-modal .modal-content {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-#pairing-modal .modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-4) var(--space-5);
-  border-bottom: 1px solid var(--border-primary);
-}
-
-#pairing-modal .modal-header h3 {
-  margin: 0;
-  font-size: var(--font-lg);
-  color: var(--text-primary);
-}
-
-#pairing-modal .modal-close {
-  background: none;
-  border: none;
-  font-size: var(--font-2xl);
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-}
-
-#pairing-modal .modal-close:hover {
-  color: var(--text-primary);
-}
-
-#pairing-modal .modal-body {
-  padding: var(--space-5);
-}
-
-#pairing-modal .modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-5);
-  border-top: 1px solid var(--border-primary);
-}
-
-/* Shelf Modal - reuses pairing modal structure */
-#shelf-modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 3000;
-  justify-content: center;
-  align-items: center;
-}
-
-#shelf-modal .modal-content {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
-  width: 90%;
-  max-width: 400px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-#shelf-modal .modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-4) var(--space-5);
-  border-bottom: 1px solid var(--border-primary);
-}
-
-#shelf-modal .modal-header h3 {
-  margin: 0;
-  font-size: var(--font-lg);
-  color: var(--text-primary);
-}
-
-#shelf-modal .modal-close {
-  background: none;
-  border: none;
-  font-size: var(--font-2xl);
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-}
-
-#shelf-modal .modal-close:hover {
-  color: var(--text-primary);
-}
-
-#shelf-modal .modal-body {
-  padding: var(--space-5);
-}
-
-#shelf-modal .modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-5);
-  border-top: 1px solid var(--border-primary);
-}
-
-#shelf-modal .shelf-modal-wide {
-  max-width: 600px;
-}
-
-/* Reorder Shelves Modal */
+/* ----------------------------------------------------------------------------
+   Bookshelf admin modals — paper card on dark backdrop.
+   Shared shell, three trigger ids: pairing-modal, shelf-modal, reorder-shelves-modal.
+   ---------------------------------------------------------------------------- */
+#pairing-modal,
+#shelf-modal,
 #reorder-shelves-modal {
   display: none;
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
   z-index: 3000;
   justify-content: center;
   align-items: center;
+  padding: var(--space-4);
 }
 
+#pairing-modal .modal-content,
+#shelf-modal .modal-content,
 #reorder-shelves-modal .modal-content {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
-  width: 90%;
-  max-width: 400px;
+  background: var(--paper);
+  color: var(--paper-text);
+  border: 1px solid var(--paper-edge);
+  border-radius: 2px;
+  width: 100%;
   max-height: 90vh;
   overflow-y: auto;
+  font-family: var(--serif);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.4),
+    0 14px 32px rgba(0, 0, 0, 0.45);
 }
+#pairing-modal .modal-content { max-width: 500px; }
+#shelf-modal .modal-content { max-width: 400px; }
+#reorder-shelves-modal .modal-content { max-width: 400px; }
+#shelf-modal .shelf-modal-wide { max-width: 600px; }
 
+#pairing-modal .modal-header,
+#shelf-modal .modal-header,
 #reorder-shelves-modal .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: var(--space-4) var(--space-5);
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 1px solid var(--paper-edge);
 }
 
+#pairing-modal .modal-header h3,
+#shelf-modal .modal-header h3,
 #reorder-shelves-modal .modal-header h3 {
   margin: 0;
-  font-size: var(--font-lg);
-  color: var(--text-primary);
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: var(--font-xl);
+  color: var(--paper-text);
 }
 
+#pairing-modal .modal-close,
+#shelf-modal .modal-close,
 #reorder-shelves-modal .modal-close {
   background: none;
   border: none;
   font-size: var(--font-2xl);
-  color: var(--text-secondary);
+  color: var(--paper-text-soft);
   cursor: pointer;
   padding: 0;
   line-height: 1;
+  transition: color var(--transition-fast);
 }
-
+#pairing-modal .modal-close:hover,
+#shelf-modal .modal-close:hover,
 #reorder-shelves-modal .modal-close:hover {
-  color: var(--text-primary);
+  color: #8b3a1a;
 }
 
+#pairing-modal .modal-body,
+#shelf-modal .modal-body,
 #reorder-shelves-modal .modal-body {
   padding: var(--space-5);
 }
 
+#pairing-modal .modal-footer,
+#shelf-modal .modal-footer,
 #reorder-shelves-modal .modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
-  border-top: 1px solid var(--border-primary);
+  border-top: 1px solid var(--paper-edge);
+}
+
+/* Form labels and inputs inside paper modals */
+#pairing-modal label,
+#shelf-modal label,
+#reorder-shelves-modal label {
+  color: var(--paper-text);
+  font-family: var(--font-primary);
+  font-size: var(--font-sm);
+  font-weight: 500;
+}
+
+#pairing-modal input[type="text"],
+#pairing-modal input[type="url"],
+#pairing-modal textarea,
+#shelf-modal input[type="text"],
+#shelf-modal input[type="url"],
+#shelf-modal textarea {
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--paper-text);
+  border: 1px solid var(--paper-edge);
+  border-radius: 2px;
+}
+#pairing-modal input[type="text"]:focus,
+#pairing-modal input[type="url"]:focus,
+#pairing-modal textarea:focus,
+#shelf-modal input[type="text"]:focus,
+#shelf-modal input[type="url"]:focus,
+#shelf-modal textarea:focus {
+  outline: none;
+  border-color: #8b3a1a;
+  box-shadow: 0 0 0 3px rgba(139, 58, 26, 0.12);
+}
+
+/* Buttons inside paper modals: structural styles inherited; only repaint colors. */
+#pairing-modal .btn-primary,
+#shelf-modal .btn-primary,
+#reorder-shelves-modal .btn-primary {
+  background: #8b3a1a;
+  border-color: #8b3a1a;
+  color: #f4ead4;
+}
+#pairing-modal .btn-primary:hover,
+#shelf-modal .btn-primary:hover,
+#reorder-shelves-modal .btn-primary:hover {
+  background: #6b2a10;
+  border-color: #6b2a10;
+}
+
+#pairing-modal .btn-secondary,
+#shelf-modal .btn-secondary,
+#reorder-shelves-modal .btn-secondary {
+  background: transparent;
+  border-color: var(--paper-edge);
+  color: var(--paper-text);
+}
+#pairing-modal .btn-secondary:hover,
+#shelf-modal .btn-secondary:hover,
+#reorder-shelves-modal .btn-secondary:hover {
+  background: rgba(58, 44, 26, 0.06);
+  color: var(--paper-text);
+}
+
+/* Search results dropdown inside the pairing/shelf modals. */
+#pairing-modal .search-results,
+#shelf-modal .search-results {
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid var(--paper-edge);
+}
+#pairing-modal .search-result-item:hover,
+#shelf-modal .search-result-item:hover {
+  background: rgba(139, 58, 26, 0.08);
+}
+#pairing-modal .search-result-title,
+#shelf-modal .search-result-title {
+  color: var(--paper-text);
+}
+#pairing-modal .search-result-author,
+#shelf-modal .search-result-author {
+  color: var(--paper-text-soft);
+}
+#pairing-modal .no-results,
+#shelf-modal .no-results {
+  color: var(--paper-text-soft);
+}
+
+/* Selected-book chip + filter toggle inside paper modals. */
+#pairing-modal .selected-book,
+#shelf-modal .selected-book {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: var(--paper-edge);
+  color: var(--paper-text);
+}
+#pairing-modal .clear-selection,
+#shelf-modal .clear-selection {
+  color: var(--paper-text-soft);
+}
+#pairing-modal .clear-selection:hover,
+#shelf-modal .clear-selection:hover {
+  color: #8b3a1a;
+}
+
+#pairing-modal .filter-toggle,
+#shelf-modal .filter-toggle {
+  color: var(--paper-text-soft);
+}
+#pairing-modal .filter-toggle:hover,
+#shelf-modal .filter-toggle:hover {
+  color: var(--paper-text);
+}
+#pairing-modal .filter-toggle input[type="checkbox"],
+#shelf-modal .filter-toggle input[type="checkbox"] {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: var(--paper-edge);
+}
+#pairing-modal .filter-toggle input[type="checkbox"]:checked,
+#shelf-modal .filter-toggle input[type="checkbox"]:checked {
+  background: #8b3a1a;
+  border-color: #8b3a1a;
+}
+#pairing-modal .filter-toggle input[type="checkbox"]:hover,
+#shelf-modal .filter-toggle input[type="checkbox"]:hover {
+  border-color: #8b3a1a;
+}
+
+/* Shelf list (used in both shelf-modal book list and reorder-shelves-modal) */
+#shelf-modal .shelf-books-list,
+#reorder-shelves-modal .shelf-books-list {
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid var(--paper-edge);
+  border-radius: 2px;
+}
+#shelf-modal .shelf-books-list .no-books-message,
+#reorder-shelves-modal .shelf-books-list .no-books-message {
+  color: var(--paper-text-soft);
+}
+#shelf-modal .shelf-book-item,
+#reorder-shelves-modal .shelf-book-item {
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid var(--paper-edge);
+}
+#shelf-modal .shelf-book-item:hover,
+#reorder-shelves-modal .shelf-book-item:hover {
+  border-color: #8b3a1a;
+}
+#shelf-modal .shelf-book-drag,
+#reorder-shelves-modal .shelf-book-drag {
+  color: var(--paper-text-soft);
+}
+#shelf-modal .shelf-book-title,
+#reorder-shelves-modal .shelf-book-title {
+  color: var(--paper-text);
+}
+#shelf-modal .shelf-book-author,
+#reorder-shelves-modal .shelf-book-author {
+  color: var(--paper-text-soft);
+}
+#shelf-modal .shelf-book-actions button,
+#reorder-shelves-modal .shelf-book-actions button {
+  background: transparent;
+  border-color: var(--paper-edge);
+  color: var(--paper-text-soft);
+}
+#shelf-modal .shelf-book-actions button:hover:not(:disabled),
+#reorder-shelves-modal .shelf-book-actions button:hover:not(:disabled) {
+  background: rgba(139, 58, 26, 0.08);
+  color: #8b3a1a;
+  border-color: #8b3a1a;
+}
+
+/* Scrollbars on the modal content + scrollable lists — match paper palette */
+#pairing-modal .modal-content,
+#shelf-modal .modal-content,
+#reorder-shelves-modal .modal-content,
+#shelf-modal .shelf-books-list,
+#reorder-shelves-modal .shelf-books-list,
+#pairing-modal .search-results,
+#shelf-modal .search-results {
+  scrollbar-width: thin;
+  scrollbar-color: var(--paper-edge) transparent;
+}
+#pairing-modal .modal-content::-webkit-scrollbar,
+#shelf-modal .modal-content::-webkit-scrollbar,
+#reorder-shelves-modal .modal-content::-webkit-scrollbar,
+#shelf-modal .shelf-books-list::-webkit-scrollbar,
+#reorder-shelves-modal .shelf-books-list::-webkit-scrollbar,
+#pairing-modal .search-results::-webkit-scrollbar,
+#shelf-modal .search-results::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+#pairing-modal .modal-content::-webkit-scrollbar-track,
+#shelf-modal .modal-content::-webkit-scrollbar-track,
+#reorder-shelves-modal .modal-content::-webkit-scrollbar-track,
+#shelf-modal .shelf-books-list::-webkit-scrollbar-track,
+#reorder-shelves-modal .shelf-books-list::-webkit-scrollbar-track,
+#pairing-modal .search-results::-webkit-scrollbar-track,
+#shelf-modal .search-results::-webkit-scrollbar-track {
+  background: transparent;
+}
+#pairing-modal .modal-content::-webkit-scrollbar-thumb,
+#shelf-modal .modal-content::-webkit-scrollbar-thumb,
+#reorder-shelves-modal .modal-content::-webkit-scrollbar-thumb,
+#shelf-modal .shelf-books-list::-webkit-scrollbar-thumb,
+#reorder-shelves-modal .shelf-books-list::-webkit-scrollbar-thumb,
+#pairing-modal .search-results::-webkit-scrollbar-thumb,
+#shelf-modal .search-results::-webkit-scrollbar-thumb {
+  background: var(--paper-edge);
+  border-radius: 4px;
+}
+#pairing-modal .modal-content::-webkit-scrollbar-thumb:hover,
+#shelf-modal .modal-content::-webkit-scrollbar-thumb:hover,
+#reorder-shelves-modal .modal-content::-webkit-scrollbar-thumb:hover,
+#shelf-modal .shelf-books-list::-webkit-scrollbar-thumb:hover,
+#reorder-shelves-modal .shelf-books-list::-webkit-scrollbar-thumb:hover,
+#pairing-modal .search-results::-webkit-scrollbar-thumb:hover,
+#shelf-modal .search-results::-webkit-scrollbar-thumb:hover {
+  background: var(--paper-text-soft);
 }
 
 /* Shelf books management */
@@ -816,6 +930,25 @@
 .form-group textarea:focus {
   outline: none;
   border-color: var(--accent-blue);
+}
+
+/* Content type pill — Book / Movie / TVShow.
+   Color comes from inline style set by JS (typeBadgeColors map).
+   Asymmetric vertical padding keeps the all-caps text optically centered. */
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px 1px;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+  line-height: 1.5;
+  vertical-align: middle;
+  white-space: nowrap;
 }
 
 .search-results {
@@ -985,10 +1118,10 @@
   margin-bottom: var(--space-6);
 }
 
-/* Footer plaque inside the bookshelf — see-all link + admin controls */
+/* Footer plaque inside the bookshelf — admin controls, left-aligned */
 .bookshelf-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   padding: var(--space-4) var(--space-2) 0;
   margin-top: var(--space-2);
 }
@@ -999,6 +1132,7 @@
   gap: var(--space-3);
 }
 
+/* See-all link sits in the Recently Read shelf header (top-right) */
 .bookshelf-see-all {
   font-size: var(--font-sm);
   color: #d4b892;
@@ -1008,9 +1142,14 @@
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   transition: color var(--transition-fast);
 }
-
 .bookshelf-see-all:hover {
   color: #fff;
+}
+
+/* When inside a shelf-label-row, push to the right edge of the row */
+.shelf-label-row .shelf-label-link {
+  margin-left: auto;
+  padding-right: var(--space-2);
 }
 
 .bookshelf {

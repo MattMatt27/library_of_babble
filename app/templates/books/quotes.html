@@ -5,6 +5,10 @@
 {% set active_page = 'reading' %}
 
 {% block extra_styles %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/books.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/quotes.css') }}">
 {% endblock %}
 
@@ -12,31 +16,60 @@
 <div class="container">
     <div class="quotes-page">
         <div class="quotes-header">
-            <h1>Passages</h1>
-            <p>Collected quotes and excerpts from my reading</p>
+            <div class="quotes-header-text">
+                <h1>Passages</h1>
+                <p>Collected quotes and excerpts from my reading</p>
+            </div>
+            <p class="quotes-disclaimer">
+                All passages are excerpted from their respective works for personal reflection and commentary. No copyright ownership is claimed. All rights belong to the original authors and publishers.
+            </p>
         </div>
 
+        <div class="passages-cork">
         <!-- Filters and Sort -->
         <div class="quotes-filters">
-            <div class="filter-group">
-                <label for="sort-select">Sort:</label>
-                <select id="sort-select">
-                    <option value="random" {% if sort_order == 'random' %}selected{% endif %}>Random</option>
-                    <option value="book-title" {% if sort_order == 'book-title' %}selected{% endif %}>Book Title</option>
-                    <option value="book-year-asc" {% if sort_order == 'book-year-asc' %}selected{% endif %}>Book Year (Oldest)</option>
-                    <option value="book-year-desc" {% if sort_order == 'book-year-desc' %}selected{% endif %}>Book Year (Newest)</option>
-                </select>
+            <div class="filter-group filter-group-sort">
+                <label for="sort-trigger">Sort:</label>
+                {% set sort_labels = {'random':'Random','book-title':'Book Title','book-year-asc':'Book Year (Oldest)','book-year-desc':'Book Year (Newest)'} %}
+                <div class="sort-control">
+                    <button type="button" id="sort-trigger" class="sort-trigger" aria-haspopup="listbox" aria-expanded="false">
+                        <span class="sort-trigger-label">{{ sort_labels.get(sort_order, 'Random') }}</span>
+                        <span class="sort-trigger-chevron" aria-hidden="true">&#9662;</span>
+                    </button>
+                    <div id="sort-options" class="sort-options" role="listbox">
+                        {% for value, label in sort_labels.items() %}
+                        <button type="button" class="sort-option {% if sort_order == value %}is-selected{% endif %}" data-sort="{{ value }}" role="option">
+                            {{ label }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
 
-            <div class="filter-group">
-                <label for="book-filter">Book:</label>
-                <select id="book-filter">
-                    <option value="">All books</option>
-                    {% for book in books_with_quotes %}
-                    <option value="{{ book.id }}" {% if book_filter == book.id %}selected{% endif %}>{{ book.title }}</option>
-                    {% endfor %}
-                </select>
+            <div class="filter-group filter-group-book">
+                <label for="book-filter-search">Book:</label>
+                {% set selected_book = none %}
+                {% for b in books_with_quotes %}
+                    {% if book_filter == b.id %}{% set selected_book = b %}{% endif %}
+                {% endfor %}
+                {% if selected_book %}
+                <div class="book-filter-selected">
+                    {% if selected_book.cover_image_url %}
+                    <img src="{{ selected_book.cover_image_url }}" alt="" class="book-filter-cover" onerror="this.onerror=null; this.src='https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg';">
+                    {% endif %}
+                    <span class="book-filter-title">{{ selected_book.title }}</span>
+                    <button type="button" class="book-filter-clear" id="book-filter-clear" aria-label="Clear book filter">&times;</button>
+                </div>
+                {% else %}
+                <div class="book-filter-search-wrap">
+                    <input type="text" id="book-filter-search" placeholder="Search books with passages…" autocomplete="off">
+                    <div id="book-filter-results" class="book-filter-results"></div>
+                </div>
+                {% endif %}
             </div>
+            <script id="books-with-quotes-data" type="application/json">
+[{% for b in books_with_quotes %}{"id":{{ b.id }},"title":{{ b.title|tojson }},"author":{{ (b.author or "")|tojson }},"cover":{{ (b.cover_image_url or "")|tojson }}}{% if not loop.last %},{% endif %}{% endfor %}]
+            </script>
 
             {% if current_user.is_authenticated and current_user.role != 'viewer' %}
             <label class="filter-toggle">
@@ -55,6 +88,14 @@
                  data-book-year="{{ quote.book_year or 0 }}"
                  data-liked="{{ 'true' if quote.is_liked else 'false' }}"
                  data-quote-id="{{ quote.id }}">
+              <div class="quote-paper">
+                <svg class="quote-thumbtack" viewBox="0 0 24 24" aria-hidden="true">
+                    <ellipse cx="12" cy="14.5" rx="6.5" ry="1.6" fill="rgba(0,0,0,0.34)"/>
+                    <circle cx="12" cy="11" r="6" fill="#6e1c10"/>
+                    <circle cx="12" cy="11" r="5.3" fill="#c8463c"/>
+                    <ellipse cx="10.5" cy="9.5" rx="3.2" ry="2.6" fill="#e5604c"/>
+                    <ellipse cx="10" cy="8.8" rx="1.9" ry="1.2" fill="rgba(255,255,255,0.55)"/>
+                </svg>
                 <div class="quote-item-header">
                     <blockquote class="quote-item-text">"{{ quote.text }}"</blockquote>
                     {% if current_user.is_authenticated and current_user.role != 'viewer' %}
@@ -83,6 +124,7 @@
                         <span class="quote-source-author">{{ quote.book_author }}</span>
                     </div>
                 </a>
+              </div>
             </div>
             {% else %}
             <div class="no-quotes">
@@ -99,9 +141,6 @@
             <button id="next-page" {% if current_page == total_pages %}disabled{% endif %}>Next &gt;</button>
         </div>
         {% endif %}
-
-        <div class="alert alert-info" style="margin-top: var(--space-6);">
-            <small>All passages are excerpted from their respective works for personal reflection and commentary. No copyright ownership is claimed. All rights belong to the original authors and publishers.</small>
         </div>
     </div>
 </div>
@@ -109,10 +148,66 @@
 
 {% block extra_scripts %}
 <script>
+// Masonry layout: distribute .quote-item children of .quotes-grid into
+// N flex columns by appending each to the shortest column. Re-runs on
+// viewport changes (debounced).
+(function () {
+  const MIN_COL_WIDTH = 300;
+  const MAX_COLS = 4;
+  let originalItems = null;
+
+  function distribute() {
+    const grid = document.getElementById('quotes-grid');
+    if (!grid) return;
+
+    if (!originalItems) {
+      originalItems = Array.from(grid.querySelectorAll(':scope > .quote-item'));
+    }
+    if (originalItems.length === 0) return;
+
+    const containerWidth = grid.clientWidth;
+    const gap = 20; // matches --space-5
+    const colCount = Math.max(
+      1,
+      Math.min(MAX_COLS, Math.floor((containerWidth + gap) / (MIN_COL_WIDTH + gap)))
+    );
+
+    grid.innerHTML = '';
+    const columns = [];
+    for (let i = 0; i < colCount; i++) {
+      const col = document.createElement('div');
+      col.className = 'quotes-column';
+      grid.appendChild(col);
+      columns.push(col);
+    }
+
+    originalItems.forEach(item => {
+      const shortest = columns.reduce((a, b) =>
+        a.offsetHeight <= b.offsetHeight ? a : b
+      );
+      shortest.appendChild(item);
+    });
+  }
+
+  let resizeTimer = null;
+  function onResize() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(distribute, 150);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', distribute);
+  } else {
+    distribute();
+  }
+  window.addEventListener('resize', onResize);
+})();
+
 document.addEventListener('DOMContentLoaded', function() {
     const bookFilter = document.getElementById('book-filter');
     const likedFilter = document.getElementById('liked-filter');
-    const sortSelect = document.getElementById('sort-select');
+    const sortTrigger = document.getElementById('sort-trigger');
+    const sortOptions = document.getElementById('sort-options');
 
     function getCSRFToken() {
         return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -135,17 +230,86 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = url.toString();
     }
 
-    // Filter/sort change handlers
-    if (sortSelect) {
-        sortSelect.addEventListener('change', function() {
-            updatePage({ sort: this.value });
+    // Sort dropdown — custom control matching the book-filter aesthetic
+    if (sortTrigger && sortOptions) {
+        const closeSort = () => {
+            sortOptions.classList.remove('is-open');
+            sortTrigger.setAttribute('aria-expanded', 'false');
+        };
+        const openSort = () => {
+            sortOptions.classList.add('is-open');
+            sortTrigger.setAttribute('aria-expanded', 'true');
+        };
+        sortTrigger.addEventListener('click', e => {
+            e.stopPropagation();
+            sortOptions.classList.contains('is-open') ? closeSort() : openSort();
+        });
+        sortOptions.querySelectorAll('.sort-option').forEach(btn => {
+            btn.addEventListener('click', () => updatePage({ sort: btn.dataset.sort }));
+        });
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.sort-control')) closeSort();
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeSort();
         });
     }
 
-    if (bookFilter) {
-        bookFilter.addEventListener('change', function() {
-            updatePage({ book: this.value || null });
+    // Book filter — admin-modal-style search over books_with_quotes
+    const bookSearch = document.getElementById('book-filter-search');
+    const bookResults = document.getElementById('book-filter-results');
+    const bookClear = document.getElementById('book-filter-clear');
+    const NO_COVER = 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg';
+
+    function getBooksData() {
+        const node = document.getElementById('books-with-quotes-data');
+        if (!node) return [];
+        try { return JSON.parse(node.textContent); } catch (e) { return []; }
+    }
+
+    function renderBookResults(query) {
+        if (!bookResults) return;
+        const q = query.trim().toLowerCase();
+        if (!q) { bookResults.innerHTML = ''; return; }
+        const books = getBooksData();
+        const matches = books
+            .filter(b => b.title.toLowerCase().includes(q) || (b.author || '').toLowerCase().includes(q))
+            .slice(0, 12);
+        if (matches.length === 0) {
+            bookResults.innerHTML = '<div class="book-filter-no-results">No books match.</div>';
+            return;
+        }
+        bookResults.innerHTML = matches.map(b => `
+            <button type="button" class="book-filter-result" data-book-id="${b.id}">
+                <img src="${b.cover || NO_COVER}" alt="" class="book-filter-result-cover" onerror="this.onerror=null; this.src='${NO_COVER}';">
+                <div class="book-filter-result-info">
+                    <div class="book-filter-result-title">${b.title.replace(/</g, '&lt;')}</div>
+                    <div class="book-filter-result-author">${(b.author || '').replace(/</g, '&lt;')}</div>
+                </div>
+            </button>
+        `).join('');
+        bookResults.querySelectorAll('.book-filter-result').forEach(btn => {
+            btn.addEventListener('click', () => updatePage({ book: btn.dataset.bookId }));
         });
+    }
+
+    if (bookSearch) {
+        let bookSearchTimer;
+        bookSearch.addEventListener('input', e => {
+            clearTimeout(bookSearchTimer);
+            bookSearchTimer = setTimeout(() => renderBookResults(e.target.value), 120);
+        });
+        // Close results on outside click
+        document.addEventListener('click', e => {
+            if (!bookResults) return;
+            if (!e.target.closest('.book-filter-search-wrap')) {
+                bookResults.innerHTML = '';
+            }
+        });
+    }
+
+    if (bookClear) {
+        bookClear.addEventListener('click', () => updatePage({ book: null }));
     }
 
     if (likedFilter) {

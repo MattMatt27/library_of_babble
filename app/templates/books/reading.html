@@ -427,10 +427,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.style.overflow = '';
     }
     const trigger = document.querySelector('.pairing-rec-trigger');
-    const closeBtn = document.querySelector('.pairing-rec-close');
+    const recCloseBtn = document.querySelector('.pairing-rec-close');
     const backdropEl = document.querySelector('.pairing-rec-backdrop');
     if (trigger) trigger.addEventListener('click', openRecCard);
-    if (closeBtn) closeBtn.addEventListener('click', closeRecCard);
+    if (recCloseBtn) recCloseBtn.addEventListener('click', closeRecCard);
     if (backdropEl) backdropEl.addEventListener('click', closeRecCard);
     window.addEventListener('resize', fitPairingCard);
 

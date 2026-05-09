@@ -637,3 +637,661 @@
   vertical-align: middle;
   line-height: 1.4;
 }
+
+/* ============================================================================
+ * Watching page redesign (2026)
+ * The page becomes two velvet sections — Films (red), Television (purple) —
+ * each containing shelves of covers, with a marquee/title-card pairing on the
+ * top shelf of Films and a clapperboard/TV emblem pinned to the top-right.
+ * Bodoni Moda is the display serif (loaded by the watching template).
+ * ============================================================================ */
+
+:root {
+  --display-serif: "Bricolage Grotesque", -apple-system, "Segoe UI", system-ui, sans-serif;
+  /* Marquee palette — cinema title-card aesthetic for cards/overlays on watching page */
+  --marquee-bg: #16090a;
+  --marquee-bg-soft: #21100f;
+  --marquee-edge: rgba(212, 176, 176, 0.18);
+  --marquee-text: #ecdcb8;
+  --marquee-text-soft: #a89072;
+  --marquee-accent: #c75a3a;
+  --pairing-book-w: 170px;
+  --pairing-book-h: calc(var(--pairing-book-w) * 1.5);
+}
+
+/* Velvet container needs to anchor the absolute passage trigger */
+.media-shelf {
+  position: relative;
+}
+
+/* ----------------------------------------------------------------------------
+   Top shelf: A Pairing
+   ---------------------------------------------------------------------------- */
+.shelf-pairing {
+  margin-bottom: var(--space-3);
+}
+.shelf-pairing .pairing-controls {
+  margin-top: 1px;
+}
+.shelf-pairing .shelf-inner {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-3) var(--space-2) var(--space-2);
+}
+
+.book-pairing {
+  display: flex;
+  gap: var(--space-5);
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.pairing-book {
+  display: block;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+.pairing-book:hover {
+  transform: translateY(-3px);
+}
+.pairing-book img {
+  width: var(--pairing-book-w);
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 2px;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+/* The rec card — marquee/title-card aesthetic */
+.pairing-rec-card {
+  position: relative;
+  flex: 0 0 auto;
+  width: 380px;
+  min-width: 260px;
+  max-width: 900px;
+  height: var(--pairing-book-h);
+  box-sizing: border-box;
+  background: var(--marquee-bg);
+  color: var(--marquee-text);
+  padding: var(--space-4) var(--space-4);
+  border: 1px solid var(--marquee-edge);
+  border-radius: 2px;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 10px 22px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(255, 220, 180, 0.04);
+  font-family: var(--display-serif);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.pairing-titles {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-3) 0;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--marquee-edge);
+  flex-shrink: 0;
+}
+
+.pairing-book-link {
+  text-decoration: none;
+  color: inherit;
+}
+.pairing-book-link:hover .pairing-book-title {
+  color: var(--marquee-accent);
+}
+
+.pairing-book-title {
+  font-family: var(--display-serif);
+  font-size: var(--font-md);
+  font-weight: 500;
+  color: var(--marquee-text);
+  line-height: 1.25;
+  letter-spacing: 0.005em;
+  transition: color var(--transition-fast);
+}
+
+.pairing-amp {
+  font-family: var(--display-serif);
+  font-size: var(--font-md);
+  color: var(--marquee-text-soft);
+  margin: 0 var(--space-1);
+}
+
+.pairing-note {
+  font-family: var(--display-serif);
+  font-size: var(--font-base);
+  color: var(--marquee-text);
+  line-height: 1.55;
+  margin: 0;
+  opacity: 0.92;
+}
+
+/* Pairing controls (red velvet palette) */
+.pairing-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.pairing-nav-btn {
+  background: rgba(60, 20, 20, 0.8);
+  border: 1px solid #5a2a2a;
+  border-radius: var(--radius-base);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: var(--font-lg);
+  color: #d4b0b0;
+  transition: all var(--transition-fast);
+  line-height: 1;
+  padding: 0 0 5px 0;
+}
+.pairing-nav-btn:hover {
+  background: rgba(80, 30, 30, 0.95);
+  color: #fff;
+}
+
+.shelf-empty {
+  color: #b89a9a;
+  font-style: italic;
+  text-align: center;
+  padding: var(--space-6);
+}
+
+/* ----------------------------------------------------------------------------
+   Pairing trigger + overlay (mobile + desktop overflow)
+   ---------------------------------------------------------------------------- */
+.pairing-rec-trigger,
+.pairing-rec-close,
+.pairing-rec-backdrop {
+  display: none;
+}
+
+.pairing-rec-trigger {
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 56px;
+  height: 72px;
+  padding: 0;
+  background: var(--marquee-bg);
+  border: 1px solid var(--marquee-edge);
+  border-radius: 2px;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px rgba(255, 220, 180, 0.05);
+  cursor: pointer;
+  position: relative;
+}
+.pairing-rec-trigger-glyph {
+  display: block;
+  width: 28px;
+  height: 16px;
+  background-image:
+    linear-gradient(to right, var(--marquee-text-soft) 22px, transparent 22px),
+    linear-gradient(to right, var(--marquee-text-soft) 28px, transparent 28px),
+    linear-gradient(to right, var(--marquee-text-soft) 18px, transparent 18px);
+  background-size: 100% 2px;
+  background-position: 0 0, 0 7px, 0 14px;
+  background-repeat: no-repeat;
+  opacity: 0.85;
+}
+
+@media (max-width: 768px) {
+  :root { --pairing-book-w: 110px; }
+  .pairing-rec-card { display: none; }
+  .pairing-rec-trigger { display: flex; }
+}
+
+.book-pairing.pairing-overflow .pairing-rec-card { display: none; }
+.book-pairing.pairing-overflow .pairing-rec-trigger { display: flex; }
+
+.pairing-rec-backdrop.is-open {
+  display: block;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 999;
+}
+
+.book-pairing .pairing-rec-card.is-open {
+  display: flex;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100vw - 40px);
+  max-width: 480px;
+  height: auto;
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 1000;
+  padding: var(--space-5) var(--space-5) var(--space-4);
+}
+
+.pairing-rec-card.is-open .pairing-rec-close {
+  display: block;
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  color: var(--marquee-text-soft);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ----------------------------------------------------------------------------
+   Passage scrap + overlay
+   ---------------------------------------------------------------------------- */
+/* Passage trigger pinned top-right of films velvet —
+   placeholder still-frame slot, sized so a real movie still drops in later. */
+.passage-trigger {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 5;
+  width: 42px;
+  height: 38px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--transition-fast);
+}
+.passage-trigger:hover { transform: translateY(-2px); }
+.passage-trigger:hover .passage-trigger-frame {
+  border-color: rgba(212, 176, 176, 0.55);
+}
+
+.passage-trigger-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--marquee-bg);
+  border: 1px solid var(--marquee-edge);
+  border-radius: 2px;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(255, 220, 180, 0.04);
+  transition: border-color var(--transition-fast);
+}
+
+.passage-trigger-glyph {
+  font-family: var(--display-serif);
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--marquee-text);
+  transform: translateY(7px);
+}
+
+.passage-card,
+.passage-backdrop {
+  display: none;
+}
+
+.passage-backdrop.is-open {
+  display: block;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 999;
+}
+
+.passage-card.is-open {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100vw - 40px);
+  max-width: 520px;
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 1000;
+  background: var(--marquee-bg);
+  color: var(--marquee-text);
+  padding: var(--space-8) var(--space-6) var(--space-5);
+  border: 1px solid var(--marquee-edge);
+  border-radius: 2px;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    0 12px 32px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(255, 220, 180, 0.04);
+}
+
+.passage-text {
+  font-family: var(--display-serif);
+  font-style: italic;
+  font-size: var(--font-lg);
+  line-height: 1.6;
+  color: var(--marquee-text);
+  margin: 0;
+  white-space: pre-line;
+}
+
+.passage-attribution {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1);
+  margin: 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--marquee-edge);
+}
+
+.passage-book-link {
+  font-family: var(--display-serif);
+  font-size: var(--font-base);
+  font-weight: 500;
+  color: var(--marquee-text);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+.passage-book-link:hover {
+  color: var(--marquee-accent);
+}
+
+.passage-author {
+  font-family: var(--font-primary);
+  font-size: var(--font-sm);
+  color: var(--marquee-text-soft);
+}
+
+.passage-view-all {
+  font-family: var(--font-primary);
+  font-size: var(--font-sm);
+  color: var(--marquee-text-soft);
+  text-decoration: none;
+  align-self: flex-end;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0;
+  transition: color var(--transition-fast);
+}
+.passage-view-all:hover {
+  color: var(--marquee-accent);
+}
+
+.passage-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  color: var(--marquee-text-soft);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.65;
+  transition: opacity var(--transition-fast);
+}
+.passage-close:hover { opacity: 1; }
+
+@media (max-width: 768px) {
+  .passage-text { font-size: var(--font-md); }
+  .passage-card.is-open { padding: var(--space-5) var(--space-5) var(--space-4); }
+}
+
+/* ----------------------------------------------------------------------------
+   Shelf structure (typography + layout — colors come from velvet scope)
+   ---------------------------------------------------------------------------- */
+.shelf {
+  margin-bottom: var(--space-2);
+  position: relative;
+}
+.shelf:last-child {
+  margin-bottom: 0;
+}
+
+.shelf-label {
+  font-family: var(--display-serif);
+  font-weight: 500;
+  font-size: var(--font-xl);
+  line-height: 1;
+  margin-top: var(--space-3);
+  margin-bottom: var(--space-3);
+  padding-left: var(--space-2);
+  display: block;
+  letter-spacing: -0.005em;
+}
+
+.shelf-label-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  margin-bottom: var(--space-3);
+  padding-left: var(--space-2);
+}
+.shelf-label-row .shelf-label {
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-left: 0;
+}
+
+.shelf-inner {
+  position: relative;
+}
+
+.shelf-books {
+  display: flex;
+  gap: var(--space-4);
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: var(--space-2);
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.shelf-books::-webkit-scrollbar { display: none; }
+
+/* Shelf scroll arrows: layout only — colors set per velvet section above */
+.shelf-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-70%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: var(--font-lg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 5px 0;
+  transition: all var(--transition-fast);
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+.shelf-arrow-left { left: -16px; }
+.shelf-arrow-right { right: -16px; }
+.shelf-arrow.hidden { opacity: 0; pointer-events: none; }
+.media-shelf .shelf-arrow:hover,
+.media-shelf--tv .shelf-arrow:hover {
+  transform: translateY(-70%) scale(1.1);
+}
+
+/* Shelf labels in the velvet — typography from base, color from scope */
+.media-shelf .shelf-label {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.shelf-edit-btn {
+  border-radius: var(--radius-base);
+  font-size: var(--font-sm);
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+  opacity: 0.6;
+  transition: all var(--transition-fast);
+}
+
+/* ----------------------------------------------------------------------------
+   Book card on shelves: cover-only by default, hover overlay reveals details
+   ---------------------------------------------------------------------------- */
+.shelf-books .book-card {
+  flex-shrink: 0;
+  width: 140px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: transparent;
+  border: none;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+  cursor: default;
+}
+
+.shelf-books .book-card-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: 2px;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 6px 14px rgba(0, 0, 0, 0.35);
+  transition: transform var(--transition-fast);
+}
+
+@media (hover: hover) {
+  .shelf-books .book-card:hover .book-card-image {
+    transform: translateY(-3px);
+  }
+}
+
+.shelf-books .book-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Caption block below the poster — cinema lobby card feel */
+.shelf-books .book-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-2) 2px 0;
+  text-align: left;
+}
+
+.shelf-books .book-card-title {
+  font-family: var(--display-serif);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #efe6e6;
+  line-height: 1.25;
+  margin: 0;
+  letter-spacing: 0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.shelf-books .book-card-author {
+  font-size: 0.68rem;
+  color: rgba(239, 230, 230, 0.62);
+  line-height: 1.3;
+  margin: 0;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.shelf-books .book-card-year {
+  font-size: 0.65rem;
+  color: rgba(239, 230, 230, 0.45);
+  margin: 0;
+  letter-spacing: 0.04em;
+}
+.shelf-books .book-card-rating {
+  margin: 4px 0 0 -2px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* Television velvet uses the same caption structure with cool tones */
+.media-shelf--tv .shelf-books .book-card-title { color: #e6e6ef; }
+.media-shelf--tv .shelf-books .book-card-author { color: rgba(230, 230, 239, 0.62); }
+.media-shelf--tv .shelf-books .book-card-year { color: rgba(230, 230, 239, 0.45); }
+
+/* Shelf ledge: thickness from base, color per velvet */
+.shelf-ledge {
+  height: 12px;
+  margin-top: var(--space-2);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+.shelf-ledge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 100%
+  );
+}
+
+/* ----------------------------------------------------------------------------
+   Shelves footer (see-all link + admin)
+   ---------------------------------------------------------------------------- */
+.shelves-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--space-4) var(--space-2) 0;
+  margin-top: var(--space-2);
+}
+.shelves-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.shelves-see-all {
+  font-size: var(--font-sm);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  font-style: italic;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: color var(--transition-fast);
+}
+.media-shelf .shelves-see-all { color: #d4b0b0; }
+.media-shelf--tv .shelves-see-all { color: #b0b0d4; }
+.shelves-see-all:hover { color: #fff; }

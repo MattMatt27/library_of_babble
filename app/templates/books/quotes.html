@@ -48,18 +48,18 @@
 
             <div class="filter-group filter-group-book">
                 <label for="book-filter-search">Book:</label>
-                {% set selected_book = none %}
+                {% set ns = namespace(selected=none) %}
                 {% for b in books_with_quotes %}
-                    {% if book_filter == b.id %}{% set selected_book = b %}{% endif %}
+                    {% if book_filter == b.id %}{% set ns.selected = b %}{% endif %}
                 {% endfor %}
-                {% if selected_book %}
-                <div class="book-filter-selected">
-                    {% if selected_book.cover_image_url %}
-                    <img src="{{ selected_book.cover_image_url }}" alt="" class="book-filter-cover" onerror="this.onerror=null; this.src='https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg';">
+                {% if ns.selected %}
+                <button type="button" class="book-filter-selected" id="book-filter-clear" aria-label="Clear book filter — show all books" title="Show all books">
+                    {% if ns.selected.cover_image_url %}
+                    <img src="{{ ns.selected.cover_image_url }}" alt="" class="book-filter-cover" onerror="this.onerror=null; this.src='https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg';">
                     {% endif %}
-                    <span class="book-filter-title">{{ selected_book.title }}</span>
-                    <button type="button" class="book-filter-clear" id="book-filter-clear" aria-label="Clear book filter">&times;</button>
-                </div>
+                    <span class="book-filter-title">{{ ns.selected.title }}</span>
+                    <span class="book-filter-clear-icon" aria-hidden="true">&times;</span>
+                </button>
                 {% else %}
                 <div class="book-filter-search-wrap">
                     <input type="text" id="book-filter-search" placeholder="Search books with passages…" autocomplete="off">

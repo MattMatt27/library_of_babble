@@ -5,103 +5,137 @@
 {% set active_page = 'watching' %}
 
 {% block extra_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/quotes.css') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/movies.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/movie-quotes.css') }}">
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <div class="quotes-page">
-        <div class="quotes-header">
-            <h1>Movie Quotes</h1>
-            <p>Collected quotes and lines from film</p>
+    <div class="movie-quotes-page">
+        <div class="movie-quotes-header">
+            <div class="movie-quotes-header-text">
+                <h1>Movie Quotes</h1>
+                <p>Lines collected from films I've watched</p>
+            </div>
+            <p class="movie-quotes-disclaimer">
+                All quotes are excerpted from their respective films for personal reflection and commentary. No copyright ownership is claimed. All rights belong to the original creators and studios.
+            </p>
         </div>
 
-        <!-- Filters and Sort -->
-        <div class="quotes-filters">
-            <div class="filter-group">
-                <label for="sort-select">Sort:</label>
-                <select id="sort-select">
-                    <option value="random" {% if sort_order == 'random' %}selected{% endif %}>Random</option>
-                    <option value="movie-title" {% if sort_order == 'movie-title' %}selected{% endif %}>Movie Title</option>
-                    <option value="movie-year-asc" {% if sort_order == 'movie-year-asc' %}selected{% endif %}>Movie Year (Oldest)</option>
-                    <option value="movie-year-desc" {% if sort_order == 'movie-year-desc' %}selected{% endif %}>Movie Year (Newest)</option>
-                </select>
-            </div>
-
-            <div class="filter-group">
-                <label for="movie-filter">Movie:</label>
-                <select id="movie-filter">
-                    <option value="">All movies</option>
-                    {% for movie in movies_with_quotes %}
-                    <option value="{{ movie.tmdb_id }}" {% if movie_filter == movie.tmdb_id %}selected{% endif %}>{{ movie.title }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            {% if current_user.is_authenticated and current_user.role != 'viewer' %}
-            <label class="filter-toggle">
-                <input type="checkbox" id="liked-filter" {% if liked_only %}checked{% endif %}>
-                <span>Liked only</span>
-            </label>
-            {% endif %}
-        </div>
-
-        <!-- Quotes grid -->
-        <div class="quotes-grid" id="quotes-grid">
-            {% for quote in quotes %}
-            <div class="quote-item"
-                 data-movie-id="{{ quote.movie_id }}"
-                 data-movie-title="{{ quote.movie_title }}"
-                 data-movie-year="{{ quote.movie_year or 0 }}"
-                 data-liked="{{ 'true' if quote.is_liked else 'false' }}"
-                 data-quote-id="{{ quote.id }}">
-                <div class="quote-item-header">
-                    <blockquote class="quote-item-text">"{{ quote.text }}"</blockquote>
-                    {% if current_user.is_authenticated and current_user.role != 'viewer' %}
-                    <button class="quote-like-btn {{ 'liked' if quote.is_liked else '' }}"
-                            data-quote-id="{{ quote.id }}"
-                            aria-label="{{ 'Unlike this quote' if quote.is_liked else 'Like this quote' }}"
-                            aria-pressed="{{ 'true' if quote.is_liked else 'false' }}">
-                        <i class="{{ 'fa-solid' if quote.is_liked else 'fa-regular' }} fa-heart"></i>
-                    </button>
-                    {% endif %}
-                </div>
-                <div class="quote-item-meta">
-                    {% if quote.character %}
-                    <span class="quote-chapter">{{ quote.character }}</span>
-                    {% endif %}
-                    {% if quote.scene_timestamp %}
-                    <span class="quote-page">{{ quote.scene_timestamp }}</span>
-                    {% endif %}
-                </div>
-                <div class="quote-item-source">
-                    {% if quote.movie_cover %}
-                    <img src="{{ quote.movie_cover }}" alt="{{ quote.movie_title }}" class="quote-source-cover">
-                    {% endif %}
-                    <div class="quote-source-info">
-                        <span class="quote-source-title">{{ quote.movie_title }}</span>
-                        <span class="quote-source-author">{{ quote.movie_director }}{% if quote.movie_year %} ({{ quote.movie_year }}){% endif %}</span>
+        <div class="passages-marquee">
+            <!-- Filter strip -->
+            <div class="movie-quotes-filters">
+                <div class="filter-group filter-group-sort">
+                    <label for="sort-trigger">Sort:</label>
+                    {% set sort_labels = {'random':'Random','movie-title':'Movie Title','movie-year-asc':'Movie Year (Oldest)','movie-year-desc':'Movie Year (Newest)'} %}
+                    <div class="sort-control">
+                        <button type="button" id="sort-trigger" class="sort-trigger" aria-haspopup="listbox" aria-expanded="false">
+                            <span class="sort-trigger-label">{{ sort_labels.get(sort_order, 'Random') }}</span>
+                            <span class="sort-trigger-chevron" aria-hidden="true">&#9662;</span>
+                        </button>
+                        <div id="sort-options" class="sort-options" role="listbox">
+                            {% for value, label in sort_labels.items() %}
+                            <button type="button" class="sort-option {% if sort_order == value %}is-selected{% endif %}" data-sort="{{ value }}" role="option">
+                                {{ label }}
+                            </button>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
-            </div>
-            {% else %}
-            <div class="no-quotes">
-                <p>No quotes found.</p>
-            </div>
-            {% endfor %}
-        </div>
 
-        <!-- Pagination Controls -->
-        {% if total_pages > 1 %}
-        <div class="pagination">
-            <button id="prev-page" {% if current_page == 1 %}disabled{% endif %}>&lt; Prev</button>
-            <span class="page-info">Page {{ current_page }} of {{ total_pages }} ({{ total_quotes }} quotes)</span>
-            <button id="next-page" {% if current_page == total_pages %}disabled{% endif %}>Next &gt;</button>
-        </div>
-        {% endif %}
+                <div class="filter-group filter-group-movie">
+                    <label for="movie-filter-search">Movie:</label>
+                    {% set ns = namespace(selected=none) %}
+                    {% for m in movies_with_quotes %}
+                        {% if movie_filter == m.tmdb_id %}{% set ns.selected = m %}{% endif %}
+                    {% endfor %}
+                    {% if ns.selected %}
+                    <button type="button" class="movie-filter-selected" id="movie-filter-clear" aria-label="Clear movie filter — show all films" title="Show all films">
+                        {% if ns.selected.cover_image_url %}
+                        <img src="{{ ns.selected.cover_image_url }}" alt="" class="movie-filter-cover" onerror="this.onerror=null; this.src='https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg';">
+                        {% endif %}
+                        <span class="movie-filter-title">{{ ns.selected.title }}</span>
+                        <span class="movie-filter-clear-icon" aria-hidden="true">&times;</span>
+                    </button>
+                    {% else %}
+                    <div class="movie-filter-search-wrap">
+                        <input type="text" id="movie-filter-search" placeholder="Search films with quotes…" autocomplete="off">
+                        <div id="movie-filter-results" class="movie-filter-results"></div>
+                    </div>
+                    {% endif %}
+                </div>
+                <script id="movies-with-quotes-data" type="application/json">
+[{% for m in movies_with_quotes %}{"id":{{ m.tmdb_id|tojson }},"title":{{ m.title|tojson }},"director":{{ (m.director or "")|tojson }},"year":{{ m.year if m.year else 0 }},"cover":{{ (m.cover_image_url or "")|tojson }}}{% if not loop.last %},{% endif %}{% endfor %}]
+                </script>
 
-        <div class="alert alert-info" style="margin-top: var(--space-6);">
-            <small>All quotes are excerpted from their respective films for personal reflection and commentary. No copyright ownership is claimed. All rights belong to the original creators and studios.</small>
+                {% if current_user.is_authenticated and current_user.role != 'viewer' %}
+                <label class="filter-toggle">
+                    <input type="checkbox" id="liked-filter" {% if liked_only %}checked{% endif %}>
+                    <span>Liked only</span>
+                </label>
+                {% endif %}
+            </div>
+
+            <!-- Quotes grid (masonry distribution via JS) -->
+            <div class="movie-quotes-grid" id="quotes-grid">
+                {% for quote in quotes %}
+                <div class="movie-quote-item"
+                     data-movie-id="{{ quote.movie_id }}"
+                     data-movie-title="{{ quote.movie_title }}"
+                     data-movie-year="{{ quote.movie_year or 0 }}"
+                     data-liked="{{ 'true' if quote.is_liked else 'false' }}"
+                     data-quote-id="{{ quote.id }}">
+                  <div class="movie-quote-card">
+                    <div class="movie-quote-strip" aria-hidden="true"></div>
+                    <div class="movie-quote-body">
+                        <div class="movie-quote-text-row">
+                            <blockquote class="movie-quote-text">&ldquo;{{ quote.text }}&rdquo;</blockquote>
+                            {% if current_user.is_authenticated and current_user.role != 'viewer' %}
+                            <button class="quote-like-btn {{ 'liked' if quote.is_liked else '' }}"
+                                    data-quote-id="{{ quote.id }}"
+                                    aria-label="{{ 'Unlike this quote' if quote.is_liked else 'Like this quote' }}"
+                                    aria-pressed="{{ 'true' if quote.is_liked else 'false' }}">
+                                <i class="{{ 'fa-solid' if quote.is_liked else 'fa-regular' }} fa-heart"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                        {% if quote.character or quote.scene_timestamp %}
+                        <div class="movie-quote-meta">
+                            {% if quote.character %}<span class="movie-quote-character">{{ quote.character }}</span>{% endif %}
+                            {% if quote.character and quote.scene_timestamp %}<span class="movie-quote-meta-sep">·</span>{% endif %}
+                            {% if quote.scene_timestamp %}<span class="movie-quote-timestamp">{{ quote.scene_timestamp }}</span>{% endif %}
+                        </div>
+                        {% endif %}
+                        <div class="movie-quote-source">
+                            {% if quote.movie_cover %}
+                            <img src="{{ quote.movie_cover }}" alt="{{ quote.movie_title }}" class="movie-quote-source-cover" onerror="this.onerror=null; this.src='https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg';">
+                            {% endif %}
+                            <div class="movie-quote-source-info">
+                                <span class="movie-quote-source-title">{{ quote.movie_title }}</span>
+                                <span class="movie-quote-source-credits">{{ quote.movie_director }}{% if quote.movie_year %} ({{ quote.movie_year }}){% endif %}</span>
+                            </div>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+                {% else %}
+                <div class="movie-quotes-empty">
+                    <p>No quotes found.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if total_pages > 1 %}
+            <div class="movie-quotes-pagination">
+                <button id="prev-page" {% if current_page == 1 %}disabled{% endif %}>&lt; Prev</button>
+                <span class="page-info">Reel {{ current_page }} of {{ total_pages }} ({{ total_quotes }} quotes)</span>
+                <button id="next-page" {% if current_page == total_pages %}disabled{% endif %}>Next &gt;</button>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -109,10 +143,67 @@
 
 {% block extra_scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const movieFilter = document.getElementById('movie-filter');
+// Masonry layout: distribute .movie-quote-item children of #quotes-grid
+// into N flex columns by appending each to the shortest column.
+(function () {
+  const MIN_COL_WIDTH = 320;
+  const MAX_COLS = 4;
+  let originalItems = null;
+
+  function distribute() {
+    const grid = document.getElementById('quotes-grid');
+    if (!grid) return;
+    if (!originalItems) {
+      originalItems = Array.from(grid.querySelectorAll(':scope > .movie-quote-item'));
+    }
+    if (originalItems.length === 0) return;
+
+    const containerWidth = grid.clientWidth;
+    const gap = 20;
+    const colCount = Math.max(
+      1,
+      Math.min(MAX_COLS, Math.floor((containerWidth + gap) / (MIN_COL_WIDTH + gap)))
+    );
+
+    grid.innerHTML = '';
+    const columns = [];
+    for (let i = 0; i < colCount; i++) {
+      const col = document.createElement('div');
+      col.className = 'movie-quotes-column';
+      grid.appendChild(col);
+      columns.push(col);
+    }
+
+    originalItems.forEach(item => {
+      const shortest = columns.reduce((a, b) =>
+        a.offsetHeight <= b.offsetHeight ? a : b
+      );
+      shortest.appendChild(item);
+    });
+  }
+
+  let resizeTimer = null;
+  function onResize() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(distribute, 150);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', distribute);
+  } else {
+    distribute();
+  }
+  window.addEventListener('resize', onResize);
+})();
+
+document.addEventListener('DOMContentLoaded', function () {
     const likedFilter = document.getElementById('liked-filter');
-    const sortSelect = document.getElementById('sort-select');
+    const sortTrigger = document.getElementById('sort-trigger');
+    const sortOptions = document.getElementById('sort-options');
+    const movieSearch = document.getElementById('movie-filter-search');
+    const movieResults = document.getElementById('movie-filter-results');
+    const movieClear = document.getElementById('movie-filter-clear');
+    const NO_COVER = 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg';
 
     function getCSRFToken() {
         return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -133,20 +224,84 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = url.toString();
     }
 
-    if (sortSelect) {
-        sortSelect.addEventListener('change', function() {
-            updatePage({ sort: this.value });
+    // Sort popover
+    if (sortTrigger && sortOptions) {
+        const closeSort = () => {
+            sortOptions.classList.remove('is-open');
+            sortTrigger.setAttribute('aria-expanded', 'false');
+        };
+        const openSort = () => {
+            sortOptions.classList.add('is-open');
+            sortTrigger.setAttribute('aria-expanded', 'true');
+        };
+        sortTrigger.addEventListener('click', e => {
+            e.stopPropagation();
+            sortOptions.classList.contains('is-open') ? closeSort() : openSort();
+        });
+        sortOptions.querySelectorAll('.sort-option').forEach(btn => {
+            btn.addEventListener('click', () => updatePage({ sort: btn.dataset.sort }));
+        });
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.sort-control')) closeSort();
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeSort();
         });
     }
 
-    if (movieFilter) {
-        movieFilter.addEventListener('change', function() {
-            updatePage({ movie: this.value || null });
+    // Movie filter — admin-modal-style search over movies_with_quotes
+    function getMoviesData() {
+        const node = document.getElementById('movies-with-quotes-data');
+        if (!node) return [];
+        try { return JSON.parse(node.textContent); } catch (e) { return []; }
+    }
+
+    function renderMovieResults(query) {
+        if (!movieResults) return;
+        const q = query.trim().toLowerCase();
+        if (!q) { movieResults.innerHTML = ''; return; }
+        const movies = getMoviesData();
+        const matches = movies
+            .filter(m => m.title.toLowerCase().includes(q) || (m.director || '').toLowerCase().includes(q))
+            .slice(0, 12);
+        if (matches.length === 0) {
+            movieResults.innerHTML = '<div class="movie-filter-no-results">No films match.</div>';
+            return;
+        }
+        movieResults.innerHTML = matches.map(m => `
+            <button type="button" class="movie-filter-result" data-movie-id="${m.id}">
+                <img src="${m.cover || NO_COVER}" alt="" class="movie-filter-result-cover" onerror="this.onerror=null; this.src='${NO_COVER}';">
+                <div class="movie-filter-result-info">
+                    <div class="movie-filter-result-title">${m.title.replace(/</g, '&lt;')}</div>
+                    <div class="movie-filter-result-credits">${(m.director || '').replace(/</g, '&lt;')}${m.year ? ' (' + m.year + ')' : ''}</div>
+                </div>
+            </button>
+        `).join('');
+        movieResults.querySelectorAll('.movie-filter-result').forEach(btn => {
+            btn.addEventListener('click', () => updatePage({ movie: btn.dataset.movieId }));
         });
+    }
+
+    if (movieSearch) {
+        let movieSearchTimer;
+        movieSearch.addEventListener('input', e => {
+            clearTimeout(movieSearchTimer);
+            movieSearchTimer = setTimeout(() => renderMovieResults(e.target.value), 120);
+        });
+        document.addEventListener('click', e => {
+            if (!movieResults) return;
+            if (!e.target.closest('.movie-filter-search-wrap')) {
+                movieResults.innerHTML = '';
+            }
+        });
+    }
+
+    if (movieClear) {
+        movieClear.addEventListener('click', () => updatePage({ movie: null }));
     }
 
     if (likedFilter) {
-        likedFilter.addEventListener('change', function() {
+        likedFilter.addEventListener('change', function () {
             updatePage({ liked: this.checked ? 'true' : null });
         });
     }
@@ -168,7 +323,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-
     if (nextBtn) {
         nextBtn.addEventListener('click', () => {
             if ({{ current_page }} < {{ total_pages }}) {
@@ -177,13 +331,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Like toggle
+    // Like toggle (AJAX, no reload)
     async function toggleLike(button) {
         if (button.disabled) return;
         button.disabled = true;
 
         const quoteId = parseInt(button.dataset.quoteId);
-        const quoteItem = button.closest('.quote-item');
+        const quoteItem = button.closest('.movie-quote-item');
 
         try {
             const response = await fetch('{{ url_for("movies.like_quote") }}', {
@@ -194,33 +348,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify({ quote_id: quoteId })
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to toggle like');
-            }
-
+            if (!response.ok) throw new Error('Failed to toggle like');
             const data = await response.json();
             const icon = button.querySelector('i');
-
             if (data.liked) {
                 button.classList.add('liked');
                 icon.classList.remove('fa-regular');
                 icon.classList.add('fa-solid');
                 button.setAttribute('aria-pressed', 'true');
                 button.setAttribute('aria-label', 'Unlike this quote');
-                quoteItem.dataset.liked = 'true';
+                if (quoteItem) quoteItem.dataset.liked = 'true';
             } else {
                 button.classList.remove('liked');
                 icon.classList.remove('fa-solid');
                 icon.classList.add('fa-regular');
                 button.setAttribute('aria-pressed', 'false');
                 button.setAttribute('aria-label', 'Like this quote');
-                quoteItem.dataset.liked = 'false';
+                if (quoteItem) quoteItem.dataset.liked = 'false';
             }
-
             button.classList.add('animating');
             setTimeout(() => button.classList.remove('animating'), 400);
-
         } catch (error) {
             console.error('Error toggling like:', error);
         } finally {
@@ -229,7 +376,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     document.querySelectorAll('.quote-like-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
+        btn.addEventListener('click', function (e) {
             e.preventDefault();
             toggleLike(this);
         });

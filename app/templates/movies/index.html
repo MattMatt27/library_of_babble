@@ -8,29 +8,83 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/movies.css') }}">
 <script src="{{ url_for('static', filename='js/star-rating.js') }}" defer></script>
 <style>
-/* Page-specific table styles */
+/* All-films page — marquee treatment.
+   Red velvet container holds the full watch log; each row is a poster
+   sitting on the velvet with a marquee black review card pinned next
+   to it, separated by a shelf-ledge bar. */
 .movies-table-section {
   margin-top: var(--space-4);
 }
 
+.films-list-shelf {
+  padding: var(--space-5);
+}
+
+/* Strip table chrome — table sits directly on the velvet */
+.films-list-shelf .table-container {
+  background: transparent;
+  border: none;
+  padding: 0;
+  border-radius: 0;
+}
+
 .movies-table {
   width: 100%;
+  background: transparent;
+  border-collapse: collapse;
+}
+
+.movies-table thead {
+  display: none;
+}
+
+.movies-table tbody tr,
+.movies-table tbody tr:hover {
+  background: transparent;
+}
+
+.movies-table td {
+  background: transparent;
+  border: none;
+  padding: var(--space-4) var(--space-3);
+  vertical-align: top;
+}
+
+/* Shelf-ledge divider between movie rows. .media-shelf .shelf-ledge
+   in movies.css repaints it in deep red velvet automatically. */
+.movies-table .ledge-row td {
+  padding: var(--space-3) 0;
+}
+.movies-table .ledge-row .shelf-ledge {
+  margin-top: 0;
 }
 
 .movies-table .image-column {
-  width: 200px;
+  width: 180px;
   text-align: center;
 }
 
+.movies-table .image-column a {
+  display: inline-block;
+}
+
 .movies-table .image-column img {
-  max-height: 350px;
+  max-height: 280px;
   width: auto;
   max-width: 100%;
-  border-radius: var(--radius-md);
+  border-radius: 2px;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 8px 18px rgba(0, 0, 0, 0.45);
+  transition: transform var(--transition-fast);
+}
+
+.movies-table .image-column a:hover img {
+  transform: translateY(-3px);
 }
 
 .movies-table .details-rating-column {
-  width: 350px;
+  width: 320px;
 }
 
 .movies-table .movie-info-wrapper {
@@ -45,38 +99,101 @@
   gap: var(--space-1);
 }
 
+/* Override table-cell utility classes to use the velvet palette */
+.movies-table .movie-details .text-primary,
+.movies-table .movie-details .font-semibold {
+  font-family: var(--display-serif);
+  font-weight: 500;
+  font-size: var(--font-lg);
+  color: #f0d8d8;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  line-height: 1.3;
+  letter-spacing: 0.005em;
+}
+
+.movies-table .movie-details .text-secondary {
+  font-family: var(--display-serif);
+  font-size: var(--font-base);
+  color: #d4b0b0;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.movies-table .movie-details .text-tertiary {
+  color: #b89898;
+  font-size: var(--font-sm);
+  letter-spacing: 0.04em;
+}
+
 .movies-table .movie-rating {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding-top: var(--space-2);
-  border-top: 1px solid var(--border-secondary);
+  padding-top: var(--space-3);
+  border-top: 1px solid rgba(212, 176, 176, 0.18);
+}
+
+.movies-table .movie-rating .text-secondary {
+  color: #d4b0b0;
+  text-transform: none;
+  letter-spacing: normal;
+  font-family: var(--font-primary);
+  font-size: var(--font-sm);
 }
 
 .movies-table .review-column {
   min-width: 300px;
 }
 
-.movies-table .stars-image {
-  height: 24px;
-  width: auto;
+/* Each review = a marquee black title card pinned next to the poster */
+.movies-table .review-preview {
+  background: var(--marquee-bg);
+  color: var(--marquee-text);
+  border: 1px solid var(--marquee-edge);
+  border-radius: 2px;
+  padding: var(--space-4);
+  min-height: 100px;
+  line-height: 1.6;
+  font-family: var(--display-serif);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 8px 18px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(255, 220, 180, 0.04);
 }
 
-/* Review tabs (GitHub-style) */
-.review-tabs {
+.movies-table .review-preview blockquote {
+  margin: var(--space-3) 0;
+  padding-left: var(--space-4);
+  border-left: 3px solid var(--marquee-edge);
+  color: var(--marquee-text-soft);
+  font-style: italic;
+}
+
+.movies-table .review-preview i {
+  font-style: italic;
+}
+
+.movies-table .review-preview br {
+  display: block;
+  content: "";
+  margin-top: var(--space-2);
+}
+
+/* Review tabs above the marquee card — cream typography on velvet */
+.movies-table .review-tabs {
   display: flex;
   gap: 0;
   margin-bottom: var(--space-3);
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 1px solid rgba(212, 176, 176, 0.18);
 }
 
-.review-tab {
+.movies-table .review-tab {
   background: transparent;
   border: none;
   padding: var(--space-2) var(--space-4);
   font-size: var(--font-sm);
-  font-weight: var(--font-medium);
-  color: var(--text-secondary);
+  font-weight: 500;
+  color: #b89898;
   cursor: pointer;
   border-bottom: 2px solid transparent;
   transition: all var(--transition-fast);
@@ -84,60 +201,48 @@
   font-family: var(--font-primary);
 }
 
-.review-tab:hover {
-  color: var(--text-primary);
-  background: var(--bg-tertiary);
+.movies-table .review-tab:hover {
+  color: #f0d8d8;
 }
 
-.review-tab.active {
-  color: var(--text-primary);
-  border-bottom-color: var(--accent-blue);
+.movies-table .review-tab.active {
+  color: #f0d8d8;
+  border-bottom-color: var(--marquee-accent);
 }
 
-.review-preview {
-  padding: var(--space-3);
-  background: var(--bg-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-base);
-  min-height: 100px;
-  color: var(--text-primary);
-  line-height: 1.6;
-}
-
-.review-preview blockquote {
-  margin: var(--space-3) 0;
-  padding-left: var(--space-4);
-  border-left: 3px solid var(--border-primary);
-  color: var(--text-secondary);
-  font-style: italic;
-}
-
-.review-preview i {
-  font-style: italic;
-}
-
-.review-preview br {
-  display: block;
-  content: "";
-  margin-top: var(--space-2);
-}
-
-.review-textarea {
+/* Edit-mode textarea — dark marquee wash with cream text */
+.movies-table .review-textarea {
+  background: var(--marquee-bg);
+  color: var(--marquee-text);
+  border: 1px solid var(--marquee-edge);
+  border-radius: 2px;
+  padding: var(--space-4);
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', 'Droid Sans Mono', 'Source Code Pro', monospace;
   font-size: var(--font-sm);
+  width: 100%;
 }
 
-/* Mobile responsive */
-@media screen and (max-width: 900px) {
-  .movies-table-section {
-    margin-top: var(--space-3);
-  }
+.movies-table .review-textarea:focus {
+  outline: none;
+  border-color: var(--marquee-accent);
+  box-shadow: 0 0 0 3px rgba(199, 90, 58, 0.18);
+}
 
-  .table-container {
-    border: none;
-    background: transparent;
-    padding: 0;
-    border-radius: 0;
+/* Save button — marquee accent on velvet */
+.films-list-shelf .btn-primary {
+  background: var(--marquee-accent);
+  border-color: var(--marquee-accent);
+  color: #f9e8d4;
+}
+.films-list-shelf .btn-primary:hover {
+  background: #a8472f;
+  border-color: #a8472f;
+}
+
+/* Mobile responsive — each row collapses to a stacked block on velvet */
+@media screen and (max-width: 900px) {
+  .films-list-shelf {
+    padding: var(--space-4) var(--space-3);
   }
 
   .movies-table,
@@ -147,24 +252,22 @@
     width: 100%;
   }
 
-  .movies-table thead {
-    display: none;
+  .movies-table tbody tr.movie-row {
+    padding-bottom: var(--space-3);
   }
 
-  .movies-table tr {
-    margin-bottom: var(--space-6);
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
+  .movies-table .ledge-row {
+    margin: var(--space-3) 0 var(--space-5);
+  }
+  .movies-table .ledge-row td {
+    padding: 0;
   }
 
   .movies-table td {
     display: block;
-    border: none;
+    border: none !important;
     text-align: center;
-    padding: var(--space-4);
-    border-bottom: none !important;
+    padding: var(--space-3) 0;
   }
 
   .movies-table .image-column {
@@ -172,23 +275,15 @@
     padding-bottom: var(--space-3);
   }
 
-  .movies-table .image-column a {
-    display: block;
-  }
-
   .movies-table .image-column img {
-    max-height: 400px;
+    max-height: 320px;
     margin: 0 auto;
   }
 
   .movies-table .details-rating-column {
     width: 100%;
     padding-top: 0;
-    padding-bottom: var(--space-4);
-  }
-
-  .movies-table .movie-info-wrapper {
-    gap: var(--space-3);
+    padding-bottom: var(--space-3);
   }
 
   .movies-table .movie-rating {
@@ -197,18 +292,8 @@
 
   .movies-table .review-column {
     width: 100%;
-    background: var(--bg-primary);
     min-width: auto;
-    padding: var(--space-4);
-  }
-
-  .movies-table .review-column .form-textarea {
-    font-size: var(--font-sm);
-    min-height: 100px;
-  }
-
-  .movies-table tbody tr:hover {
-    background: var(--bg-secondary);
+    padding: 0;
   }
 }
 </style>
@@ -216,6 +301,7 @@
 
 {% block content %}
 <div class="container movies-table-section">
+  <div class="media-shelf films-list-shelf">
     <div class="table-container">
         <table class="table movies-table">
             <thead>
@@ -227,7 +313,7 @@
             </thead>
             <tbody>
                 {% for movie in movies %}
-                    <tr>
+                    <tr class="movie-row">
                         <td class="image-column">
                             <img src="{{ movie['cover_image_url'] }}" alt="{{ movie['title'] }}">
                         </td>
@@ -282,10 +368,16 @@
                             </form>
                         </td>
                     </tr>
+                    {% if not loop.last %}
+                    <tr class="ledge-row" aria-hidden="true">
+                        <td colspan="3"><div class="shelf-ledge"></div></td>
+                    </tr>
+                    {% endif %}
                 {% endfor %}
             </tbody>
         </table>
     </div>
+  </div>
 </div>
 {% endblock %}
 

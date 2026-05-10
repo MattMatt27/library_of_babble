@@ -238,40 +238,13 @@ body {
   font-size: var(--font-base);
   color: var(--paper-text);
   line-height: 1.55;
-  margin: 0 0 var(--space-3) 0;
-}
-
-.open-spotify-button {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  background: #1DB954;
-  color: white;
-  padding: var(--space-2) var(--space-4);
-  border-radius: 999px;
-  text-decoration: none;
-  font-family: var(--font-primary);
-  font-size: var(--font-sm);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  transition: all var(--transition-fast);
-}
-.open-spotify-button:hover {
-  background: #1ed760;
-  text-decoration: none;
-  color: white;
-  transform: translateY(-1px);
+  margin: 0;
 }
 
 /* Empty state: hide the album cover entirely so the stand alone reads
-   as an empty record-display stand. Disable the Spotify button so the
-   placeholder liner notes don't promise an interaction that won't work. */
+   as an empty record-display stand. */
 .now-playing:not(.is-active) .album-cover {
   display: none;
-}
-.now-playing:not(.is-active) .open-spotify-button {
-  opacity: 0.4;
-  pointer-events: none;
 }
 
 /* ============================================
@@ -469,9 +442,6 @@ body {
     left: 50px;
     width: 220px;
     height: 220px;
-  }
-  .open-spotify-button {
-    align-self: center;
   }
   .record-sleeve {
     width: 130px;

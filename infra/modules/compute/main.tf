@@ -106,6 +106,11 @@ variable "spotify_username_arn" {
   description = "Parameter Store ARN for Spotify username"
 }
 
+variable "spotify_refresh_token_arn" {
+  type        = string
+  description = "Parameter Store ARN for Spotify long-lived refresh token (for headless ETL)"
+}
+
 variable "tmdb_api_token_arn" {
   type        = string
   description = "Parameter Store ARN for TMDB API token"
@@ -259,6 +264,10 @@ resource "aws_ecs_task_definition" "app" {
         {
           name      = "SPOTIPY_USERNAME"
           valueFrom = var.spotify_username_arn
+        },
+        {
+          name      = "SPOTIPY_REFRESH_TOKEN"
+          valueFrom = var.spotify_refresh_token_arn
         },
         {
           name      = "TMDB_API_BEARER_TOKEN"

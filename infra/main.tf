@@ -104,6 +104,14 @@ data "aws_ssm_parameter" "spotify_username" {
   with_decryption = false
 }
 
+# Spotify refresh token - used by the ETL/admin "Refresh Spotify" flow to
+# obtain access tokens silently (no browser prompt). Long-lived; only
+# rotated by re-running scripts/utils/spotify_authorize.py.
+data "aws_ssm_parameter" "spotify_refresh_token" {
+  name            = "/${var.project_name}/${var.environment}/spotify-refresh-token"
+  with_decryption = false
+}
+
 # TMDB (The Movie Database) API token - used for fetching movie/show data
 data "aws_ssm_parameter" "tmdb_api_token" {
   name            = "/${var.project_name}/${var.environment}/tmdb-api-token"
@@ -151,6 +159,7 @@ locals {
     spotify_client_id     = data.aws_ssm_parameter.spotify_client_id.arn
     spotify_client_secret = data.aws_ssm_parameter.spotify_client_secret.arn
     spotify_username      = data.aws_ssm_parameter.spotify_username.arn
+    spotify_refresh_token = data.aws_ssm_parameter.spotify_refresh_token.arn
     tmdb_api_token        = data.aws_ssm_parameter.tmdb_api_token.arn
     static_storage_url       = data.aws_ssm_parameter.static_storage_url.arn
     s3_bucket_name           = data.aws_ssm_parameter.s3_bucket_name.arn
@@ -284,6 +293,7 @@ module "compute" {
   spotify_client_id_arn     = data.aws_ssm_parameter.spotify_client_id.arn
   spotify_client_secret_arn = data.aws_ssm_parameter.spotify_client_secret.arn
   spotify_username_arn      = data.aws_ssm_parameter.spotify_username.arn
+  spotify_refresh_token_arn = data.aws_ssm_parameter.spotify_refresh_token.arn
   tmdb_api_token_arn        = data.aws_ssm_parameter.tmdb_api_token.arn
   static_storage_url_arn       = data.aws_ssm_parameter.static_storage_url.arn
   s3_bucket_name_arn           = data.aws_ssm_parameter.s3_bucket_name.arn

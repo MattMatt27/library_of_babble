@@ -811,6 +811,16 @@ def refresh_spotify():
 
         if result.returncode != 0:
             sanitize_error_message(result.stderr)  # Logs the actual error
+            # Belt-and-suspenders: also print to stdout so the error reaches
+            # CloudWatch via gunicorn's stdout, bypassing Flask's logger
+            # which isn't configured under gunicorn in production.
+            print(
+                f"=== Spotify ETL FAILED (returncode={result.returncode}) ===\n"
+                f"--- stdout ---\n{result.stdout}\n"
+                f"--- stderr ---\n{result.stderr}\n"
+                f"=== end ===",
+                flush=True,
+            )
             return jsonify({
                 'success': False,
                 'error': 'Spotify refresh failed. Please try again.'

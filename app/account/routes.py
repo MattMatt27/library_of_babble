@@ -804,9 +804,9 @@ def import_shows():
 def refresh_spotify():
     """Refresh Spotify playlists"""
     try:
-        # Run the Spotify refresh script using secure function
+        # Run the Spotify ETL using secure function
         result = run_etl_script(
-            'refresh_spotify.py'
+            'etl/spotify_etl.py'
         )
 
         if result.returncode != 0:
@@ -816,15 +816,21 @@ def refresh_spotify():
                 'error': 'Spotify refresh failed. Please try again.'
             }), 500
 
-        # Parse output for statistics
+        # Parse output for statistics. spotify_etl.py emits a summary line
+        # "Total playlists processed: N"; older versions used "Playlists
+        # updated: N". Accept either.
         output = result.stdout
         playlists_updated = 0
 
         for line in output.split('\n'):
-            if 'Playlists updated:' in line or 'playlists updated' in line.lower():
+            lower = line.lower()
+            if ('playlists updated:' in lower
+                    or 'playlists processed:' in lower
+                    or 'total playlists' in lower):
                 try:
                     playlists_updated = int(''.join(filter(str.isdigit, line)))
-                except:
+                    break
+                except Exception:
                     playlists_updated = 0
 
         return jsonify({

@@ -247,7 +247,7 @@ def run_etl_script(script_name: str, file_path: str = None, extra_args: List[str
         'etl/movies_etl.py',
         'etl/shows_etl.py',
         'etl/letterboxd_etl.py',
-        'refresh_spotify.py'
+        'etl/spotify_etl.py',
     }
 
     if script_name not in ALLOWED_SCRIPTS:

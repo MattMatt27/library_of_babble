@@ -55,5 +55,10 @@ static/images/creating/
 static/images/antiques/
 static/images/home/
 
-# Scripts not needed in production
-scripts/
+# Only ship scripts/etl/ — the admin UI shells out to these via
+# run_etl_script() (Spotify refresh, Goodreads/Letterboxd/Boredom-Killer
+# imports). Everything else under scripts/ is local dev tooling, one-off
+# migrations, or sensitive admin utilities (password reset, AWS SSM
+# parameter helper) that has no business in a long-running container.
+scripts/*
+!scripts/etl

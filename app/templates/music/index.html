@@ -5,64 +5,169 @@
 {% set active_page = 'listening' %}
 
 {% block extra_styles %}
-<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/listening.css') }}">
 {% endblock %}
 
 {% block content %}
 <div class="listening-container">
     <div class="playlist-browser" id="playlist-browser">
-        {% if page_header %}
-        <div class="playlist-section introduction">
-            {% if page_header.title %}<h1 class="section-title">{{ page_header.title }}</h1>{% endif %}
-            {% if page_header.subtitle %}<p class="section-description">{{ page_header.subtitle }}</p>{% endif %}
-        </div>
-        {% endif %}
-        <div class="selected-playlist">
-            <div class="selected-playlist-content">
-                <div class="playlist-art">
-                    <img src="small_playlist_art_url" alt="Playlist Art">
-                </div>
-                <div class="other-playlist-details">
-                    <p class="playlist-title">Playlist Title</p>
-                    <p class="playlist-description">Playlist Description</p>
-                    <a href="#" class="open-spotify-button" target="_blank">Open in Spotify</a>
+
+        <!-- Now playing: album cover propped on a wooden display stand,
+             with a slice of vinyl peeking out from behind when active. -->
+        <div class="now-playing" id="now-playing">
+            <div class="album-display">
+                <!-- Refined wooden display stand. Visible whether or not an
+                     album is on it; when an album is on, the back pole is
+                     occluded by the cover, leaving the top finial and legs
+                     showing. -->
+                <svg class="album-stand" viewBox="0 0 240 280" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="wood-rod" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stop-color="#7c5230"/>
+                            <stop offset="50%" stop-color="#b8854a"/>
+                            <stop offset="100%" stop-color="#7c5230"/>
+                        </linearGradient>
+                        <linearGradient id="wood-leg" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#b8854a"/>
+                            <stop offset="100%" stop-color="#8a5e30"/>
+                        </linearGradient>
+                    </defs>
+
+                    <!-- Top finial: small rounded cap centered above the album -->
+                    <ellipse cx="120" cy="6" rx="9" ry="5" fill="#a87644"/>
+                    <rect x="116" y="6" width="8" height="6" fill="#a87644"/>
+
+                    <!-- Back support pole: visible when no album is on it,
+                         hidden behind the album when one is selected -->
+                    <rect x="116" y="10" width="8" height="216" fill="url(#wood-rod)" rx="1"/>
+
+                    <!-- Splayed feet — origins at the crossbar's bottom
+                         edge (y=230) so the round line-caps project UP into
+                         the crossbar (where it covers them) rather than
+                         above it. Total length kept short for a grounded
+                         stance. -->
+                    <path d="M 108 230 L 84 252" stroke="url(#wood-leg)" stroke-width="9" stroke-linecap="round" fill="none"/>
+                    <path d="M 132 230 L 156 252" stroke="url(#wood-leg)" stroke-width="9" stroke-linecap="round" fill="none"/>
+
+                    <!-- Subtle grain accents along the feet (thin darker line) -->
+                    <path d="M 108 230 L 84 252" stroke="#5e3e1c" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.45"/>
+                    <path d="M 132 230 L 156 252" stroke="#5e3e1c" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.45"/>
+
+                    <!-- Crossbar drawn LAST so it covers the tops of the
+                         feet and the bottom of the back pole — the joint
+                         reads as one continuous wooden piece. -->
+                    <rect x="80" y="222" width="80" height="8" rx="3" fill="#a87644"/>
+                    <rect x="80" y="222" width="80" height="2" fill="#c69163" opacity="0.6"/>
+                </svg>
+
+                <!-- Album cover's drop-shadow lives on its own layer at the
+                     lowest z so the stand renders in front of it. Without
+                     this, the shadow would paint at z=2 (album-cover)
+                     and fall over the stand. -->
+                <div class="album-cover-shadow" aria-hidden="true"></div>
+
+                <!-- Vinyl peek: original size, positioned so a small slice
+                     shows behind the album's right edge. Hidden until a
+                     playlist is actually selected. -->
+                <svg class="album-vinyl-peek" viewBox="0 0 200 200" aria-hidden="true">
+                    <circle cx="100" cy="100" r="90" fill="#0d0d0d"/>
+                    <circle cx="100" cy="100" r="82" fill="none" stroke="#1f1f1f" stroke-width="0.5"/>
+                    <circle cx="100" cy="100" r="70" fill="none" stroke="#1f1f1f" stroke-width="0.5"/>
+                    <circle cx="100" cy="100" r="56" fill="none" stroke="#1f1f1f" stroke-width="0.5"/>
+                    <circle cx="100" cy="100" r="42" fill="none" stroke="#1f1f1f" stroke-width="0.5"/>
+                    <circle cx="100" cy="100" r="28" fill="#7c3a1a"/>
+                    <circle cx="100" cy="100" r="2" fill="#000"/>
+                </svg>
+
+                <div class="album-cover">
+                    <img src="" alt="Playlist cover" class="album-cover-img">
                 </div>
             </div>
+            <div class="liner-notes">
+                <p class="playlist-title">Pick a playlist below</p>
+                <p class="playlist-description">Click any record sleeve to start listening.</p>
+            </div>
         </div>
-        <div class="playlist-section monthly-playlists">
-            <h1 class="section-title">Monthly Playlists</h1>
-            <p class="section-description">Every month I create a new playlist for songs that I am listening to on repeat. It is usually mostly new songs I heard for the first time that month with the occasional song I love thrown in. Use the search below to see what I was listening to in any given month since February 2019.</p>
-            <input type="text" id="datepickerInput" placeholder="Select month and year" autocomplete="off">
-        </div>
+
+        <!-- Monthly playlists, organized by year -->
+        {% if monthly_by_year %}
+        <section class="playlist-section monthly-section">
+            <div class="section-head">
+                <h2 class="section-title">Monthly Mixes</h2>
+                <p class="section-description">Each month I make a playlist of what I'm listening to on repeat — usually new finds with a few favorites mixed in.</p>
+            </div>
+            {% for year, months in monthly_by_year.items() %}
+            <div class="year-row">
+                <div class="year-label">{{ year }}</div>
+                <div class="playlist-crate playlist-crate-monthly">
+                    {% for m in months %}
+                    <button type="button" class="record-sleeve record-sleeve-monthly"
+                            data-playlist-id="{{ m.id }}"
+                            data-playlist-name="{{ m.name }}"
+                            data-playlist-art="{{ m.art }}"
+                            data-playlist-description="Songs I listened to on repeat in {{ m.month_name }} {{ m.year }}"
+                            aria-label="{{ m.month_name }} {{ m.year }}">
+                        <img src="{{ m.art }}" alt="">
+                        <span class="record-sleeve-month-label">{{ m.month_name }}</span>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+
+        <!-- Collection crates -->
         {% for collection_name, collection_data in playlist_collections.items() %}
-        <div class="playlist-section">
-            <h1 class="section-title">{{ collection_name }}</h1>
-            {% if collection_data.description %}
-            <p class="section-description">{{ collection_data.description }}</p>
-            {% endif %}
-            <div class="playlist-grid">
+        <section class="playlist-section">
+            <div class="section-head">
+                <h2 class="section-title">{{ collection_name }}</h2>
+                {% if collection_data.description %}
+                <p class="section-description">{{ collection_data.description }}</p>
+                {% endif %}
+            </div>
+            <div class="playlist-crate">
                 {% for playlist in collection_data.playlists %}
-                <img src="{{ playlist.album_art }}" id="{{ playlist.id }}" playlistname="{{ playlist.name }}" description="{{ playlist.description }}">
+                <button type="button" class="record-sleeve"
+                        data-playlist-id="{{ playlist.id }}"
+                        data-playlist-name="{{ playlist.name }}"
+                        data-playlist-art="{{ playlist.album_art }}"
+                        data-playlist-description="{{ playlist.description }}"
+                        aria-label="{{ playlist.name }}">
+                    <img src="{{ playlist.album_art }}" alt="">
+                </button>
                 {% endfor %}
             </div>
-        </div>
+        </section>
         {% endfor %}
 
+        <!-- Other playlists -->
         {% if other_playlists %}
-        <div class="playlist-section individual-playlists">
-            <h1 class="section-title">Other Playlists</h1>
-            <div class="playlist-grid">
+        <section class="playlist-section">
+            <div class="section-head">
+                <h2 class="section-title">Other Playlists</h2>
+            </div>
+            <div class="playlist-crate">
                 {% for playlist in other_playlists %}
-                    <div class="image-caption">
-                        <img src="{{ playlist['album_art'] }}" id="{{ playlist['id'] }}" playlistname="{{ playlist['name'] }}" description="{{ playlist['description'] }}">
-                    </div>
+                <button type="button" class="record-sleeve"
+                        data-playlist-id="{{ playlist.id }}"
+                        data-playlist-name="{{ playlist.name }}"
+                        data-playlist-art="{{ playlist.album_art }}"
+                        data-playlist-description="{{ playlist.description }}"
+                        aria-label="{{ playlist.name }}">
+                    <img src="{{ playlist.album_art }}" alt="">
+                </button>
                 {% endfor %}
             </div>
-        </div>
+        </section>
         {% endif %}
     </div>
+
     <div class="divider" id="divider"></div>
+
     <div class="playlist-details" id="playlist-details">
         <iframe id="playlistFrame" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
     </div>
@@ -70,136 +175,52 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Datepicker initialization and handling
-        initializeDatepicker();
-
-        // Event listeners
-        $(".playlist-grid img").click(handlePlaylistImageClick);
+        // Click any record sleeve (collection, monthly, or other) to play
+        document.querySelectorAll('.record-sleeve').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const id = this.dataset.playlistId;
+                const name = this.dataset.playlistName;
+                const art = this.dataset.playlistArt;
+                const desc = this.dataset.playlistDescription || '';
+                updatePlaylistDisplay(id, name, desc, art);
+            });
+        });
 
         initializeResizableDivider();
     });
 
-    function initializeDatepicker() {
-        var currentDate = new Date();
-        var firstOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-        var lastCompletedMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
-
-        function positionDatepicker(inst) {
-            var input = $("#datepickerInput");
-            var inputOffset = input.offset();
-            var inputHeight = input.outerHeight();
-
-            inst.dpDiv.css({
-                position: 'absolute',
-                top: inputOffset.top + inputHeight + 5,
-                left: inputOffset.left
-            });
-        }
-
-        $("#datepickerInput").datepicker({
-            dateFormat: "MM yy",
-            changeMonth: true,
-            changeYear: true,
-            minDate: new Date(2019, 2 - 1),
-            maxDate: lastCompletedMonth,
-            showButtonPanel: true,
-            onClose: handleDatepickerClose,
-            beforeShow: function(input, inst) {
-                setTimeout(function() {
-                    $(".ui-datepicker-calendar").hide();
-                    positionDatepicker(inst);
-                }, 0);
-            }
-        });
-
-        $("#datepickerInput").focus(function() {
-            $(".ui-datepicker-calendar").hide();
-        });
-
-        // Reposition datepicker on scroll
-        $('.playlist-browser').on('scroll', function() {
-            if ($("#ui-datepicker-div").is(":visible")) {
-                var inst = $.datepicker._getInst($("#datepickerInput")[0]);
-                positionDatepicker(inst);
-            }
-        });
-    }
-
-    function handleDatepickerClose(dateText, inst) {
-        var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
-        var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
-        
-        $("#datepickerInput").val($.datepicker.formatDate('MM yy', new Date(year, month, 1)));
-        
-        var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        var monthCodes = ["Jan ", "Feb ", "Mar ", "Apr ", "May ", "June ", "July ", "Aug ", "Sep ", "Oct ", "Nov ", "Dec "];
-        var selectedPlaylist = monthCodes[month] + year.toString().substr(-2);
-
-        fetchPlaylistDetails(parseInt(month), year, selectedPlaylist, monthNames[month]);
-    }
-
-    function getCSRFToken() {
-        return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    }
-
-    function fetchPlaylistDetails(month, year, selectedPlaylist, monthName) {
-        fetch('/listening', {
-            method: 'POST',
-            body: JSON.stringify({
-                month: month + 1, // Adding 1 to match Python's month numbering (1-12)
-                year: year,
-                playlist_code: selectedPlaylist
-            }),
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken()
-            }
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
-            return response.json();
-        })
-        .then(data => {
-            if (!data || data.error) throw new Error('Invalid or empty JSON data received');
-            updatePlaylistDisplay(data.playlist_id, data.playlist_name, `Songs I listened to on repeat in ${monthName} of ${year}`, data.playlist_art);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            // Handle error (e.g., show a message to the user)
-        });
-    }
-
     function updatePlaylistDisplay(playlistId, playlistTitle, playlistDesc, playlistImageUrl) {
-        var iframeSrc = `https://open.spotify.com/embed/playlist/${playlistId}`;
+        const iframeSrc = `https://open.spotify.com/embed/playlist/${playlistId}`;
 
         // Recreate iframe to prevent it from adding browser history entries
-        var container = $("#playlistFrame").parent();
-        $("#playlistFrame").remove();
-        container.append(`<iframe id="playlistFrame" src="${iframeSrc}" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`);
+        const oldFrame = document.getElementById('playlistFrame');
+        if (oldFrame) {
+            const container = oldFrame.parentNode;
+            oldFrame.remove();
+            const newFrame = document.createElement('iframe');
+            newFrame.id = 'playlistFrame';
+            newFrame.src = iframeSrc;
+            newFrame.setAttribute('frameborder', '0');
+            newFrame.setAttribute('allowtransparency', 'true');
+            newFrame.setAttribute('allow', 'encrypted-media');
+            container.appendChild(newFrame);
+        }
 
-        $(".selected-playlist .playlist-art img").attr("src", playlistImageUrl || "path/to/default-monthly-playlist-image.jpg");
-        $(".selected-playlist .playlist-title").text(playlistTitle);
-        $(".selected-playlist .playlist-description").text(playlistDesc);
-        $(".open-spotify-button").attr("href", `https://open.spotify.com/playlist/${playlistId}`);
-        $(".selected-playlist").show();
-        $('.playlist-browser').scrollTop(0);
-    }
+        const nowPlaying = document.getElementById('now-playing');
+        if (nowPlaying) {
+            const img = nowPlaying.querySelector('.album-cover-img');
+            const title = nowPlaying.querySelector('.playlist-title');
+            const desc = nowPlaying.querySelector('.playlist-description');
+            if (img) img.src = playlistImageUrl || '';
+            if (title) title.textContent = playlistTitle;
+            if (desc) desc.textContent = playlistDesc;
+            nowPlaying.classList.add('is-active');
+        }
 
-    function handlePlaylistImageClick() {
-        var imageId = $(this).attr("id");
-        var imagesrc = $(this).attr("src");
-        var playlistTitle = $(this).attr("playlistname");
-        var playlistDesc = $(this).attr("description");
-
-        // Use shared function to update display and recreate iframe
-        updatePlaylistDisplay(imageId, playlistTitle, playlistDesc, imagesrc);
-
-        // Clear the datepicker input
-        $("#datepickerInput").val('');
+        const browser = document.getElementById('playlist-browser');
+        if (browser) browser.scrollTop = 0;
     }
 
     function initializeResizableDivider() {
@@ -218,23 +239,15 @@
 
         function handleMouseMove(e) {
             if (!isResizing) return;
-
-            // Check if any mouse button is still pressed
-            // If no buttons are pressed (e.buttons === 0), stop resizing
             if (e.buttons === 0) {
                 stopResizing();
                 return;
             }
-
-            // Prevent default to avoid any text selection
             e.preventDefault();
-
             const containerRect = container.getBoundingClientRect();
             const containerWidth = containerRect.width;
             const offsetX = e.clientX - containerRect.left;
             const newWidth = (offsetX / containerWidth) * 100;
-
-            // Allow resizing between 25% and 75%
             if (newWidth > 25 && newWidth < 75) {
                 const remainingWidth = 100 - newWidth;
                 playlistBrowser.style.flex = `0 0 ${newWidth}%`;
@@ -250,8 +263,6 @@
 
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', stopResizing);
-
-        // Stop resizing if focus is lost
         window.addEventListener('blur', stopResizing);
     }
 </script>

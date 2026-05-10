@@ -5,6 +5,9 @@
 {% set active_page = 'pondering' %}
 
 {% block extra_styles %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/galleries.css') }}">
 {% endblock %}
 
@@ -12,35 +15,40 @@
 <div class="galleries-page">
     <div class="galleries-header">
         <h1>Curated Collections</h1>
-        <p>Explore artworks grouped by location, medium, and personal favorites. Click any artwork to view it in full size.</p>
+        <p>Artworks grouped by location, medium, and personal favorites. Each gallery is a small selection — click any piece to view it, or follow the link to the full exhibition.</p>
     </div>
 
     {% for collection in collections %}
-    <div class="gallery-section">
+    <section class="gallery-section">
         <div class="gallery-section-header">
-            <h2>{{ collection.name }} <span class="gallery-count">({{ collection.count }})</span></h2>
+            <div class="gallery-section-title">
+                <h2>{{ collection.name }}</h2>
+                <span class="gallery-count">{{ collection.count }} pieces</span>
+            </div>
             {% if collection.id != 'liked_artworks' %}
-            <a href="{{ url_for('artworks.pondering', collection=collection.id) }}" class="see-more-btn">See More →</a>
+            <a href="{{ url_for('artworks.pondering', collection=collection.id) }}" class="see-more-btn">View the full exhibition &rarr;</a>
             {% endif %}
         </div>
         <div class="gallery-row">
             {% for artwork in collection.artworks %}
             <div class="gallery-item">
-                <img
-                    src="{{ static_url('images/artists/' + artwork.filesystem_artist + '/' + artwork.file_name) }}"
-                    alt="{{ artwork.title }}"
-                    data-img-id="{{ artwork.id }}"
-                    data-full-img="{{ static_url('images/artists/' + artwork.filesystem_artist + '/' + artwork.file_name) }}"
-                    data-title="{{ artwork.title }}"
-                    data-artist="{{ artwork.artist }}"
-                    data-year="{{ artwork.year }}"
-                    data-location="{{ artwork.location }}"
-                    data-medium="{{ artwork.medium }}"
-                    data-description="{{ artwork.description }}">
+                <div class="gallery-mat">
+                    <img
+                        src="{{ static_url('images/artists/' + artwork.filesystem_artist + '/' + artwork.file_name) }}"
+                        alt="{{ artwork.title }}"
+                        data-img-id="{{ artwork.id }}"
+                        data-full-img="{{ static_url('images/artists/' + artwork.filesystem_artist + '/' + artwork.file_name) }}"
+                        data-title="{{ artwork.title }}"
+                        data-artist="{{ artwork.artist }}"
+                        data-year="{{ artwork.year }}"
+                        data-location="{{ artwork.location }}"
+                        data-medium="{{ artwork.medium }}"
+                        data-description="{{ artwork.description }}">
+                </div>
             </div>
             {% endfor %}
         </div>
-    </div>
+    </section>
     {% endfor %}
 </div>
 

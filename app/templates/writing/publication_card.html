@@ -1,39 +1,27 @@
 <{% if pub.url %}a href="{{ pub.url }}" target="_blank"{% else %}div{% endif %}
    class="publication-card {% if pub.url %}linkable{% endif %}">
-    <div class="publication-card-content">
-        <div class="publication-card-main">
-            <div class="publication-title">{{ pub.title }}</div>
-            {% set authors = pub.get_authors_ordered() %}
-            {% if pub.section == 'academic' or authors|length > 1 or (authors|length == 1 and not authors[0].is_you) %}
-            <div class="publication-authors">
-                {% for author in authors %}
-                    {% if author.is_you %}<strong>{{ author.name }}</strong>{% else %}{{ author.name }}{% endif %}{% if not loop.last %}, {% endif %}
-                {% endfor %}
-            </div>
-            {% endif %}
-            <div class="publication-venue">{{ pub.venue }}{% if pub.section == 'creative' and pub.publication_date %} &middot; {{ pub.publication_date }}{% endif %}</div>
+    <div class="publication-title">{{ pub.title }}{% if pub.badge %} <span class="publication-badge">{{ pub.badge }}</span>{% endif %}</div>
+    {% set authors = pub.get_authors_ordered() %}
+    {% if pub.section == 'academic' or authors|length > 1 or (authors|length == 1 and not authors[0].is_you) %}
+    <div class="publication-authors">
+        {% for author in authors %}
+            {% if author.is_you %}<strong>{{ author.name }}</strong>{% else %}{{ author.name }}{% endif %}{% if not loop.last %}, {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div class="publication-venue">{{ pub.venue }}{% if pub.section == 'creative' and pub.publication_date %} &middot; {{ pub.publication_date }}{% endif %}</div>
 
-            {% if pub.volume_issue or pub.doi or pub.pmid %}
-            <div class="publication-meta">
-                {% if pub.volume_issue %}
-                <span>{{ pub.volume_issue }}</span>
-                {% endif %}
-                {% if pub.doi %}
-                <span class="publication-doi">doi: {{ pub.doi }}</span>
-                {% endif %}
-                {% if pub.pmid %}
-                <span>PMID: {{ pub.pmid }}</span>
-                {% endif %}
-            </div>
-            {% endif %}
-
-            {% if pub.badge %}
-            <div class="publication-badge">{{ pub.badge }}</div>
-            {% endif %}
-        </div>
-
-        {% if pub.url %}
-        <div class="publication-icon">↗</div>
+    {% if pub.volume_issue or pub.doi or pub.pmid %}
+    <div class="publication-meta">
+        {% if pub.volume_issue %}
+        <span>{{ pub.volume_issue }}</span>
+        {% endif %}
+        {% if pub.doi %}
+        <span class="publication-doi">doi: {{ pub.doi }}</span>
+        {% endif %}
+        {% if pub.pmid %}
+        <span>PMID: {{ pub.pmid }}</span>
         {% endif %}
     </div>
+    {% endif %}
 <{% if pub.url %}/a{% else %}/div{% endif %}>

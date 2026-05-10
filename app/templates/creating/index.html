@@ -5,6 +5,9 @@
 {% set active_page = 'creating' %}
 
 {% block extra_styles %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/creating.css') }}">
 {% endblock %}
 
@@ -55,6 +58,11 @@
                 <img src="{{ static_url(project.hero_image) }}"
                      alt="{{ project.hero_image_alt or project.title }}">
             </div>
+            {% elif project.hero_image %}
+            <div class="section-image-banner">
+                <img src="{{ static_url(project.hero_image) }}"
+                     alt="{{ project.hero_image_alt or project.title }}">
+            </div>
             {% endif %}
 
             <div class="section-content">
@@ -72,23 +80,27 @@
 
                 {{ project.full_description | safe_html }}
 
-                {% if project.tech_stack %}
-                <div class="tech-stack">
-                    <strong>Tech Stack:</strong> {{ project.tech_stack }}
-                </div>
-                {% endif %}
-
-                {% if project.project_url or project.github_url %}
-                <div class="project-links">
-                    {% if project.project_url %}
-                    <a href="{{ project.project_url }}" class="btn btn-primary btn-sm" target="_blank">
-                        <i class="fa-solid fa-external-link"></i> View Project
-                    </a>
+                {% if project.tech_stack or project.project_url or project.github_url %}
+                <div class="project-meta-row">
+                    {% if project.tech_stack %}
+                    <div class="tech-stack">
+                        <span class="tech-stack-label">Stack</span>
+                        <span class="tech-stack-content">{{ project.tech_stack }}</span>
+                    </div>
                     {% endif %}
-                    {% if project.github_url %}
-                    <a href="{{ project.github_url }}" class="btn btn-secondary btn-sm" target="_blank">
-                        <i class="fa-brands fa-github"></i> GitHub
-                    </a>
+                    {% if project.project_url or project.github_url %}
+                    <div class="project-links">
+                        {% if project.project_url %}
+                        <a href="{{ project.project_url }}" class="btn btn-primary btn-sm" target="_blank">
+                            <i class="fa-solid fa-external-link"></i> View Project
+                        </a>
+                        {% endif %}
+                        {% if project.github_url %}
+                        <a href="{{ project.github_url }}" class="btn btn-secondary btn-sm" target="_blank">
+                            <i class="fa-brands fa-github"></i> GitHub
+                        </a>
+                        {% endif %}
+                    </div>
                     {% endif %}
                 </div>
                 {% endif %}
@@ -284,7 +296,7 @@
                     </select>
                 </div>
             </div>
-            <div id="heroImageFields" style="display: none;">
+            <div id="heroImageFields">
                 <div class="form-group">
                     <label for="projectHeroImage">Hero Image (S3 path)</label>
                     <input type="text" id="projectHeroImage" class="form-input" placeholder="e.g. images/creating/project-logo.png">
@@ -696,12 +708,9 @@
     // ========================================
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-    // Toggle hero image fields based on layout selection
-    function toggleHeroImageFields() {
-        const layout = document.getElementById('projectLayout').value;
-        document.getElementById('heroImageFields').style.display = layout === 'split' ? '' : 'none';
-    }
-    document.getElementById('projectLayout').addEventListener('change', toggleHeroImageFields);
+    // Hero image fields are always available; layout only controls how
+    // the hero is rendered on the page (split = floats next to text,
+    // standard = full-width above the title).
 
     // All projects lookup for relation picker
     const allProjectsList = {{ all_projects_list | tojson }};
@@ -775,7 +784,6 @@
         document.getElementById('projectPublic').checked = true;
         modalRelations = [];
         renderRelations();
-        toggleHeroImageFields();
         document.getElementById('projectModal').style.display = 'flex';
     }
 
@@ -808,7 +816,6 @@
                 note: r.note || '',
             }));
             renderRelations();
-            toggleHeroImageFields();
             document.getElementById('projectModal').style.display = 'flex';
         });
     }
@@ -949,16 +956,26 @@
         });
     }
 
-    // Close modals on overlay click
-    document.getElementById('projectModal').addEventListener('click', function(e) {
-        if (e.target === this) closeProjectModal();
-    });
-    document.getElementById('deleteProjectModal').addEventListener('click', function(e) {
-        if (e.target === this) closeDeleteModal();
-    });
-    document.getElementById('categoryModal').addEventListener('click', function(e) {
-        if (e.target === this) closeCategoryModal();
-    });
+    // Close modals on overlay click — but only when both mousedown and
+    // mouseup happen on the backdrop. Otherwise text-drags that start
+    // inside a textarea and release outside the modal close it: the
+    // computed click target is the common ancestor (the overlay), so
+    // a naive `click` handler fires on a drag-out, not a real click.
+    function attachOverlayClose(modalId, closeFn) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        let mouseDownOnOverlay = false;
+        modal.addEventListener('mousedown', function(e) {
+            mouseDownOnOverlay = (e.target === modal);
+        });
+        modal.addEventListener('mouseup', function(e) {
+            if (mouseDownOnOverlay && e.target === modal) closeFn();
+            mouseDownOnOverlay = false;
+        });
+    }
+    attachOverlayClose('projectModal', closeProjectModal);
+    attachOverlayClose('deleteProjectModal', closeDeleteModal);
+    attachOverlayClose('categoryModal', closeCategoryModal);
     {% endif %}
 
     // ========================================
@@ -982,8 +999,15 @@
         let isDragging = false;
         let startX, startY;
 
-        // Open zoom overlay when clicking zoomable images
-        document.querySelectorAll('.section-image img').forEach(img => {
+        // Open zoom overlay when clicking zoomable images.
+        // Convention: images in the Art tab are zoomable (high-detail
+        // photographs/artworks worth examining); images in the Development
+        // tab are not (logos and project shots that don't reward zooming).
+        // Generalized via :not(#panel-development) so any future tab
+        // gets zoom behavior unless explicitly opted out.
+        document.querySelectorAll(
+            '.folder-panel:not(#panel-development) .section-image img'
+        ).forEach(img => {
             img.addEventListener('click', function() {
                 zoomImage.src = this.src;
                 overlay.classList.add('active');

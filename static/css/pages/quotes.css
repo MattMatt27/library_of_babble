@@ -1,40 +1,122 @@
 /**
- * Quotes Page Styles
+ * Passages page — quotes pinned to a cork board.
+ *
+ * Each .quote-item is a manila card with a slight rotation and a CSS
+ * thumbtack pseudo (the inline SVG in the template). Background is a
+ * CSS-only cork texture (stippled radial gradients on a tan base).
+ * --paper-* palette comes from books.css (loaded alongside this file).
  */
+
+:root {
+  --serif: "Newsreader", Georgia, "Iowan Old Style", "Source Serif 4", serif;
+  --cork-base: #b88652;
+  --cork-shadow: rgba(0, 0, 0, 0.25);
+}
 
 .quotes-page {
   padding: var(--space-4) 0;
 }
 
 .quotes-header {
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-6);
   margin-bottom: var(--space-6);
 }
 
-.quotes-header h1 {
-  font-size: var(--font-3xl);
-  font-weight: var(--font-semibold);
-  color: var(--text-primary);
-  margin: 0 0 var(--space-2) 0;
+.quotes-header-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: var(--space-4);
 }
 
-.quotes-header p {
+.quotes-header h1 {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: var(--font-3xl);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+  letter-spacing: -0.01em;
+}
+
+.quotes-header-text p {
   font-size: var(--font-base);
   color: var(--text-secondary);
   margin: 0;
 }
 
-/* Filters */
+/* Small-print disclaimer aligned to bottom-right of the header row.
+   No alert chrome — italic serif fine print, like a footnote pulled up.
+   A thin paper-edge rule on the left visually separates it from the
+   title and references the manila-card palette below. */
+.quotes-disclaimer {
+  flex: 0 1 300px;
+  margin: 0;
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--paper-edge);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: var(--font-xs);
+  line-height: 1.55;
+  color: var(--text-tertiary);
+  text-align: left;
+}
+
+/* ---------------------------------------------------------------------------
+   Cork board container — holds filters, grid, and pagination.
+   --------------------------------------------------------------------------- */
+.passages-cork {
+  padding: var(--space-6) var(--space-5) var(--space-5);
+  border: 6px solid #5a3c1e;
+  border-radius: 4px;
+  background:
+    /* dark stipple */
+    radial-gradient(circle at 0 0, rgba(70, 45, 20, 0.22) 0px, transparent 1.6px),
+    radial-gradient(circle at 30% 70%, rgba(60, 40, 18, 0.28) 0px, transparent 1.4px),
+    radial-gradient(circle at 80% 20%, rgba(50, 30, 12, 0.25) 0px, transparent 1.8px),
+    /* light stipple */
+    radial-gradient(circle at 60% 60%, rgba(220, 180, 130, 0.22) 0px, transparent 1.5px),
+    radial-gradient(circle at 10% 40%, rgba(210, 170, 120, 0.18) 0px, transparent 1.4px),
+    /* mid stipple */
+    radial-gradient(circle at 90% 90%, rgba(140, 95, 50, 0.3) 0px, transparent 1.6px),
+    radial-gradient(circle at 50% 50%, rgba(130, 85, 45, 0.25) 0px, transparent 1.5px),
+    /* warm wash + base cork tone */
+    radial-gradient(ellipse at 50% 30%, rgba(220, 175, 120, 0.18), transparent 70%),
+    linear-gradient(180deg, var(--cork-base) 0%, #a87644 100%);
+  background-size:
+    7px 7px,
+    11px 11px,
+    13px 13px,
+    9px 9px,
+    14px 14px,
+    8px 8px,
+    12px 12px,
+    100% 100%,
+    100% 100%;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.25),
+    inset 0 0 36px rgba(0, 0, 0, 0.28),
+    0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------------------------------------------------------------------------
+   Filter strip — sits on the cork as a darker wooden bar.
+   --------------------------------------------------------------------------- */
 .quotes-filters {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-4);
   margin-bottom: var(--space-6);
-  padding: var(--space-4);
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  background: rgba(46, 28, 14, 0.55);
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  border-radius: 2px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 220, 180, 0.06),
+    0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .filter-group {
@@ -45,34 +127,248 @@
 
 .filter-group label {
   font-size: var(--font-sm);
-  color: var(--text-secondary);
+  color: #ecdcb8;
   white-space: nowrap;
 }
 
-.filter-group select {
+/* Custom sort control — matches the book-filter aesthetic
+   (button trigger + popover, no native <select> chrome) */
+.sort-control {
+  position: relative;
+}
+
+.sort-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-width: 200px;
   padding: var(--space-2) var(--space-3);
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-base);
-  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(212, 184, 146, 0.3);
+  border-radius: 2px;
+  color: #ecdcb8;
   font-size: var(--font-sm);
+  font-family: var(--font-primary);
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+.sort-trigger:hover { border-color: #d4b892; }
+.sort-trigger:focus { outline: none; border-color: #d4b892; }
+
+.sort-trigger-label {
+  text-align: left;
+}
+.sort-trigger-chevron {
+  font-size: var(--font-xs);
+  color: rgba(236, 220, 184, 0.6);
+  transition: transform var(--transition-fast);
+}
+.sort-trigger[aria-expanded="true"] .sort-trigger-chevron {
+  transform: rotate(180deg);
 }
 
-#sort-select {
-  min-width: 140px;
+.sort-options {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 240px;
+  background: #1a0f06;
+  border: 1px solid rgba(212, 184, 146, 0.35);
+  border-radius: 2px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  overflow: hidden;
+}
+.sort-options.is-open {
+  display: block;
 }
 
-#book-filter {
-  max-width: 200px;
+.sort-option {
+  display: block;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(212, 184, 146, 0.1);
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-primary);
+  font-size: var(--font-sm);
+  color: #ecdcb8;
+  transition: background var(--transition-fast);
+}
+.sort-option:last-child { border-bottom: none; }
+.sort-option:hover {
+  background: rgba(139, 58, 26, 0.18);
+}
+.sort-option.is-selected {
+  background: rgba(212, 184, 146, 0.08);
+  font-style: italic;
+  color: #d4b892;
+}
+
+/* Book filter — admin-modal-style search instead of a dropdown of every book */
+.filter-group-book {
+  position: relative;
+  align-items: center;
+}
+
+.book-filter-search-wrap {
+  position: relative;
+}
+
+#book-filter-search {
+  width: 240px;
+  padding: var(--space-2) var(--space-3);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(212, 184, 146, 0.3);
+  border-radius: 2px;
+  color: #ecdcb8;
+  font-size: var(--font-sm);
+  font-family: var(--font-primary);
+}
+#book-filter-search::placeholder {
+  color: rgba(236, 220, 184, 0.45);
+  font-style: italic;
+}
+#book-filter-search:focus {
+  outline: none;
+  border-color: #d4b892;
+}
+
+.book-filter-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 320px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: #1a0f06;
+  border: 1px solid rgba(212, 184, 146, 0.35);
+  border-radius: 2px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+}
+.book-filter-results:empty {
+  display: none;
+}
+
+.book-filter-result {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(212, 184, 146, 0.1);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+.book-filter-result:last-child { border-bottom: none; }
+.book-filter-result:hover {
+  background: rgba(139, 58, 26, 0.18);
+}
+
+.book-filter-result-cover {
+  width: 30px;
+  height: 45px;
+  object-fit: cover;
+  border-radius: 2px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.book-filter-result-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.book-filter-result-title {
+  font-family: var(--serif);
+  font-size: var(--font-sm);
+  font-weight: 500;
+  color: #ecdcb8;
+  white-space: nowrap;
+  overflow: hidden;
   text-overflow: ellipsis;
+}
+.book-filter-result-author {
+  font-size: var(--font-xs);
+  color: rgba(236, 220, 184, 0.55);
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.book-filter-no-results {
+  padding: var(--space-3);
+  text-align: center;
+  color: rgba(236, 220, 184, 0.5);
+  font-size: var(--font-sm);
+  font-style: italic;
+}
+
+/* Selected-book chip is a button — entire chip clears the filter on click.
+   Hover lights up to make the affordance obvious. */
+.book-filter-selected {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(212, 184, 146, 0.3);
+  border-radius: 2px;
+  color: #ecdcb8;
+  font-family: var(--serif);
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+.book-filter-selected:hover {
+  background: rgba(139, 58, 26, 0.18);
+  border-color: #8b3a1a;
+  color: #fff;
+}
+.book-filter-selected:hover .book-filter-clear-icon {
+  color: #c8463c;
+}
+.book-filter-selected:focus-visible {
+  outline: 2px solid #8b3a1a;
+  outline-offset: 2px;
+}
+
+.book-filter-cover {
+  width: 24px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+.book-filter-title {
+  font-size: var(--font-sm);
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.book-filter-clear-icon {
+  color: rgba(236, 220, 184, 0.65);
+  font-size: var(--font-lg);
+  line-height: 1;
+  padding: 0 var(--space-1);
+  transition: color var(--transition-fast);
 }
 
 .filter-group select:focus {
   outline: none;
-  border-color: var(--accent-blue);
+  border-color: #d4b892;
 }
 
-/* Filter toggle checkbox */
 .filter-toggle {
   display: flex;
   align-items: center;
@@ -80,7 +376,7 @@
   cursor: pointer;
   white-space: nowrap;
   font-size: var(--font-sm);
-  color: var(--text-secondary);
+  color: #ecdcb8;
 }
 
 .filter-toggle input[type="checkbox"] {
@@ -88,8 +384,8 @@
   -webkit-appearance: none;
   width: 16px;
   height: 16px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-primary);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(212, 184, 146, 0.4);
   border-radius: var(--radius-sm);
   cursor: pointer;
   position: relative;
@@ -97,8 +393,8 @@
 }
 
 .filter-toggle input[type="checkbox"]:checked {
-  background: var(--accent-blue);
-  border-color: var(--accent-blue);
+  background: #8b3a1a;
+  border-color: #8b3a1a;
 }
 
 .filter-toggle input[type="checkbox"]:checked::after {
@@ -114,35 +410,76 @@
 }
 
 .filter-toggle input[type="checkbox"]:hover {
-  border-color: var(--accent-blue);
+  border-color: #d4b892;
 }
 
-.filter-toggle:hover {
-  color: var(--text-primary);
-}
-
-/* Quotes grid - masonry-like layout */
+/* ---------------------------------------------------------------------------
+   Quote cards — manila paper pinned to the cork.
+   --------------------------------------------------------------------------- */
+/* Masonry packing via JS distribution into per-column flex containers
+   (CSS multi-column kept piling into col 1; CSS Grid loses masonry).
+   A small script in the template builds .quotes-column children and
+   appends each .quote-item into the shortest column. */
 .quotes-grid {
-  columns: 3;
-  column-gap: var(--space-5);
+  display: flex;
+  gap: var(--space-5);
+  align-items: flex-start;
+}
+
+.quotes-column {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
 }
 
 .quote-item {
-  break-inside: avoid;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-  margin-bottom: var(--space-5);
-  transition: all var(--transition-base);
+  margin-bottom: 0;
 }
 
-.quote-item:hover {
-  border-color: var(--accent-blue);
-  box-shadow: var(--shadow-md);
+.quote-paper {
+  position: relative;
+  background: var(--paper);
+  color: var(--paper-text);
+  border: 1px solid var(--paper-edge);
+  border-radius: 2px;
+  padding: calc(var(--space-5) + 6px) var(--space-5) var(--space-5);
+  font-family: var(--serif);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    0 8px 18px rgba(0, 0, 0, 0.32);
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
 
-/* Quote item header - text and like button */
+.quote-item:hover .quote-paper {
+  transform: rotate(0deg) translateY(-2px);
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.35),
+    0 14px 28px rgba(0, 0, 0, 0.4);
+}
+
+/* Slight pseudo-random rotation per card (deterministic via nth-child) */
+.quote-item:nth-child(7n+1) .quote-paper { transform: rotate(-0.8deg); }
+.quote-item:nth-child(7n+2) .quote-paper { transform: rotate(0.6deg); }
+.quote-item:nth-child(7n+3) .quote-paper { transform: rotate(-0.3deg); }
+.quote-item:nth-child(7n+4) .quote-paper { transform: rotate(1.1deg); }
+.quote-item:nth-child(7n+5) .quote-paper { transform: rotate(-1.2deg); }
+.quote-item:nth-child(7n+6) .quote-paper { transform: rotate(0.4deg); }
+.quote-item:nth-child(7n+7) .quote-paper { transform: rotate(-0.5deg); }
+
+/* Thumbtack SVG sits at the top center, overlapping the card edge */
+.quote-thumbtack {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 22px;
+  z-index: 2;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45));
+}
+
 .quote-item-header {
   display: flex;
   gap: var(--space-3);
@@ -151,21 +488,22 @@
 
 .quote-item-text {
   flex: 1;
+  font-family: var(--serif);
   font-size: var(--font-base);
-  color: var(--text-primary);
+  font-style: italic;
+  color: var(--paper-text);
   line-height: var(--leading-relaxed);
   margin: 0 0 var(--space-4) 0;
-  font-style: italic;
   white-space: pre-line;
 }
 
-/* Like button */
+/* Like button on cream paper — warm-red accent matches the detail page */
 .quote-like-btn {
   flex-shrink: 0;
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--text-tertiary);
+  color: var(--paper-text-soft);
   font-size: var(--font-lg);
   padding: var(--space-1);
   border-radius: var(--radius-base);
@@ -174,25 +512,20 @@
   align-items: center;
   justify-content: center;
 }
-
 .quote-like-btn:hover {
-  color: var(--accent-blue);
-  background: rgba(88, 166, 255, 0.1);
+  color: #8b3a1a;
+  background: rgba(139, 58, 26, 0.08);
 }
-
 .quote-like-btn.liked {
-  color: var(--accent-blue);
+  color: #8b3a1a;
 }
-
 .quote-like-btn.liked:hover {
-  color: var(--accent-blue-hover);
+  color: #6b2a10;
 }
-
 .quote-like-btn:focus-visible {
-  outline: 2px solid var(--accent-blue);
+  outline: 2px solid #8b3a1a;
   outline-offset: 2px;
 }
-
 .quote-like-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -203,7 +536,6 @@
   15% { transform: scale(1.3); }
   30% { transform: scale(1); }
 }
-
 .quote-like-btn.animating {
   animation: heartBeat 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -212,126 +544,103 @@
   display: flex;
   gap: var(--space-3);
   margin-bottom: var(--space-4);
-  font-size: var(--font-xs);
-  color: var(--text-tertiary);
+  font-family: var(--serif);
+  font-size: var(--font-sm);
+  color: var(--paper-text-soft);
 }
-
 .quote-item-meta:empty {
   display: none;
 }
-
 .quote-chapter {
-  font-weight: var(--font-medium);
+  font-style: italic;
 }
 
+/* Source link block — paper palette with warm-red hover */
 .quote-item-source {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--border-primary);
+  padding-top: var(--space-3);
+  border-top: 1px solid rgba(58, 44, 26, 0.18);
   text-decoration: none;
   color: inherit;
   transition: opacity var(--transition-fast);
 }
-
 .quote-item-source:hover {
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .quote-source-cover {
-  width: 40px;
-  height: 60px;
+  width: 36px;
+  height: 54px;
   object-fit: cover;
-  border-radius: var(--radius-sm);
+  border-radius: 2px;
   flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
 .quote-source-info {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 1px;
   min-width: 0;
 }
 
 .quote-source-title {
+  font-family: var(--serif);
   font-size: var(--font-sm);
-  font-weight: var(--font-medium);
-  color: var(--accent-blue);
+  font-weight: 500;
+  color: var(--paper-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color var(--transition-fast);
+}
+.quote-item-source:hover .quote-source-title {
+  color: #8b3a1a;
 }
 
 .quote-source-author {
   font-size: var(--font-xs);
-  color: var(--text-tertiary);
+  color: var(--paper-text-soft);
+  font-style: italic;
 }
 
 .no-quotes {
-  grid-column: 1 / -1;
   text-align: center;
   padding: var(--space-8);
-  color: var(--text-tertiary);
+  color: #ecdcb8;
+  font-style: italic;
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .quotes-grid {
-    columns: 2;
-  }
-}
-
-@media (max-width: 768px) {
-  .quotes-grid {
-    columns: 1;
-  }
-
-  .quotes-filters {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filter-group {
-    width: 100%;
-  }
-
-  .filter-group select {
-    flex: 1;
-    min-width: 0;
-  }
-
-  #book-filter {
-    max-width: none;
-  }
-}
-
-/* Pagination */
+/* ---------------------------------------------------------------------------
+   Pagination — sits on the cork below the grid.
+   --------------------------------------------------------------------------- */
 .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: var(--space-4);
-  margin: var(--space-5) 0;
+  margin: var(--space-5) 0 0;
   padding: var(--space-3);
 }
 
 .pagination button {
   padding: var(--space-2) var(--space-4);
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-base);
-  color: var(--text-primary);
+  background: rgba(46, 28, 14, 0.55);
+  border: 1px solid rgba(212, 184, 146, 0.3);
+  border-radius: 2px;
+  color: #ecdcb8;
   font-size: var(--font-sm);
-  font-weight: var(--font-medium);
+  font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .pagination button:hover:not(:disabled) {
-  background: var(--accent-blue);
-  border-color: var(--accent-blue);
-  color: var(--text-inverse);
+  background: #8b3a1a;
+  border-color: #8b3a1a;
+  color: #f4ead4;
 }
 
 .pagination button:disabled {
@@ -340,20 +649,38 @@
 }
 
 .pagination .page-info {
+  font-family: var(--serif);
+  font-style: italic;
   font-size: var(--font-sm);
-  color: var(--text-secondary);
+  color: #ecdcb8;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
+/* ---------------------------------------------------------------------------
+   Responsive
+   --------------------------------------------------------------------------- */
+/* Grid auto-fill handles the column count automatically based on viewport;
+   only the filter strip and pagination need explicit small-screen tweaks. */
 @media (max-width: 768px) {
-  .pagination {
-    gap: var(--space-2);
+  .quotes-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-4);
   }
-
-  .pagination button {
-    padding: var(--space-2) var(--space-3);
+  .quotes-disclaimer {
+    flex: 1 1 auto;
+    border-left: none;
+    border-top: 2px solid var(--paper-edge);
+    padding: var(--space-3) 0 0;
   }
-
-  .pagination .page-info {
-    font-size: var(--font-xs);
+  .quotes-filters {
+    flex-direction: column;
+    align-items: stretch;
   }
+  .filter-group { width: 100%; }
+  .filter-group select { flex: 1; min-width: 0; }
+  #book-filter { max-width: none; }
+  .pagination { gap: var(--space-2); }
+  .pagination button { padding: var(--space-2) var(--space-3); }
+  .pagination .page-info { font-size: var(--font-xs); }
 }

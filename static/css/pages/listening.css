@@ -1,6 +1,33 @@
 /**
- * Listening Page Styles
+ * Listening page — record-store / DJ-booth aesthetic.
+ *
+ * The left panel reads as a wood record shelf:
+ *   - Now-playing: album cover with a small vinyl peeking from behind, plus
+ *     a liner-notes paper card to the right with title/description/Spotify link
+ *   - Crates: horizontal stacks of record sleeves, ~70% overlap, hovered
+ *     sleeve lifts forward (z-index up + translateY) to reveal in full
+ *   - Monthly mixes grouped by year, each year a tight crate of month sleeves
+ *
+ * Right panel is the Spotify iframe (kept as is).
+ * Middle bar is the existing draggable divider (kept as is).
  */
+
+:root {
+  --serif: "Newsreader", Georgia, "Iowan Old Style", "Source Serif 4", serif;
+  /* Paper / liner-notes palette */
+  --paper: #f4ead4;
+  --paper-edge: #d9c79a;
+  --paper-text: #3a2c1a;
+  --paper-text-soft: #6e5536;
+  /* Wood / shelf palette (deeper than the books bookshelf to feel
+     more "record store / DJ booth") */
+  --shelf-base: #2d1f15;
+  --shelf-deep: #1f1410;
+  --shelf-edge: #4a2f1f;
+  --shelf-cream: #d4b892;
+  --shelf-cream-soft: #b89770;
+  --accent-warm: #c75a3a;
+}
 
 /* Override body overflow for this page */
 body {
@@ -12,46 +39,72 @@ body {
   display: flex;
   width: 100%;
   height: 95vh;
+  background: var(--shelf-deep);
 }
 
-/* Resizable divider */
+/* Resizable divider — slim wood band */
 .divider {
-  width: 5px;
-  background: var(--border-primary);
+  width: 6px;
+  background: linear-gradient(180deg, #3a2818 0%, #2a1808 50%, #1a0e08 100%);
   cursor: ew-resize;
-  transition: background var(--transition-fast);
   flex-shrink: 0;
   user-select: none;
+  transition: background var(--transition-fast);
+  border-left: 1px solid rgba(0, 0, 0, 0.3);
+  border-right: 1px solid rgba(255, 220, 180, 0.04);
 }
-
-.divider:hover {
-  background: var(--accent-blue);
-}
-
+.divider:hover,
 .divider:active {
-  background: var(--accent-blue);
+  background: linear-gradient(180deg, #4a3828 0%, #3a2818 50%, #2a1808 100%);
 }
 
-/* Left panel - playlist browser */
+/* Left panel - playlist browser. Wood-grain backdrop. */
 .playlist-browser {
-  flex: 0 0 calc(60% - 2.5px);
-  padding: var(--space-5);
-  padding-left: var(--space-6);
+  flex: 0 0 calc(60% - 3px);
+  padding: var(--space-5) var(--space-6);
   overflow-y: auto;
   box-sizing: border-box;
+  background:
+    /* Subtle horizontal grain */
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px, transparent 3px,
+      rgba(0, 0, 0, 0.06) 3px, rgba(0, 0, 0, 0.06) 4px,
+      transparent 4px, transparent 9px
+    ),
+    /* Wider grain bands */
+    repeating-linear-gradient(
+      2deg,
+      transparent 0px, transparent 40px,
+      rgba(60, 30, 12, 0.18) 40px, rgba(40, 20, 8, 0.18) 46px,
+      transparent 46px, transparent 130px
+    ),
+    /* Base wood gradient */
+    linear-gradient(180deg, var(--shelf-base) 0%, var(--shelf-deep) 100%);
+  scrollbar-width: thin;
+  scrollbar-color: var(--shelf-edge) transparent;
+}
+.playlist-browser::-webkit-scrollbar { width: 8px; }
+.playlist-browser::-webkit-scrollbar-track { background: transparent; }
+.playlist-browser::-webkit-scrollbar-thumb {
+  background: var(--shelf-edge);
+  border-radius: 4px;
+}
+.playlist-browser::-webkit-scrollbar-thumb:hover {
+  background: var(--shelf-cream-soft);
 }
 
-/* Right panel - playlist details (Spotify iframe) */
+/* Right panel - Spotify iframe */
 .playlist-details {
-  flex: 0 0 calc(40% - 2.5px);
+  flex: 0 0 calc(40% - 3px);
   padding: var(--space-5);
-  padding-right: 0;
+  padding-right: var(--space-4);
   box-sizing: border-box;
   overflow: hidden;
+  background: var(--shelf-deep);
 }
-
 .playlist-details iframe {
-  width: calc(100% - var(--space-5));
+  width: 100%;
   height: calc(98vh - 90px);
   border: none;
   border-radius: var(--radius-md);
@@ -60,277 +113,283 @@ body {
   box-sizing: border-box;
 }
 
-/* Playlist sections */
-.playlist-section {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-  margin-bottom: var(--space-4);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.section-title {
-  font-size: var(--font-2xl);
-  font-weight: var(--font-semibold);
-  color: var(--text-primary);
-  margin: 0 0 var(--space-3) 0;
-}
-
-.section-description {
-  font-size: var(--font-base);
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin: 0 0 var(--space-4) 0;
-  max-width: 800px;
-}
-
-/* Introduction section */
-.introduction {
-  padding: var(--space-5);
-  padding-top: var(--space-3);
-  padding-bottom: 0;
-}
-
-.introduction .section-description {
-  margin-bottom: var(--space-3);
-}
-
-/* Date picker input */
-#datepickerInput {
-  text-align: center;
-  font-family: var(--font-primary);
-  font-size: var(--font-base);
-  width: 100%;
-  max-width: 300px;
-  padding: var(--space-3) var(--space-4);
-  background: var(--bg-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-base);
-  color: var(--text-primary);
-  transition: all var(--transition-fast);
-  cursor: pointer;
-}
-
-#datepickerInput:hover {
-  border-color: var(--accent-blue);
-  background: var(--bg-tertiary);
-}
-
-#datepickerInput:focus {
-  outline: none;
-  border-color: var(--accent-blue);
-  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
-}
-
-#datepickerInput::placeholder {
-  color: var(--text-tertiary);
-}
-
-/* Custom jQuery UI Datepicker Styles */
-#ui-datepicker-div {
-  background: var(--bg-secondary) !important;
-  border: 1px solid var(--border-primary) !important;
-  border-radius: var(--radius-md) !important;
-  padding: var(--space-4) !important;
-  box-shadow: var(--shadow-lg) !important;
-  font-family: var(--font-primary) !important;
-}
-
-#ui-datepicker-div .ui-datepicker-header {
-  background: var(--bg-tertiary) !important;
-  border: 1px solid var(--border-primary) !important;
-  border-radius: var(--radius-base) !important;
-  padding: var(--space-3) !important;
-  margin-bottom: var(--space-3) !important;
-}
-
-#ui-datepicker-div .ui-datepicker-title {
-  color: var(--text-primary) !important;
-  font-weight: var(--font-semibold) !important;
-  line-height: 1.8em !important;
-}
-
-#ui-datepicker-div .ui-datepicker-title select {
-  background: var(--bg-primary) !important;
-  border: 1px solid var(--border-primary) !important;
-  border-radius: var(--radius-base) !important;
-  color: var(--text-primary) !important;
-  padding: var(--space-2) var(--space-3) !important;
-  font-size: var(--font-sm) !important;
-  margin: 0 var(--space-2) !important;
-  cursor: pointer !important;
-  font-family: var(--font-primary) !important;
-  min-width: 100px !important;
-}
-
-#ui-datepicker-div .ui-datepicker-month {
-  min-width: 120px !important;
-}
-
-#ui-datepicker-div .ui-datepicker-year {
-  min-width: 80px !important;
-}
-
-#ui-datepicker-div .ui-datepicker-title select:hover {
-  border-color: var(--accent-blue) !important;
-}
-
-#ui-datepicker-div .ui-datepicker-title select:focus {
-  outline: none !important;
-  border-color: var(--accent-blue) !important;
-  box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.1) !important;
-}
-
-#ui-datepicker-div .ui-datepicker-prev,
-#ui-datepicker-div .ui-datepicker-next {
-  cursor: pointer !important;
-  top: 2px !important;
-}
-
-#ui-datepicker-div .ui-datepicker-prev:hover,
-#ui-datepicker-div .ui-datepicker-next:hover {
-  background: var(--bg-primary) !important;
-  border: 1px solid var(--border-primary) !important;
-  border-radius: var(--radius-base) !important;
-}
-
-#ui-datepicker-div .ui-widget-content {
-  background: var(--bg-secondary) !important;
-  border: none !important;
-  color: var(--text-primary) !important;
-}
-
-#ui-datepicker-div .ui-datepicker-calendar {
-  display: none !important;
-}
-
-#ui-datepicker-div .ui-datepicker-buttonpane {
-  background: transparent !important;
-  border-top: 1px solid var(--border-primary) !important;
-  padding-top: var(--space-3) !important;
-  margin-top: var(--space-3) !important;
-  text-align: center !important;
-}
-
-#ui-datepicker-div .ui-datepicker-buttonpane button {
-  background: var(--accent-blue) !important;
-  border: none !important;
-  border-radius: var(--radius-base) !important;
-  color: white !important;
-  padding: var(--space-2) var(--space-5) !important;
-  font-size: var(--font-sm) !important;
-  font-weight: var(--font-medium) !important;
-  cursor: pointer !important;
-  transition: background var(--transition-fast) !important;
-  margin: 0 !important;
-  font-family: var(--font-primary) !important;
-  box-shadow: none !important;
-  text-transform: none !important;
-}
-
-#ui-datepicker-div .ui-datepicker-buttonpane button:hover {
-  background: var(--accent-blue-hover) !important;
-}
-
-#ui-datepicker-div .ui-datepicker-buttonpane button:focus {
-  outline: none !important;
-  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2) !important;
-}
-
-/* Playlist grid */
-.playlist-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 2fr));
-  gap: var(--space-3);
-  width: 100%;
-  justify-items: center;
-  align-items: center;
-}
-
-.playlist-grid img {
-  width: 100%;
-  max-width: 200px;
-  height: auto;
-  cursor: pointer;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-primary);
-  transition: all var(--transition-base);
-}
-
-.playlist-grid img:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--accent-blue);
-}
-
-/* Selected playlist display */
-.selected-playlist {
-  display: none;
-}
-
-.selected-playlist-content {
+/* ============================================
+   Now playing — album cover + liner notes
+   ============================================ */
+.now-playing {
   display: flex;
   align-items: center;
   gap: var(--space-5);
-  margin-bottom: var(--space-4);
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-primary);
-  color: var(--text-primary);
-  padding: var(--space-5);
-  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-6);
+  padding: var(--space-4);
 }
 
-.playlist-art {
+.album-display {
+  position: relative;
   flex-shrink: 0;
+  width: 240px;
+  height: 280px; /* room for top finial + splayed legs */
 }
 
-.playlist-art img {
-  width: 170px;
-  height: 170px;
+/* Refined display stand: full piece visible whether or not an album
+   is on it. Back pole is hidden by the album cover when present. */
+.album-stand {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+  pointer-events: none;
+}
+
+/* Vinyl record peeking from behind the cover. Original size kept;
+   positioned so a small slice shows past the album's right edge.
+   Hidden until a playlist is selected. */
+.album-vinyl-peek {
+  position: absolute;
+  top: 22px;
+  left: 50px;
+  width: 200px;
+  height: 200px;
+  z-index: 1;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.55));
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+}
+.now-playing.is-active .album-vinyl-peek {
+  opacity: 1;
+}
+
+/* Album cover's drop-shadow lives on its own div at the lowest z
+   index so the stand (z:1) renders in front of it. The shadow
+   appears behind both the album cover AND the stand, as if both
+   are sitting in front of a common cast shadow. */
+.album-cover-shadow {
+  position: absolute;
+  top: 22px;
+  left: 20px;
+  z-index: 0;
+  width: 200px;
+  height: 200px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.001); /* must have something for box-shadow to render */
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.4),
+    0 12px 28px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+.now-playing:not(.is-active) .album-cover-shadow {
+  display: none;
+}
+
+/* Album cover sits in front of the stand and vinyl peek. Offset down
+   so the stand's finial is visible above and the crossbar/legs below.
+   Drop-shadow moved to .album-cover-shadow so the stand can sit in
+   front of it. */
+.album-cover {
+  position: absolute;
+  top: 22px;
+  left: 20px;
+  z-index: 2;
+  width: 200px;
+  height: 200px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(212, 184, 146, 0.18);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.album-cover-img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-secondary);
+  display: block;
 }
 
-.other-playlist-details {
-  text-align: left;
-  padding: var(--space-3);
+/* Liner notes — paper card next to the album cover */
+.liner-notes {
+  flex: 1;
+  min-width: 0;
+  background: var(--paper);
+  color: var(--paper-text);
+  border: 1px solid var(--paper-edge);
+  border-radius: 2px;
+  padding: var(--space-5);
+  font-family: var(--serif);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.25),
+    0 8px 18px rgba(0, 0, 0, 0.3);
 }
 
-.playlist-title {
+.liner-notes .playlist-title {
+  font-family: var(--serif);
+  font-weight: 600;
   font-size: var(--font-xl);
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
+  color: var(--paper-text);
   margin: 0 0 var(--space-2) 0;
+  letter-spacing: -0.005em;
+  line-height: 1.2;
 }
 
-.playlist-description {
+.liner-notes .playlist-description {
+  font-family: var(--serif);
   font-size: var(--font-base);
-  color: var(--text-secondary);
+  color: var(--paper-text);
+  line-height: 1.55;
   margin: 0;
 }
 
-/* Open in Spotify button (mobile only) */
-.open-spotify-button {
-  display: inline-block;
-  background: #1DB954;
-  color: white;
-  padding: var(--space-3) var(--space-5);
-  border-radius: var(--radius-full);
-  text-decoration: none;
-  font-weight: var(--font-semibold);
-  margin-top: var(--space-3);
-  transition: all var(--transition-fast);
+/* Empty state: hide the album cover entirely so the stand alone reads
+   as an empty record-display stand. */
+.now-playing:not(.is-active) .album-cover {
+  display: none;
 }
 
-.open-spotify-button:hover {
-  background: #1ed760;
-  transform: translateY(-1px);
-  text-decoration: none;
+/* ============================================
+   Section + crate
+   ============================================ */
+.playlist-section {
+  margin-bottom: var(--space-6);
+}
+
+.section-head {
+  padding: 0 var(--space-2) var(--space-3);
+}
+
+.section-title {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: var(--font-2xl);
+  color: var(--shelf-cream);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.section-description {
+  font-family: var(--serif);
+  font-size: var(--font-base);
+  color: var(--shelf-cream-soft);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 65ch;
+}
+
+/* Horizontal record crate — sleeves overlap, hovered one comes forward */
+.playlist-crate {
+  display: flex;
+  align-items: flex-end;
+  padding: var(--space-4) var(--space-3) var(--space-4) var(--space-2);
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--shelf-edge) transparent;
+}
+.playlist-crate::-webkit-scrollbar { height: 6px; }
+.playlist-crate::-webkit-scrollbar-track { background: transparent; }
+.playlist-crate::-webkit-scrollbar-thumb {
+  background: var(--shelf-edge);
+  border-radius: 3px;
+}
+
+.record-sleeve {
+  flex-shrink: 0;
+  width: 160px;
+  height: 160px;
+  margin-left: -110px;
+  position: relative;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-radius: 2px;
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  transition: transform 220ms ease-out, box-shadow 220ms ease-out;
+}
+.record-sleeve:first-child { margin-left: 0; }
+.record-sleeve img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+/* Hover: lift the focused sleeve up and z-index it above its neighbors,
+   so it appears in full while the rest stay overlapped behind it. */
+.record-sleeve:hover,
+.record-sleeve:focus-visible {
+  z-index: 10;
+  transform: translateY(-12px);
+  outline: none;
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.6),
+    0 14px 30px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(255, 220, 180, 0.1);
+}
+
+/* ============================================
+   Monthly mixes — year-grouped tight crates
+   ============================================ */
+.monthly-section .section-head {
+  margin-bottom: var(--space-2);
+}
+
+.year-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.year-label {
+  flex-shrink: 0;
+  width: 60px;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: var(--font-lg);
+  color: var(--shelf-cream);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.02em;
+}
+
+.playlist-crate-monthly {
+  flex: 1;
+  padding: var(--space-3) var(--space-2);
+  align-items: stretch;
+}
+
+.record-sleeve-monthly {
+  width: 100px;
+  height: 100px;
+  margin-left: -60px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-end;
+}
+.record-sleeve-monthly:first-child { margin-left: 0; }
+
+.record-sleeve-month-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 4px 6px;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.85));
+  color: var(--shelf-cream);
+  font-family: var(--font-primary);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+  pointer-events: none;
 }
 
 /* Disable text selection during resize */
@@ -341,72 +400,61 @@ body {
   -ms-user-select: none;
 }
 
-/* Desktop: hide mobile button */
-@media screen and (min-width: 900px) {
-  .open-spotify-button {
-    display: none;
-  }
-}
-
-/* Mobile responsive */
+/* ============================================
+   Responsive
+   ============================================ */
 @media screen and (max-width: 900px) {
-  body {
-    overflow-y: auto;
-  }
-
+  body { overflow-y: auto; }
   .listening-container {
     flex-direction: column;
     height: auto;
   }
-
   .playlist-browser {
     flex: 1 0 auto;
-    width: 95%;
-    height: 95%;
-    padding: var(--space-3);
-    margin-left: 5px;
-    margin-bottom: 0;
+    width: 100%;
+    height: auto;
+    padding: var(--space-4) var(--space-4);
     overflow-y: visible;
   }
-
   .divider,
   .playlist-details {
     display: none;
   }
-
-  .selected-playlist-content {
+  .now-playing {
     flex-direction: column;
-    align-items: center;
-    text-align: center;
+    align-items: stretch;
     gap: var(--space-4);
-  }
-
-  .playlist-art img {
-    width: 200px;
-    height: 200px;
-  }
-
-  .other-playlist-details {
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     text-align: center;
   }
-
-  .open-spotify-button {
-    display: inline-block;
+  .album-display {
+    align-self: center;
+    width: 260px;
+    height: 300px;
   }
-
-  .playlist-grid {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  .album-cover {
+    width: 220px;
+    height: 220px;
+    top: 24px;
+    left: 20px;
   }
-
-  .playlist-title {
-    font-size: var(--font-2xl);
+  .album-vinyl-peek {
+    top: 24px;
+    left: 50px;
+    width: 220px;
+    height: 220px;
   }
-
-  .playlist-description {
+  .record-sleeve {
+    width: 130px;
+    height: 130px;
+    margin-left: -90px;
+  }
+  .record-sleeve-monthly {
+    width: 80px;
+    height: 80px;
+    margin-left: -50px;
+  }
+  .year-label {
+    width: 50px;
     font-size: var(--font-base);
   }
 }

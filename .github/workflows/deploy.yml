@@ -106,48 +106,32 @@ jobs:
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       # ========================================
-      # Step 5: Download current task definition
+      # Step 5: Force a new deployment of the existing task definition.
       # ========================================
-      # Gets the current ECS task definition as a JSON file
-      - name: Download task definition
+      # Why this is the right shape:
+      #   * Terraform owns the ECS task definition (image set to ":latest",
+      #     full secrets list, env, sidecar config). The deploy workflow
+      #     pushes new image content to the ":latest" tag in ECR, then
+      #     tells ECS to do a rolling deploy of the *existing* task
+      #     definition. ECS pulls ":latest" fresh and runs the new code.
+      #   * No new task definition revision is registered by the workflow,
+      #     so secrets the workflow doesn't know about (e.g. ones added
+      #     later via Terraform) are never accidentally dropped.
+      #   * Single source of truth: secrets/env/etc live in Terraform.
+      - name: Force new deployment
         run: |
-          aws ecs describe-task-definition \
-            --task-definition $(aws ecs describe-services \
-              --cluster $ECS_CLUSTER \
-              --services $ECS_SERVICE \
-              --query 'services[0].taskDefinition' \
-              --output text | cut -d'/' -f2) \
-            --query 'taskDefinition' \
-            > task-definition.json
+          aws ecs update-service \
+            --cluster "$ECS_CLUSTER" \
+            --service "$ECS_SERVICE" \
+            --force-new-deployment \
+            --no-cli-pager \
+            --output json > /dev/null
 
-      # ========================================
-      # Step 6: Update task definition with new image
-      # ========================================
-      # Modifies the task definition JSON to use the new Docker image
-      - name: Fill in the new image ID in the Amazon ECS task definition
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: task-definition.json
-          container-name: ${{ env.CONTAINER_NAME }}
-          image: ${{ steps.build-image.outputs.image }}
-
-      # ========================================
-      # Step 7: Deploy updated task definition to ECS
-      # ========================================
-      # Deploys the new task definition to ECS
-      # ECS will automatically do a rolling deployment:
-      # 1. Start new container with new image
-      # 2. Wait for health checks to pass
-      # 3. Stop old container
-      # This ensures zero downtime!
-      - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ env.ECS_SERVICE }}
-          cluster: ${{ env.ECS_CLUSTER }}
-          wait-for-service-stability: true
+          echo "Waiting for the rolling deployment to stabilize..."
+          aws ecs wait services-stable \
+            --cluster "$ECS_CLUSTER" \
+            --services "$ECS_SERVICE"
+          echo "Deployment stable."
 
       # ========================================
       # Step 8: Summary

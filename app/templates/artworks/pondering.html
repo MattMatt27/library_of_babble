@@ -5,6 +5,9 @@
 {% set active_page = 'pondering' %}
 
 {% block extra_styles %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
 <link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/pondering.css') }}">
 {% endblock %}
@@ -21,58 +24,60 @@
     {% endif %}
     <div class="pondering-controls">
         <div class="controls-row">
-            <div class="control-item">
-                <label for="sort-filter">Sort:</label>
-                <select id="sort-filter" class="sort-select">
-                    <option value="">Sort By</option>
-                </select>
-                <div class="custom-dropdown" id="sort-filter-dropdown">
-                    <label class="dropdown-option">
-                        <input type="radio" name="sort" value="random" {% if request.args.get('sort_order') == 'random' %}checked{% endif %}>
-                        <span>Random</span>
-                    </label>
-                    <label class="dropdown-option">
-                        <input type="radio" name="sort" value="date_added_desc" {% if request.args.get('sort_order') == 'date_added_desc' %}checked{% endif %}>
-                        <span>Date Added (Newest)</span>
-                    </label>
-                    <label class="dropdown-option">
-                        <input type="radio" name="sort" value="date_added_asc" {% if request.args.get('sort_order') == 'date_added_asc' %}checked{% endif %}>
-                        <span>Date Added (Oldest)</span>
-                    </label>
-                    <label class="dropdown-option">
-                        <input type="radio" name="sort" value="asc" {% if request.args.get('sort_order') == 'asc' %}checked{% endif %}>
-                        <span>Year (Ascending)</span>
-                    </label>
-                    <label class="dropdown-option">
-                        <input type="radio" name="sort" value="desc" {% if request.args.get('sort_order') == 'desc' %}checked{% endif %}>
-                        <span>Year (Descending)</span>
-                    </label>
+            {% set sort_labels = {
+                'random': 'Random',
+                'date_added_desc': 'Date Added (Newest)',
+                'date_added_asc': 'Date Added (Oldest)',
+                'asc': 'Year (Ascending)',
+                'desc': 'Year (Descending)',
+            } %}
+            {% set current_sort = request.args.get('sort_order', 'random') %}
+            <div class="control-item filter-group-sort">
+                <label for="sort-trigger">Sort:</label>
+                <div class="sort-control">
+                    <button type="button" id="sort-trigger" class="sort-trigger" aria-haspopup="listbox" aria-expanded="false">
+                        <span class="sort-trigger-label">{{ sort_labels.get(current_sort, 'Random') }}</span>
+                        <span class="sort-trigger-chevron" aria-hidden="true">&#9662;</span>
+                    </button>
+                    <div id="sort-options" class="sort-options" role="listbox">
+                        {% for value, label in sort_labels.items() %}
+                        <button type="button" class="sort-option {% if current_sort == value %}is-selected{% endif %}" data-sort="{{ value }}" role="option">
+                            {{ label }}
+                        </button>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
+
             <div class="control-item">
                 <label for="artist-search">Artists:</label>
-                <input type="text" id="artist-search" placeholder="Start typing an artist name..." class="artist-search-input">
+                <input type="text" id="artist-search" placeholder="Search artists…" autocomplete="off" class="artist-search-input">
             </div>
+
             <div class="control-item">
-                <label for="collection-filter">Collections:</label>
-                <select id="collection-filter" class="collection-select">
-                    <option value="">Select Collections</option>
-                </select>
-                <div class="custom-dropdown multiselect-dropdown" id="collection-filter-dropdown">
-                    {% if current_user.role != 'viewer' %}
-                    <label class="dropdown-option multiselect-option">
-                        <input type="checkbox" value="my_likes" {% if 'my_likes' in selected_collections %}checked{% endif %}>
-                        <span>My Likes</span>
-                    </label>
-                    {% endif %}
-                    {% for gallery in all_galleries %}
-                    <label class="dropdown-option multiselect-option">
-                        <input type="checkbox" value="{{ gallery.id }}" {% if gallery.id in selected_collections %}checked{% endif %}>
-                        <span>{{ gallery.name }}</span>
-                    </label>
-                    {% endfor %}
+                <label for="collection-trigger">Collections:</label>
+                <div class="collection-control">
+                    <button type="button" id="collection-trigger" class="collection-trigger" aria-haspopup="listbox" aria-expanded="false">
+                        <span class="collection-trigger-label">{% if selected_collections %}{{ selected_collections|length }} selected{% else %}Select Collections{% endif %}</span>
+                        <span class="sort-trigger-chevron" aria-hidden="true">&#9662;</span>
+                    </button>
+                    <div id="collection-options" class="collection-options" role="listbox">
+                        {% if current_user.role != 'viewer' %}
+                        <label class="collection-option">
+                            <input type="checkbox" value="my_likes" {% if 'my_likes' in selected_collections %}checked{% endif %}>
+                            <span>My Likes</span>
+                        </label>
+                        {% endif %}
+                        {% for gallery in all_galleries %}
+                        <label class="collection-option">
+                            <input type="checkbox" value="{{ gallery.id }}" {% if gallery.id in selected_collections %}checked{% endif %}>
+                            <span>{{ gallery.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
+
             <a href="/artworks/galleries" class="view-collections-btn">View Collections</a>
         </div>
         {% if selected_artists or selected_collections %}
@@ -105,24 +110,26 @@
     <div class="artwork-grid">
         {% for artwork in approved_artworks %}
         <div class="artwork-item">
-            <div class="artwork-image-container">
-                <img src="{{ static_url('images/artists/' + artwork.filesystem_artist + '/' + artwork.file_name) }}"
-                     alt="{{ artwork.title }}"
-                     data-img-id="{{ artwork.id }}"
-                     data-full-img="{{ static_url('images/artists/' + artwork.filesystem_artist + '/' + artwork.file_name) }}"
-                     data-title="{{ artwork.title }}"
-                     data-artist="{{ artwork.artist }}"
-                     data-year="{{ artwork.year }}"
-                     data-location="{{ artwork.location }}"
-                     data-medium="{{ artwork.medium }}"
-                     data-description="{{ artwork.description }}">
+            <div class="artwork-frame">
+                <div class="artwork-mat">
+                    <img src="{{ static_url('images/artists/' + artwork.filesystem_artist + '/' + artwork.file_name) }}"
+                         alt="{{ artwork.title }}"
+                         data-img-id="{{ artwork.id }}"
+                         data-full-img="{{ static_url('images/artists/' + artwork.filesystem_artist + '/' + artwork.file_name) }}"
+                         data-title="{{ artwork.title }}"
+                         data-artist="{{ artwork.artist }}"
+                         data-year="{{ artwork.year }}"
+                         data-location="{{ artwork.location }}"
+                         data-medium="{{ artwork.medium }}"
+                         data-description="{{ artwork.description }}">
+                </div>
             </div>
-            <div class="artwork-details">
-                <h3 class="artwork-title">{{ artwork.title }}</h3>
-                <a href="#" class="filter-artist artwork-artist" data-artist="{{ artwork.artist }}">{{ artwork.artist }}</a>
-                <p class="artwork-meta">{{ artwork.year }}</p>
-                <p class="artwork-meta">🎨 {{ artwork.medium if artwork.medium else "Unknown" }}</p>
-                <p class="artwork-meta">📍 {{ artwork.location }}</p>
+            <div class="artwork-placard">
+                <a href="#" class="filter-artist placard-artist" data-artist="{{ artwork.artist }}">{{ artwork.artist }}</a>
+                <div class="placard-title">{{ artwork.title }}</div>
+                <div class="placard-meta">
+                    {{ artwork.year }}{% if artwork.medium %} &middot; {{ artwork.medium }}{% endif %}{% if artwork.location %} &middot; {{ artwork.location }}{% endif %}
+                </div>
             </div>
         </div>
         {% endfor %}
@@ -135,9 +142,9 @@
         <button id="next-page" {% if current_page == total_pages %}disabled{% endif %}>Next &gt;</button>
     </div>
 
-    <div class="alert alert-info" style="margin-top: var(--space-6);">
-        <small>All artwork is displayed for personal reflection and educational appreciation. No copyright ownership is claimed. All rights belong to the original artists and rights holders.</small>
-    </div>
+    <p class="pondering-disclaimer">
+        All artwork is displayed for personal reflection and educational appreciation. No copyright ownership is claimed. All rights belong to the original artists and rights holders.
+    </p>
 </div>
 
 <div id="image-viewer" class="image-viewer">
@@ -257,67 +264,72 @@
             }
         });
 
-        // Custom dropdown handling
-        const sortSelect = $('#sort-filter');
-        const sortDropdown = $('#sort-filter-dropdown');
-        const collectionSelect = $('#collection-filter');
-        const collectionDropdown = $('#collection-filter-dropdown');
+        // Sort: button trigger + popover listbox (matches Passages pattern)
+        const sortTrigger = document.getElementById('sort-trigger');
+        const sortOptions = document.getElementById('sort-options');
+        const collectionTrigger = document.getElementById('collection-trigger');
+        const collectionOptions = document.getElementById('collection-options');
 
-        // Function to update sort select display text
-        function updateSortDisplay() {
-            const checkedRadio = sortDropdown.find('input[type="radio"]:checked');
-            if (checkedRadio.length > 0) {
-                const selectedText = checkedRadio.next('span').text();
-                sortSelect.find('option').text(selectedText);
-            }
+        function closeSort() {
+            sortOptions?.classList.remove('is-open');
+            sortTrigger?.setAttribute('aria-expanded', 'false');
+        }
+        function openSort() {
+            closeCollections();
+            sortOptions?.classList.add('is-open');
+            sortTrigger?.setAttribute('aria-expanded', 'true');
+        }
+        function closeCollections() {
+            collectionOptions?.classList.remove('is-open');
+            collectionTrigger?.setAttribute('aria-expanded', 'false');
+        }
+        function openCollections() {
+            closeSort();
+            collectionOptions?.classList.add('is-open');
+            collectionTrigger?.setAttribute('aria-expanded', 'true');
         }
 
-        // Initialize sort display on page load
-        updateSortDisplay();
-
-        // Toggle sort dropdown on select click
-        sortSelect.on('mousedown', function(e) {
-            e.preventDefault();
+        sortTrigger?.addEventListener('click', e => {
             e.stopPropagation();
-            collectionDropdown.hide(); // Close other dropdown
-            sortDropdown.toggle();
+            sortOptions.classList.contains('is-open') ? closeSort() : openSort();
         });
-
-        // Toggle collection dropdown on select click
-        collectionSelect.on('mousedown', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            sortDropdown.hide(); // Close other dropdown
-            collectionDropdown.toggle();
-        });
-
-        // Prevent clicks inside collection dropdown from closing it (multiselect behavior)
-        collectionDropdown.on('click', function(e) {
-            e.stopPropagation();
-        });
-
-        // Close dropdowns when clicking outside
-        $(document).on('click', function(e) {
-            if (!$(e.target).closest('.control-item').length) {
-                sortDropdown.hide();
-                collectionDropdown.hide();
-            }
-        });
-
-        // Handle sort radio button changes (close dropdown after selection)
-        sortDropdown.on('change', 'input[type="radio"]', function() {
-            updateSortDisplay();
-            sortDropdown.hide();
-            updatePageWithFilters();
-        });
-
-        // Handle collection checkbox changes (keep dropdown open)
-        collectionDropdown.on('change', 'input[type="checkbox"]', function() {
-            selectedCollections.clear();
-            collectionDropdown.find('input[type="checkbox"]:checked').each(function() {
-                selectedCollections.add($(this).val());
+        sortOptions?.querySelectorAll('.sort-option').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('input[name="sort"]').forEach(r => r.remove());
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = 'sort';
+                hidden.value = btn.dataset.sort;
+                hidden.setAttribute('checked', 'checked');
+                document.body.appendChild(hidden);
+                updatePageWithFilters();
             });
-            updatePageWithFilters();
+        });
+
+        collectionTrigger?.addEventListener('click', e => {
+            e.stopPropagation();
+            collectionOptions.classList.contains('is-open') ? closeCollections() : openCollections();
+        });
+        collectionOptions?.addEventListener('click', e => e.stopPropagation());
+        collectionOptions?.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', () => {
+                selectedCollections.clear();
+                collectionOptions.querySelectorAll('input[type="checkbox"]:checked').forEach(checked => {
+                    selectedCollections.add(checked.value);
+                });
+                updatePageWithFilters();
+            });
+        });
+
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.sort-control')) closeSort();
+            if (!e.target.closest('.collection-control')) closeCollections();
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                closeSort();
+                closeCollections();
+            }
         });
 
         // Function to update filter tags UI
@@ -341,8 +353,8 @@
                 if (collection === 'my_likes') {
                     collectionName = 'My Likes';
                 } else {
-                    // Find the collection name from the dropdown
-                    const checkbox = $(`#collection-filter-dropdown input[value="${collection}"]`);
+                    // Find the collection name from the new collection-options popover
+                    const checkbox = $(`#collection-options input[value="${collection}"]`);
                     if (checkbox.length > 0) {
                         collectionName = checkbox.next('span').text();
                     }
@@ -368,7 +380,7 @@
             const collection = $(this).data('collection');
             selectedCollections.delete(collection);
             // Also update the checkbox
-            $(`#collection-filter-dropdown input[value="${collection}"]`).prop('checked', false);
+            $(`#collection-options input[value="${collection}"]`).prop('checked', false);
             updatePageWithFilters();
         });
 
@@ -376,7 +388,11 @@
         function updatePageWithFilters() {
             const params = new URLSearchParams();
             params.set('page', 1);
-            const sortValue = $('input[name="sort"]:checked').val();
+            // Sort comes from the trigger label (mapped back to value via the
+            // sort options' data-sort), or falls back to the existing query.
+            const checkedHidden = document.querySelector('input[name="sort"]');
+            const sortValue = checkedHidden?.value
+                || (new URLSearchParams(window.location.search)).get('sort_order');
             if (sortValue) {
                 params.set('sort_order', sortValue);
             }

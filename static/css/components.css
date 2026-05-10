@@ -110,13 +110,16 @@
    NAVIGATION BAR
    ============================================ */
 
+/* Navbar — warm walnut/cream palette matching the redesigned pages.
+   Deep warm-black background, muted cream links, warm-red active
+   underline, no heavy block backgrounds. */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: var(--space-4) var(--space-6);
-  background-color: var(--bg-navbar);
-  border-bottom: 1px solid var(--border-primary);
+  background-color: #0d0a08;
+  border-bottom: 1px solid rgba(236, 230, 216, 0.08);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -127,41 +130,44 @@
 .desktop-nav {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 
 .navbar a {
   display: inline-block;
-  color: var(--text-secondary);
+  color: rgba(236, 230, 216, 0.62);
   text-align: center;
   padding: var(--space-3) var(--space-4);
   text-decoration: none;
-  font-size: var(--font-base);
-  font-weight: var(--font-medium);
-  transition: color var(--transition-fast);
+  font-size: var(--font-sm);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: color var(--transition-fast), background-color var(--transition-fast);
   position: relative;
-  border-radius: var(--radius-base);
+  border-radius: 0;
 }
 
 .navbar a:hover {
-  color: var(--text-primary);
+  color: #f5f0e0;
   text-decoration: none;
-  background-color: var(--bg-tertiary);
+  background-color: transparent;
 }
 
 .navbar a.active {
-  color: var(--accent-blue);
-  background-color: var(--bg-tertiary);
+  color: #f5f0e0;
+  background-color: transparent;
 }
 
+/* Active underline — warm-red, thin, set inside the link's padding so
+   it reads as an understated accent rather than a hard background. */
 .navbar a.active::after {
   content: '';
   position: absolute;
-  bottom: 0;
+  bottom: 8px;
   left: var(--space-4);
   right: var(--space-4);
-  height: 2px;
-  background-color: var(--accent-blue);
+  height: 1px;
+  background-color: #8b3a1a;
 }
 
 .navbar-right {
@@ -170,105 +176,99 @@
   gap: var(--space-3);
 }
 
-/* Account Button */
+/* Account Button — paper-edge ghost button with cream icon */
 .account-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background-color: var(--bg-tertiary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-base);
+  width: 36px;
+  height: 36px;
+  background-color: transparent;
+  border: 1px solid rgba(236, 230, 216, 0.2);
+  border-radius: 2px;
   text-decoration: none;
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .account-button i {
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1;
-  color: #58a6ff !important;
+  color: rgba(236, 230, 216, 0.7) !important;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .account-button:hover {
-  background-color: var(--bg-primary);
-  border-color: #58a6ff;
-  transform: scale(1.05);
+  background-color: rgba(236, 230, 216, 0.06);
+  border-color: rgba(236, 230, 216, 0.45);
   text-decoration: none;
 }
 
 .account-button:hover i {
-  color: #79c0ff !important;
+  color: #f5f0e0 !important;
 }
 
-/* Side Menu Profile */
+/* Side Menu Profile — warm paper-edge ghost button */
 .side-menu .side-menu-account {
   display: flex !important;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-5);
+  padding: var(--space-3) var(--space-4);
   text-decoration: none;
   font-size: var(--font-sm);
-  font-weight: var(--font-medium);
-  color: var(--text-secondary);
-  background-color: var(--bg-tertiary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-base);
-  margin-bottom: var(--space-3);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: rgba(236, 230, 216, 0.75);
+  background-color: transparent;
+  border: 1px solid rgba(236, 230, 216, 0.2);
+  border-radius: 2px;
+  margin-bottom: var(--space-2);
   transition: all var(--transition-fast);
   width: 100%;
   text-align: center;
 }
 
 .side-menu .side-menu-account:hover {
-  background-color: var(--bg-tertiary);
-  color: var(--accent-blue);
-  border-color: var(--accent-blue);
-  transform: translateY(-1px);
+  background-color: rgba(236, 230, 216, 0.06);
+  color: #f5f0e0;
+  border-color: rgba(236, 230, 216, 0.45);
 }
 
 .side-menu .side-menu-account i {
   font-size: var(--font-sm);
   width: auto;
-  color: var(--text-secondary);
-  transition: color var(--transition-fast);
+  color: inherit;
 }
 
-.side-menu .side-menu-account:hover i {
-  color: var(--accent-blue);
-}
-
-/* Login/Logout Button */
+/* Login/Logout Button — warm walnut pill, matches the primary action
+   color used across the redesigned pages (#8b3a1a). */
 .login-button {
-  background-color: var(--accent-blue);
-  color: #ffffff !important;
-  border: none;
+  background-color: transparent;
+  color: rgba(236, 230, 216, 0.85) !important;
+  border: 1px solid rgba(236, 230, 216, 0.25);
   text-align: center;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: var(--font-sm);
-  font-weight: var(--font-medium);
+  font-weight: 500;
+  letter-spacing: 0.04em;
   padding: var(--space-2) var(--space-4);
   cursor: pointer;
-  border-radius: var(--radius-base);
+  border-radius: 2px;
   transition: all var(--transition-fast);
-  box-shadow: var(--shadow-sm);
   line-height: 1;
 }
 
 .login-button:hover {
-  background-color: var(--accent-blue-hover);
-  color: #ffffff !important;
-  box-shadow: var(--shadow-md);
+  background-color: #8b3a1a;
+  border-color: #8b3a1a;
+  color: #f4ead4 !important;
   text-decoration: none;
-  transform: translateY(-1px);
 }
 
 /* Mobile Menu Icon */
@@ -276,10 +276,10 @@
   display: none;
   font-size: 24px;
   cursor: pointer;
-  color: var(--text-primary);
+  color: rgba(236, 230, 216, 0.85);
   padding: 6px var(--space-3) 10px var(--space-3);
-  border-radius: var(--radius-base);
-  transition: background-color var(--transition-fast);
+  border-radius: 2px;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
   line-height: 1;
   align-items: center;
   justify-content: center;
@@ -288,10 +288,10 @@
 }
 
 .menu-icon:hover {
-  background-color: var(--bg-tertiary);
+  background-color: rgba(236, 230, 216, 0.08);
 }
 
-/* Side Menu (Mobile) */
+/* Side Menu (Mobile) — same warm walnut palette as the navbar */
 .side-menu {
   height: 100%;
   width: 0;
@@ -299,13 +299,13 @@
   z-index: 1000;
   top: 0;
   left: 0;
-  background-color: var(--bg-secondary);
+  background-color: #0d0a08;
   overflow-x: hidden;
   overflow-y: auto;
   transition: width var(--transition-slow);
   padding-top: var(--space-4);
-  border-right: 1px solid var(--border-primary);
-  box-shadow: var(--shadow-lg);
+  border-right: 1px solid rgba(236, 230, 216, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
 }
@@ -320,29 +320,30 @@
   padding: var(--space-3) var(--space-5);
   text-decoration: none;
   font-size: var(--font-sm);
-  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  color: rgba(236, 230, 216, 0.62);
   display: block;
   transition: all var(--transition-fast);
-  border-left: 3px solid transparent;
+  border-left: 2px solid transparent;
   white-space: nowrap;
 }
 
 .side-menu a:hover {
-  color: var(--text-primary);
-  background-color: var(--bg-tertiary);
-  border-left-color: var(--accent-blue);
+  color: #f5f0e0;
+  background-color: rgba(236, 230, 216, 0.04);
+  border-left-color: rgba(236, 230, 216, 0.3);
 }
 
 .side-menu a.active {
-  color: var(--accent-blue);
-  background-color: var(--bg-tertiary);
-  border-left-color: var(--accent-blue);
+  color: #f5f0e0;
+  background-color: transparent;
+  border-left-color: #8b3a1a;
 }
 
 .side-menu-login {
   padding: var(--space-4);
   margin-top: auto;
-  border-top: 1px solid var(--border-primary);
+  border-top: 1px solid rgba(236, 230, 216, 0.08);
   flex-shrink: 0;
 }
 

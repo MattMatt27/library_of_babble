@@ -1589,6 +1589,72 @@ def reorder_collections():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@account_bp.route('/account/collections/<int:collection_id>/items', methods=['GET'])
+@admin_required
+def get_collection_items(collection_id):
+    """Return the playlists in a collection, in admin-set order."""
+    from app.common.models import Collection, CollectionItem
+    from app.music.models import Playlists
+
+    collection = Collection.query.get(collection_id)
+    if not collection:
+        return jsonify({'success': False, 'error': 'Collection not found'}), 404
+
+    items = CollectionItem.query.filter_by(
+        collection_id=collection_id,
+        item_type='Playlist'
+    ).order_by(CollectionItem.item_order, CollectionItem.id).all()
+
+    playlists = []
+    for item in items:
+        playlist = Playlists.query.get(item.item_id)
+        if playlist:
+            playlists.append({
+                'id': playlist.id,
+                'name': playlist.name,
+                'album_art': playlist.album_art,
+                'playlist_owner': playlist.playlist_owner,
+            })
+
+    return jsonify({'success': True, 'playlists': playlists})
+
+
+@account_bp.route('/account/collections/<int:collection_id>/items/reorder', methods=['POST'])
+@admin_required
+def reorder_collection_items(collection_id):
+    """Rewrite item_order for playlists in a collection.
+
+    Body: {"order": ["<playlist_id>", "<playlist_id>", ...]}
+    """
+    from app.common.models import Collection, CollectionItem
+
+    collection = Collection.query.get(collection_id)
+    if not collection:
+        return jsonify({'success': False, 'error': 'Collection not found'}), 404
+
+    data = request.get_json() or {}
+    order = data.get('order', [])
+    if not isinstance(order, list) or not order:
+        return jsonify({'success': False, 'error': 'order list is required'}), 400
+
+    try:
+        for index, playlist_id in enumerate(order):
+            item = CollectionItem.query.filter_by(
+                collection_id=collection_id,
+                item_type='Playlist',
+                item_id=playlist_id
+            ).first()
+            if item:
+                item.item_order = index
+
+        db.session.commit()
+        return jsonify({'success': True})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @account_bp.route('/account/page-permissions', methods=['GET'])
 @admin_required
 def get_page_permissions():

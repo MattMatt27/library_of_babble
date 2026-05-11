@@ -151,11 +151,13 @@ def get_approved_playlist_collections():
 
     result = {}
     for collection in collections:
-        # Get playlist items in this collection
+        # Get playlist items in this collection, honoring admin-set order.
+        # Secondary sort by id keeps things stable for legacy rows where
+        # item_order is NULL (Postgres puts NULLs last by default).
         playlist_items = CollectionItem.query.filter_by(
             collection_id=collection.id,
             item_type='Playlist'
-        ).all()
+        ).order_by(CollectionItem.item_order, CollectionItem.id).all()
 
         if not playlist_items:
             continue  # Skip collections with no playlists

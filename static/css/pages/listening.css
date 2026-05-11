@@ -241,6 +241,12 @@ body {
   margin: 0;
 }
 
+/* Open-in-Spotify CTA. Hidden on desktop where the iframe handles
+   playback; surfaced on mobile when a playlist has been selected. */
+.open-in-spotify-link {
+  display: none;
+}
+
 /* Empty state: hide the album cover entirely so the stand alone reads
    as an empty record-display stand. */
 .now-playing:not(.is-active) .album-cover {
@@ -456,5 +462,32 @@ body {
   .year-label {
     width: 50px;
     font-size: var(--font-base);
+  }
+
+  /* On mobile the iframe is hidden — surface a direct link to Spotify
+     so the user can actually play the selected playlist. Only visible
+     after a playlist has been picked. */
+  .now-playing.is-active .open-in-spotify-link {
+    display: inline-flex;
+    align-items: center;
+    margin-top: var(--space-4);
+    padding: var(--space-2) var(--space-4);
+    font-family: var(--font-primary);
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    color: var(--paper-text);
+    background: rgba(58, 44, 26, 0.06);
+    border: 1px solid var(--paper-edge);
+    border-radius: 4px;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+  }
+  .now-playing.is-active .open-in-spotify-link:hover,
+  .now-playing.is-active .open-in-spotify-link:focus-visible {
+    background: var(--accent-warm);
+    color: var(--paper);
+    border-color: var(--accent-warm);
+    outline: none;
   }
 }

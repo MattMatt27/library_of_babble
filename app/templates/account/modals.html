@@ -1120,12 +1120,73 @@ document.addEventListener('DOMContentLoaded', function() {
     display: flex;
     align-items: center;
     gap: var(--space-3);
+    flex-wrap: wrap;  /* lets the expansion panel break to a new line */
     padding: var(--space-3);
     border: 1px solid var(--border-primary);
     border-radius: var(--radius-base);
     margin-bottom: var(--space-2);
     background: var(--bg-tertiary);
     cursor: grab;
+}
+
+.btn-expand {
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    font-size: var(--font-base);
+    padding: 0 var(--space-1);
+    line-height: 1;
+    transition: color var(--transition-fast);
+}
+.btn-expand:hover,
+.btn-expand.expanded {
+    color: var(--accent-blue);
+}
+
+.collection-items-panel {
+    flex-basis: 100%;
+    padding: var(--space-3) var(--space-2) 0 var(--space-7);
+    margin-top: var(--space-2);
+    border-top: 1px dashed var(--border-primary);
+}
+
+.crate-playlist-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-2);
+    background: var(--bg-secondary);
+    cursor: grab;
+}
+.crate-playlist-row:active {
+    cursor: grabbing;
+}
+.crate-playlist-row.dragging {
+    opacity: 0.5;
+    border-style: dashed;
+}
+.crate-playlist-thumb {
+    width: 32px;
+    height: 32px;
+    border-radius: 2px;
+    object-fit: cover;
+    background: var(--bg-primary);
+}
+.crate-playlist-name {
+    flex: 1;
+    font-size: var(--font-sm);
+    color: var(--text-primary);
+    min-width: 0;
+}
+.crate-empty-note {
+    color: var(--text-tertiary);
+    font-size: var(--font-sm);
+    padding: var(--space-2) 0;
+    margin: 0;
 }
 
 .collection-item:active {
@@ -1439,6 +1500,7 @@ function renderCollections(collections) {
     listEl.innerHTML = collections.map(collection => `
         <div class="collection-item" data-id="${collection.id}" draggable="true">
             <span class="drag-handle">≡</span>
+            <button class="btn-expand" onclick="toggleCollectionItems(${collection.id}, this)" title="Show playlists in this crate" draggable="false">▸</button>
             <div class="collection-info">
                 <div class="collection-name">${escapeHtml(collection.name)}</div>
                 ${collection.description ? `<div class="collection-desc">${escapeHtml(collection.description)}</div>` : ''}
@@ -1451,6 +1513,7 @@ function renderCollections(collections) {
                      title="Toggle visibility"></div>
                 <button class="btn-icon-sm btn-delete" onclick="deleteCollection(${collection.id})" title="Delete">×</button>
             </div>
+            <div class="collection-items-panel" id="collectionItemsPanel-${collection.id}" style="display: none;"></div>
         </div>
     `).join('');
 
@@ -1464,30 +1527,33 @@ function initCollectionDragDrop() {
 
     listEl.querySelectorAll('.collection-item').forEach(item => {
         item.addEventListener('dragstart', (e) => {
+            // Don't fire when the drag was started on a nested draggable
+            // (e.g. a playlist row inside an expanded crate's items panel).
+            if (e.target.closest('.crate-playlist-row')) return;
             draggedItem = item;
             item.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
         });
 
         item.addEventListener('dragend', () => {
+            if (!draggedItem) return;
             item.classList.remove('dragging');
             draggedItem = null;
             saveCollectionOrder();
         });
 
         item.addEventListener('dragover', (e) => {
+            if (!draggedItem || draggedItem === item) return;
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
 
-            if (draggedItem && draggedItem !== item) {
-                const rect = item.getBoundingClientRect();
-                const midY = rect.top + rect.height / 2;
+            const rect = item.getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
 
-                if (e.clientY < midY) {
-                    item.parentNode.insertBefore(draggedItem, item);
-                } else {
-                    item.parentNode.insertBefore(draggedItem, item.nextSibling);
-                }
+            if (e.clientY < midY) {
+                item.parentNode.insertBefore(draggedItem, item);
+            } else {
+                item.parentNode.insertBefore(draggedItem, item.nextSibling);
             }
         });
     });
@@ -1512,6 +1578,112 @@ async function saveCollectionOrder() {
             throw new Error(data.error || 'Failed to save order');
         }
 
+    } catch (error) {
+        showPlaylistStatus('Error saving order: ' + error.message, 'error');
+    }
+}
+
+// =============================================================================
+// Reorder playlists within a crate
+// =============================================================================
+
+async function toggleCollectionItems(collectionId, btnEl) {
+    const panel = document.getElementById(`collectionItemsPanel-${collectionId}`);
+    if (!panel) return;
+    const isOpen = panel.style.display !== 'none';
+
+    if (isOpen) {
+        panel.style.display = 'none';
+        btnEl.classList.remove('expanded');
+        btnEl.textContent = '▸';
+        return;
+    }
+
+    btnEl.classList.add('expanded');
+    btnEl.textContent = '▾';
+    panel.style.display = 'block';
+
+    // Only fetch on first open; subsequent toggles reuse cached DOM.
+    if (panel.dataset.loaded === 'true') return;
+    panel.innerHTML = '<p class="crate-empty-note">Loading…</p>';
+
+    try {
+        const response = await fetch(`/account/collections/${collectionId}/items`);
+        const data = await response.json();
+        if (!data.success) throw new Error(data.error || 'Failed to load items');
+        renderCrateItems(panel, collectionId, data.playlists);
+        panel.dataset.loaded = 'true';
+    } catch (error) {
+        panel.innerHTML = `<p class="crate-empty-note">Error: ${escapeHtml(error.message)}</p>`;
+    }
+}
+
+function renderCrateItems(panel, collectionId, playlists) {
+    if (!playlists.length) {
+        panel.innerHTML = '<p class="crate-empty-note">No playlists in this crate yet. Assign one via the Playlists tab.</p>';
+        return;
+    }
+
+    panel.innerHTML = playlists.map(p => `
+        <div class="crate-playlist-row" data-id="${p.id}" draggable="true">
+            <span class="drag-handle">≡</span>
+            <img src="${p.album_art || 'https://via.placeholder.com/32'}" alt="" class="crate-playlist-thumb">
+            <div class="crate-playlist-name">${escapeHtml(p.name)}</div>
+        </div>
+    `).join('');
+
+    initCrateItemsDragDrop(panel, collectionId);
+}
+
+function initCrateItemsDragDrop(panel, collectionId) {
+    let dragged = null;
+
+    panel.querySelectorAll('.crate-playlist-row').forEach(row => {
+        row.addEventListener('dragstart', (e) => {
+            e.stopPropagation();  // don't bubble to the parent .collection-item
+            dragged = row;
+            row.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+
+        row.addEventListener('dragend', (e) => {
+            e.stopPropagation();
+            if (!dragged) return;
+            row.classList.remove('dragging');
+            dragged = null;
+            saveCrateItemsOrder(collectionId, panel);
+        });
+
+        row.addEventListener('dragover', (e) => {
+            if (!dragged || dragged === row) return;
+            e.preventDefault();
+            e.stopPropagation();
+            e.dataTransfer.dropEffect = 'move';
+
+            const rect = row.getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            if (e.clientY < midY) {
+                row.parentNode.insertBefore(dragged, row);
+            } else {
+                row.parentNode.insertBefore(dragged, row.nextSibling);
+            }
+        });
+    });
+}
+
+async function saveCrateItemsOrder(collectionId, panel) {
+    const order = Array.from(panel.querySelectorAll('.crate-playlist-row')).map(r => r.dataset.id);
+    try {
+        const response = await fetch(`/account/collections/${collectionId}/items/reorder`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ order })
+        });
+        const data = await response.json();
+        if (!data.success) throw new Error(data.error || 'Failed to save order');
     } catch (error) {
         showPlaylistStatus('Error saving order: ' + error.message, 'error');
     }

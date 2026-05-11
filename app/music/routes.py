@@ -4,8 +4,8 @@ Music/Playlists Routes
 import re
 from collections import OrderedDict
 from flask import render_template
-from flask_login import login_required
 from app.music import music_bp
+from app.utils.security import page_visible
 from app.music.services import (
     generate_monthly_playlists,
     get_site_approved_playlists,
@@ -47,7 +47,7 @@ def _organize_monthly_by_year(monthly_playlists):
 
 
 @music_bp.route('/')
-@login_required
+@page_visible('listening')
 def index():
     """Listening page — playlists organized into record crates."""
     monthly_playlists = generate_monthly_playlists()

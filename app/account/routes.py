@@ -1278,6 +1278,106 @@ def update_playlist_collection(playlist_id):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@account_bp.route('/account/playlists/add-manual', methods=['POST'])
+@admin_required
+def add_manual_playlist():
+    """Add a Spotify playlist to the database by ID.
+
+    Used for playlists that current_user_playlists won't return — typically
+    Spotify-owned editorial playlists (Wrapped, etc.) post the Nov 2024
+    Web API deprecations.
+
+    The ETL is purely upsert/insert and never deletes, so a single insert
+    here persists across all future refreshes. To refresh metadata later
+    (e.g. if Spotify updates the cover art), submit the same ID again — the
+    upsert overwrites fields except site_approved.
+    """
+    import re
+    from app.music.models import Playlists
+    from app.music.services import spotify as spotify_client
+
+    data = request.get_json() or {}
+    raw_input = (data.get('playlist_id') or '').strip()
+    if not raw_input:
+        return jsonify({'success': False, 'error': 'playlist_id is required'}), 400
+
+    # Accept bare ID, spotify:playlist:ID URI, or open.spotify.com URL.
+    # Spotify IDs are 22-char URL-safe base62.
+    match = re.search(r'([A-Za-z0-9]{22})', raw_input)
+    if not match:
+        return jsonify({
+            'success': False,
+            'error': 'Could not find a Spotify playlist ID in the input'
+        }), 400
+    pid = match.group(1)
+
+    try:
+        item = spotify_client.playlist(pid)
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Spotify API error: {str(e)}'
+        }), 400
+
+    try:
+        playlist_id = item['id']
+        name = item['name']
+        description = item.get('description', '') or ''
+        images = item.get('images') or []
+        album_art = images[0]['url'] if images else None
+        track_count = item.get('tracks', {}).get('total', 0)
+        is_collab = item.get('collaborative', False)
+        is_public = item.get('public', False)
+        playlist_owner = (item.get('owner') or {}).get('display_name', '')
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Could not parse Spotify response: {str(e)}'
+        }), 500
+
+    fields = {
+        'user_id': os.environ.get('SPOTIPY_USERNAME', ''),
+        'playlist_owner': playlist_owner,
+        'name': name,
+        'description': description,
+        'album_art': album_art,
+        'track_count': track_count,
+        'is_collab': is_collab,
+        'is_public': is_public,
+    }
+
+    try:
+        existing = Playlists.query.filter_by(id=playlist_id).first()
+        if existing:
+            for key, value in fields.items():
+                setattr(existing, key, value)  # site_approved is intentionally not in fields
+            db.session.commit()
+            was_new = False
+        else:
+            new_playlist = Playlists(id=playlist_id, **fields)
+            db.session.add(new_playlist)
+            db.session.commit()
+            was_new = True
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': f'Database error: {str(e)}'
+        }), 500
+
+    return jsonify({
+        'success': True,
+        'was_new': was_new,
+        'playlist': {
+            'id': playlist_id,
+            'name': name,
+            'album_art': album_art,
+            'description': description,
+            'playlist_owner': playlist_owner,
+        }
+    })
+
+
 @account_bp.route('/account/collections', methods=['GET'])
 @admin_required
 def get_collections():

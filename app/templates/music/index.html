@@ -89,6 +89,7 @@
             <div class="liner-notes">
                 <p class="playlist-title">Pick a playlist below</p>
                 <p class="playlist-description">Click any record sleeve to start listening.</p>
+                <a class="open-in-spotify-link" href="#" target="_blank" rel="noopener">Open in Spotify ↗</a>
             </div>
         </div>
 
@@ -248,6 +249,8 @@
             if (img) img.src = playlistImageUrl || '';
             if (title) title.textContent = playlistTitle;
             if (desc) desc.textContent = playlistDesc;
+            const spotifyLink = nowPlaying.querySelector('.open-in-spotify-link');
+            if (spotifyLink) spotifyLink.href = `https://open.spotify.com/playlist/${playlistId}`;
             nowPlaying.classList.add('is-active');
         }
 

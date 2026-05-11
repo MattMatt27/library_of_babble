@@ -198,7 +198,7 @@
         // scroll-content width and size the panel to fit it (clamped), so
         // the user sees as much of each crate as possible without horizontal
         // scrolling. The draggable divider still overrides via .style.flex.
-        if (window.innerWidth < 768) return;  // mobile uses column layout
+        if (window.innerWidth < 900) return;  // matches the column-layout breakpoint
 
         const browser = document.getElementById('playlist-browser');
         const details = document.getElementById('playlist-details');

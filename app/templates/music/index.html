@@ -251,8 +251,16 @@
             nowPlaying.classList.add('is-active');
         }
 
-        const browser = document.getElementById('playlist-browser');
-        if (browser) browser.scrollTop = 0;
+        // Scroll to top on selection. On desktop the left panel itself
+        // scrolls; on mobile (<900px) layout stacks and the window is the
+        // scroller, so the now-playing card with the freshly-updated cover
+        // and metadata jumps into view.
+        if (window.innerWidth < 900) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            const browser = document.getElementById('playlist-browser');
+            if (browser) browser.scrollTop = 0;
+        }
     }
 
     function initializeResizableDivider() {

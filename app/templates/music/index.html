@@ -189,7 +189,39 @@
         });
 
         initializeResizableDivider();
+        sizeLeftPanelToWidestCrate();
     });
+
+    function sizeLeftPanelToWidestCrate() {
+        // On desktop, the default 60/40 split leaves dead whitespace inside
+        // the left panel on big screens. Measure the widest crate's natural
+        // scroll-content width and size the panel to fit it (clamped), so
+        // the user sees as much of each crate as possible without horizontal
+        // scrolling. The draggable divider still overrides via .style.flex.
+        if (window.innerWidth < 768) return;  // mobile uses column layout
+
+        const browser = document.getElementById('playlist-browser');
+        const details = document.getElementById('playlist-details');
+        const container = document.querySelector('.listening-container');
+        if (!browser || !details || !container) return;
+
+        let widest = 0;
+        document.querySelectorAll('.playlist-crate').forEach(c => {
+            widest = Math.max(widest, c.scrollWidth);
+        });
+        if (!widest) return;
+
+        const padding = 56;  // panel horizontal padding (var(--space-5) + var(--space-6))
+        const containerWidth = container.getBoundingClientRect().width;
+        const target = Math.min(
+            Math.max(widest + padding, 480),
+            containerWidth * 0.75
+        );
+        const percent = (target / containerWidth) * 100;
+
+        browser.style.flex = `0 0 ${percent}%`;
+        details.style.flex = `0 0 ${100 - percent}%`;
+    }
 
     function updatePlaylistDisplay(playlistId, playlistTitle, playlistDesc, playlistImageUrl) {
         const iframeSrc = `https://open.spotify.com/embed/playlist/${playlistId}`;

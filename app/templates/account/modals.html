@@ -933,6 +933,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <!-- Playlists Tab -->
             <div id="playlistsTab" class="tab-content active">
+                <div style="margin-bottom: var(--space-3); display: flex; gap: var(--space-2); align-items: center;">
+                    <input type="text" id="manualPlaylistId" class="form-input"
+                           placeholder="Add by Spotify playlist ID, URL, or URI..."
+                           onkeydown="if (event.key === 'Enter') addManualPlaylist()"
+                           style="flex: 1;">
+                    <button class="btn btn-primary" onclick="addManualPlaylist()">Add</button>
+                </div>
+                <p style="color: var(--text-secondary); font-size: var(--font-sm); margin: 0 0 var(--space-4) 0;">
+                    For playlists Spotify won't return via the standard refresh (Wrapped, editorial picks). Submit the same ID again later to refresh its metadata.
+                </p>
                 <div style="margin-bottom: var(--space-4); display: flex; gap: var(--space-3); align-items: center;">
                     <input type="text" id="playlistSearch" class="form-input" placeholder="Search playlists..." oninput="filterPlaylists()" style="flex: 1;">
                     <label class="filter-toggle">
@@ -1310,6 +1320,38 @@ function renderPlaylists() {
 
 function filterPlaylists() {
     renderPlaylists();
+}
+
+async function addManualPlaylist() {
+    const inputEl = document.getElementById('manualPlaylistId');
+    const value = (inputEl?.value || '').trim();
+    if (!value) {
+        showPlaylistStatus('Enter a playlist ID, URL, or URI first', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/account/playlists/add-manual', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ playlist_id: value })
+        });
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to add playlist');
+        }
+
+        inputEl.value = '';
+        const verb = data.was_new ? 'Added' : 'Refreshed';
+        showPlaylistStatus(`${verb}: ${data.playlist.name}`, 'success');
+        loadPlaylistsData();
+    } catch (error) {
+        showPlaylistStatus('Error: ' + error.message, 'error');
+    }
 }
 
 async function togglePlaylistApproval(playlistId, toggleEl) {

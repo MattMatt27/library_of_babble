@@ -1627,7 +1627,7 @@ function renderCrateItems(panel, collectionId, playlists) {
     panel.innerHTML = playlists.map(p => `
         <div class="crate-playlist-row" data-id="${p.id}" draggable="true">
             <span class="drag-handle">≡</span>
-            <img src="${p.album_art || 'https://via.placeholder.com/32'}" alt="" class="crate-playlist-thumb">
+            <img src="${p.album_art || 'https://via.placeholder.com/32'}" alt="" class="crate-playlist-thumb" draggable="false">
             <div class="crate-playlist-name">${escapeHtml(p.name)}</div>
         </div>
     `).join('');

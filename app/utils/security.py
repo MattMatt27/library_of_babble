@@ -4,7 +4,6 @@ Security utilities for input validation, sanitization, and protection against co
 import re
 import shlex
 import subprocess
-import imghdr
 import json
 from pathlib import Path
 from typing import List, Union, Tuple
@@ -14,6 +13,7 @@ from flask_login import current_user, login_required
 from functools import wraps
 from markupsafe import Markup
 import bleach
+from PIL import Image, UnidentifiedImageError
 
 
 # ==============================================================================
@@ -368,11 +368,20 @@ def validate_image_file(file_stream, filename: str) -> Tuple[bool, str]:
     if file_size == 0:
         return False, "File is empty"
 
-    # Check actual file type by reading header
-    header = file_stream.read(512)
-    file_stream.seek(0)
+    # Check actual file type by decoding it with Pillow rather than sniffing
+    # magic bytes. The old imghdr approach only recognized JPEGs with JFIF/Exif
+    # markers, so color-managed/scanned JPEGs (which lead with an ICC or Adobe
+    # APP marker) were wrongly rejected. Pillow identifies them correctly and is
+    # not deprecated/removed like imghdr (gone in Python 3.13).
+    try:
+        image = Image.open(file_stream)
+        format = (image.format or '').lower()
+        image.verify()  # detect truncated/corrupted data
+    except (UnidentifiedImageError, OSError, ValueError, SyntaxError):
+        return False, "Invalid or corrupted image file"
+    finally:
+        file_stream.seek(0)  # rewind for the caller to read/upload the file
 
-    format = imghdr.what(None, header)
     allowed_formats = ['jpeg', 'png', 'gif', 'webp', 'bmp']
 
     if format not in allowed_formats:

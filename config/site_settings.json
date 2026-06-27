@@ -23,13 +23,13 @@
       "key": "home_background_images",
       "value": [
         "images/home/20190817_065826308_iOS.jpg",
-        "images/home/20190322_012125224_iOS.jpg",
+        { "path": "images/home/20190322_012125224_iOS.jpg", "focal": "25%" },
         "images/home/DSC_0825.jpg",
-        "images/home/IMG_6649.JPG",
+        { "path": "images/home/IMG_6649.JPG", "focal": "45%" },
         "images/home/IMG_4712.JPG"
       ],
       "type": "json",
-      "description": "List of background image paths for home page rotation"
+      "description": "Home page background rotation. Each entry is either a path string (centered crop) or an object {\"path\": ..., \"focal\": ...} where focal is any CSS background-position (e.g. \"left\", \"right\", \"25%\", \"30% 40%\") used to pick the best vertical strip when landscape images are cropped on mobile"
     },
     {
       "key": "home_background_interval",

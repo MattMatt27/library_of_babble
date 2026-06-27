@@ -19,7 +19,8 @@ class SiteSetting(db.Model):
     - site_title: Main site title shown in browser tab
     - site_owner_name: Owner name for display
     - contact_email: Contact email for inquiries
-    - home_background_images: JSON list of background image paths
+    - home_background_images: JSON list of background entries; each is a
+      path string or {"path": ..., "focal": <css background-position>}
     - home_background_interval: Milliseconds between background changes
     """
 

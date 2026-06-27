@@ -143,7 +143,7 @@ data "aws_ssm_parameter" "cloudflared_tunnel_token" {
 # They help avoid repeating the same expressions
 locals {
   # Current AWS account ID - used for building IAM policy ARNs
-  account_id  = data.aws_caller_identity.current.account_id
+  account_id = data.aws_caller_identity.current.account_id
 
   # Prefix for naming all resources (e.g., "library-of-babble-prod")
   # This makes it easy to identify resources in AWS console
@@ -153,14 +153,14 @@ locals {
   # These ARNs are passed to the IAM module to grant ECS permission to decrypt them
   # ECS containers will fetch and decrypt these at runtime using IAM roles
   parameter_arns = {
-    flask_secret_key      = data.aws_ssm_parameter.flask_secret_key.arn
-    db_password           = data.aws_ssm_parameter.db_password.arn
-    database_url          = data.aws_ssm_parameter.database_url.arn
-    spotify_client_id     = data.aws_ssm_parameter.spotify_client_id.arn
-    spotify_client_secret = data.aws_ssm_parameter.spotify_client_secret.arn
-    spotify_username      = data.aws_ssm_parameter.spotify_username.arn
-    spotify_refresh_token = data.aws_ssm_parameter.spotify_refresh_token.arn
-    tmdb_api_token        = data.aws_ssm_parameter.tmdb_api_token.arn
+    flask_secret_key         = data.aws_ssm_parameter.flask_secret_key.arn
+    db_password              = data.aws_ssm_parameter.db_password.arn
+    database_url             = data.aws_ssm_parameter.database_url.arn
+    spotify_client_id        = data.aws_ssm_parameter.spotify_client_id.arn
+    spotify_client_secret    = data.aws_ssm_parameter.spotify_client_secret.arn
+    spotify_username         = data.aws_ssm_parameter.spotify_username.arn
+    spotify_refresh_token    = data.aws_ssm_parameter.spotify_refresh_token.arn
+    tmdb_api_token           = data.aws_ssm_parameter.tmdb_api_token.arn
     static_storage_url       = data.aws_ssm_parameter.static_storage_url.arn
     s3_bucket_name           = data.aws_ssm_parameter.s3_bucket_name.arn
     cloudflared_tunnel_token = data.aws_ssm_parameter.cloudflared_tunnel_token.arn
@@ -178,7 +178,7 @@ module "networking" {
   source = "./modules/networking"
 
   name_prefix        = local.name_prefix
-  vpc_cidr           = "10.0.0.0/16" # IP address range for the VPC
+  vpc_cidr           = "10.0.0.0/16"                                            # IP address range for the VPC
   availability_zones = slice(data.aws_availability_zones.available.names, 0, 2) # Use 2 AZs
 }
 
@@ -213,8 +213,8 @@ module "database" {
   db_username           = var.db_username
   db_password_param_arn = data.aws_ssm_parameter.db_password.arn
   db_name               = replace(var.project_name, "-", "_") # library_of_babble (underscores not hyphens)
-  instance_class        = var.db_instance_class # e.g., db.t3.micro
-  allocated_storage     = var.db_allocated_storage # GB of storage
+  instance_class        = var.db_instance_class               # e.g., db.t3.micro
+  allocated_storage     = var.db_allocated_storage            # GB of storage
 }
 
 # ============================================================================
@@ -240,7 +240,7 @@ module "storage" {
 
   name_prefix = local.name_prefix
   aws_region  = var.aws_region
-  bucket_name = "library-of-babble-static"  # Existing bucket with images
+  bucket_name = "library-of-babble-static" # Existing bucket with images
 }
 
 # ============================================================================
@@ -259,7 +259,8 @@ module "iam" {
   name_prefix    = local.name_prefix
   account_id     = local.account_id
   aws_region     = var.aws_region
-  parameter_arns = local.parameter_arns # Grant access to decrypt these secrets
+  parameter_arns = local.parameter_arns      # Grant access to decrypt these secrets
+  s3_bucket_arn  = module.storage.bucket_arn # Grant read/write on the actual static bucket
 }
 
 # ============================================================================
@@ -281,20 +282,20 @@ module "compute" {
   subnet_ids              = module.networking.public_subnet_ids # ECS tasks run in these subnets
   security_group_id       = module.security.ecs_security_group_id
   docker_image            = var.docker_image != "" ? var.docker_image : "${module.ecr.repository_url}:latest" # Use ECR if not specified
-  task_execution_role_arn = module.iam.task_execution_role_arn # Permission to start containers
-  task_role_arn           = module.iam.task_role_arn # Permission for running containers
-  task_cpu                = var.ecs_task_cpu # e.g., "256" = 0.25 vCPU
-  task_memory             = var.ecs_task_memory # e.g., "512" = 512 MB RAM
-  desired_count           = var.ecs_desired_count # How many containers to run
+  task_execution_role_arn = module.iam.task_execution_role_arn                                                # Permission to start containers
+  task_role_arn           = module.iam.task_role_arn                                                          # Permission for running containers
+  task_cpu                = var.ecs_task_cpu                                                                  # e.g., "256" = 0.25 vCPU
+  task_memory             = var.ecs_task_memory                                                               # e.g., "512" = 512 MB RAM
+  desired_count           = var.ecs_desired_count                                                             # How many containers to run
 
   # Secret ARNs - ECS will fetch these at runtime
-  flask_secret_key_arn      = data.aws_ssm_parameter.flask_secret_key.arn
-  database_url_arn          = data.aws_ssm_parameter.database_url.arn
-  spotify_client_id_arn     = data.aws_ssm_parameter.spotify_client_id.arn
-  spotify_client_secret_arn = data.aws_ssm_parameter.spotify_client_secret.arn
-  spotify_username_arn      = data.aws_ssm_parameter.spotify_username.arn
-  spotify_refresh_token_arn = data.aws_ssm_parameter.spotify_refresh_token.arn
-  tmdb_api_token_arn        = data.aws_ssm_parameter.tmdb_api_token.arn
+  flask_secret_key_arn         = data.aws_ssm_parameter.flask_secret_key.arn
+  database_url_arn             = data.aws_ssm_parameter.database_url.arn
+  spotify_client_id_arn        = data.aws_ssm_parameter.spotify_client_id.arn
+  spotify_client_secret_arn    = data.aws_ssm_parameter.spotify_client_secret.arn
+  spotify_username_arn         = data.aws_ssm_parameter.spotify_username.arn
+  spotify_refresh_token_arn    = data.aws_ssm_parameter.spotify_refresh_token.arn
+  tmdb_api_token_arn           = data.aws_ssm_parameter.tmdb_api_token.arn
   static_storage_url_arn       = data.aws_ssm_parameter.static_storage_url.arn
   s3_bucket_name_arn           = data.aws_ssm_parameter.s3_bucket_name.arn
   cloudflared_tunnel_token_arn = data.aws_ssm_parameter.cloudflared_tunnel_token.arn

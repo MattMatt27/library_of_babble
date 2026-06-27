@@ -43,6 +43,11 @@ variable "parameter_arns" {
   type        = map(string)
 }
 
+variable "s3_bucket_arn" {
+  description = "ARN of the S3 bucket the application reads/writes (artwork, uploads)"
+  type        = string
+}
+
 # ============================================================================
 # TASK EXECUTION ROLE
 # ============================================================================
@@ -106,8 +111,8 @@ resource "aws_iam_role_policy" "parameter_store_access" {
       {
         Effect = "Allow"
         Action = [
-          "ssm:GetParameters",    # Get multiple parameters at once
-          "ssm:GetParameter",     # Get a single parameter
+          "ssm:GetParameters",      # Get multiple parameters at once
+          "ssm:GetParameter",       # Get a single parameter
           "ssm:GetParametersByPath" # Get all parameters under a path
         ]
         Resource = [
@@ -182,10 +187,9 @@ resource "aws_iam_role" "task" {
 # - Delete old files (DeleteObject)
 # - List files in the bucket (ListBucket)
 #
-# IMPORTANT: This assumes you'll create an S3 bucket named
-# "library-of-babble-prod-uploads" (or similar based on name_prefix)
-# The bucket isn't created by this Terraform code yet - you'll need to
-# add that separately when you're ready to use S3 for artwork storage.
+# The bucket ARN is passed in from the storage module (var.s3_bucket_arn)
+# so this policy always targets the actual bucket the app uses
+# (library-of-babble-static), not a name_prefix-derived guess.
 resource "aws_iam_role_policy" "s3_access" {
   name = "${var.name_prefix}-s3-access"
   role = aws_iam_role.task.id
@@ -202,8 +206,8 @@ resource "aws_iam_role_policy" "s3_access" {
           "s3:ListBucket"    # List bucket contents
         ]
         Resource = [
-          "arn:aws:s3:::${var.name_prefix}-uploads",      # Bucket itself
-          "arn:aws:s3:::${var.name_prefix}-uploads/*"     # All objects in bucket
+          var.s3_bucket_arn,       # Bucket itself (for ListBucket)
+          "${var.s3_bucket_arn}/*" # All objects in bucket
         ]
       }
     ]

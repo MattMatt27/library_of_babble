@@ -11,7 +11,7 @@ from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import current_user
 from app.collecting import collecting_bp
 from app.extensions import db
-from app.utils.security import admin_required, validate_image_file
+from app.utils.security import admin_required, validate_image_file, page_visible
 from app.services.storage import storage
 from app.collecting.services import (
     get_recently_added_pins,
@@ -51,6 +51,7 @@ from app.collecting.schemas import (
 
 
 @collecting_bp.route('/')
+@page_visible('collecting')
 def index():
     """Main collecting page with recent pins and labels"""
     recently_added_pins = get_recently_added_pins()
@@ -64,6 +65,7 @@ def index():
 
 
 @collecting_bp.route('/pins')
+@page_visible('collecting')
 def pins():
     """Full pins collection page"""
     pins_data = get_all_pins()
@@ -71,6 +73,7 @@ def pins():
 
 
 @collecting_bp.route('/pins/<int:pin_id>')
+@page_visible('collecting')
 def pin_detail(pin_id):
     """Individual pin detail page"""
     pin = get_pin_by_id(pin_id)
@@ -78,6 +81,7 @@ def pin_detail(pin_id):
 
 
 @collecting_bp.route('/alcohol-labels')
+@page_visible('collecting')
 def alcohol_labels():
     """Full alcohol labels collection page"""
     labels_data = get_all_labels()
@@ -85,6 +89,7 @@ def alcohol_labels():
 
 
 @collecting_bp.route('/alcohol-labels/<int:label_id>')
+@page_visible('collecting')
 def label_detail(label_id):
     """Individual alcohol label detail page"""
     label = get_label_by_id(label_id)
@@ -132,6 +137,7 @@ def submit_offer():
 # ============ Public Card Endpoints ============
 
 @collecting_bp.route('/cards')
+@page_visible('collecting')
 def cards_index():
     """Card collection gallery page"""
     page = request.args.get('page', 1, type=int)
@@ -166,6 +172,7 @@ def cards_index():
 
 
 @collecting_bp.route('/cards/search')
+@page_visible('collecting')
 def cards_search_api():
     """
     Search cards API - public endpoint for visitors to find cards.
@@ -206,6 +213,7 @@ def cards_search_api():
 
 
 @collecting_bp.route('/cards/<int:card_id>')
+@page_visible('collecting')
 def card_detail(card_id):
     """Individual card detail page"""
     card = get_card_by_id(card_id)
@@ -221,6 +229,7 @@ def card_detail(card_id):
 # ============ Card Schema Endpoint ============
 
 @collecting_bp.route('/cards/schemas')
+@page_visible('collecting')
 def cards_schemas():
     """Return category schemas for modal rendering"""
     return jsonify({

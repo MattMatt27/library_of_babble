@@ -4,7 +4,7 @@ Artworks Routes
 from flask import render_template, request, jsonify, session
 from flask_login import login_required, current_user
 from app.artworks import artworks_bp
-from app.utils.security import user_required
+from app.utils.security import user_required, page_visible
 from app.artworks.models import Artworks, LikedArtworks
 from app.artworks.services import get_approved_artworks_from_db, get_all_artworks
 from app.extensions import db, limiter
@@ -12,7 +12,7 @@ import time
 
 
 @artworks_bp.route('/pondering')
-@login_required
+@page_visible('pondering')
 def pondering():
     """Artwork browsing page with filters and pagination"""
     from app.artworks.models import ArtworkGallery
@@ -52,14 +52,17 @@ def pondering():
     # Store current sort order for next request
     session['previous_sort_order'] = sort_order
 
-    # Get user's liked artworks
-    liked_artworks = {
-        like.artwork_id
-        for like in LikedArtworks.query.filter_by(user_id=current_user.id).all()
-    }
+    # Get user's liked artworks (anonymous visitors have none; pondering is public)
+    if current_user.is_authenticated:
+        liked_artworks = {
+            like.artwork_id
+            for like in LikedArtworks.query.filter_by(user_id=current_user.id).all()
+        }
+    else:
+        liked_artworks = set()
 
     # Get all galleries for the filter dropdown (filter by is_public unless admin)
-    if current_user.role == 'admin':
+    if current_user.is_authenticated and current_user.role == 'admin':
         all_galleries = ArtworkGallery.query.order_by(ArtworkGallery.display_order.asc()).all()
     else:
         all_galleries = ArtworkGallery.query.filter_by(is_public=True).order_by(ArtworkGallery.display_order.asc()).all()

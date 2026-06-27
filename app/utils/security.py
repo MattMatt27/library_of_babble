@@ -387,8 +387,12 @@ def validate_image_file(file_stream, filename: str) -> Tuple[bool, str]:
     if format not in allowed_formats:
         return False, f"Invalid image format. Allowed: {', '.join(allowed_formats)}"
 
-    # Check file extension matches content
-    file_ext = filename.lower().split('.')[-1]
+    # Require a known image extension AND that it matches the decoded content.
+    # The extension is rejected outright if it isn't a recognized image type:
+    # callers store the file under this (attacker-supplied) extension, so a
+    # disguised name like "evil.html" wrapping valid image bytes must not pass
+    # — otherwise it can be served as text/html and execute as stored XSS.
+    file_ext = filename.lower().rsplit('.', 1)[-1] if '.' in filename else ''
     ext_to_format = {
         'jpg': 'jpeg',
         'jpeg': 'jpeg',
@@ -399,7 +403,9 @@ def validate_image_file(file_stream, filename: str) -> Tuple[bool, str]:
     }
 
     expected_format = ext_to_format.get(file_ext)
-    if expected_format and expected_format != format:
+    if expected_format is None:
+        return False, f"Invalid file extension. Allowed: {', '.join(ext_to_format)}"
+    if expected_format != format:
         return False, f"File extension .{file_ext} doesn't match content type {format}"
 
     return True, "Valid image"

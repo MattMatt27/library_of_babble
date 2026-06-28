@@ -1,52 +1,135 @@
 /**
- * Login Page Styles
+ * Login page — warm walnut + cream paper, matches the editorial /
+ * record-shelf design language used by listening, reading, writing.
+ *
+ * Background: deep walnut with a very faint rotating slideshow of the
+ * generative-art "lunacy" set, dimmed so it reads as atmosphere rather
+ * than imagery competing with the form. Sign-in itself sits on a paper
+ * card with paper-edge border.
  */
 
-/* Page container */
+:root {
+  --serif: "Newsreader", Georgia, "Iowan Old Style", "Source Serif 4", serif;
+
+  /* Paper / liner-notes palette (shared with listening) */
+  --paper: #f4ead4;
+  --paper-tint: #ede0c4;
+  --paper-edge: #d9c79a;
+  --paper-text: #3a2c1a;
+  --paper-text-soft: #6e5536;
+
+  /* Walnut / shelf palette */
+  --shelf-base: #2d1f15;
+  --shelf-deep: #1f1410;
+  --shelf-cream: #d4b892;
+
+  /* Warm accent */
+  --accent-warm: #c75a3a;
+  --accent-warm-deep: #a64324;
+}
+
+/* Override base body so the page is its own atmosphere. */
+body {
+  background: var(--shelf-deep);
+  overflow-x: hidden;
+}
+
 .login-page {
-  min-height: 100vh;
+  position: relative;
+  min-height: calc(100vh - var(--navbar-height, 60px));
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-4);
-  background: var(--bg-primary);
+  padding: var(--space-8) var(--space-4);
+  background:
+    radial-gradient(ellipse at center, rgba(60, 35, 20, 0.0) 0%, rgba(15, 9, 6, 0.55) 70%),
+    linear-gradient(180deg, var(--shelf-base) 0%, var(--shelf-deep) 100%);
+  overflow: hidden;
 }
 
-/* Login container */
+/* ============================================
+   Faint rotating background
+   ============================================ */
+.login-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.login-background img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 2.5s ease-in-out;
+  /* Very faint so the form remains the focal point. The radial vignette
+     above and the slight blur push the imagery further back. */
+  filter: blur(2px) saturate(0.85);
+  mix-blend-mode: soft-light;
+}
+
+.login-background img.active {
+  opacity: 0.22;
+}
+
+/* ============================================
+   Paper card
+   ============================================ */
 .login-container {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 420px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
-  padding: var(--space-8);
-  box-shadow: var(--shadow-lg);
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  border-radius: 2px;
+  padding: var(--space-10) var(--space-8) var(--space-8);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.35),
+    0 14px 40px rgba(0, 0, 0, 0.45);
+  /* Subtle paper texture using two tight repeating gradients — same idea
+     as the wood-grain on listening, but for paper grain. */
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px, transparent 2px,
+      rgba(58, 44, 26, 0.018) 2px, rgba(58, 44, 26, 0.018) 3px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px, transparent 3px,
+      rgba(58, 44, 26, 0.012) 3px, rgba(58, 44, 26, 0.012) 4px
+    ),
+    linear-gradient(180deg, var(--paper) 0%, var(--paper-tint) 100%);
 }
 
-/* Header */
 .login-header {
   text-align: center;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-8);
 }
 
 .login-header h1 {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
   font-size: var(--font-3xl);
-  font-weight: var(--font-semibold);
-  color: var(--text-primary);
-  margin: 0 0 var(--space-2) 0;
-}
-
-.login-header p {
-  font-size: var(--font-base);
-  color: var(--text-secondary);
+  color: var(--paper-text);
   margin: 0;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
 }
 
-/* Form */
+/* ============================================
+   Form
+   ============================================ */
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-3);
 }
 
 .form-group {
@@ -56,106 +139,123 @@
 }
 
 .form-group label {
-  font-size: var(--font-sm);
-  font-weight: var(--font-medium);
-  color: var(--text-secondary);
+  font-family: var(--font-primary);
+  font-size: var(--font-xs);
+  font-weight: var(--font-semibold);
+  color: var(--paper-text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
 }
 
 .form-group input {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-base);
-  color: var(--text-primary);
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--font-base);
   font-family: var(--font-primary);
-  transition: all var(--transition-fast);
+  font-size: var(--font-base);
+  color: var(--paper-text);
+  background: rgba(255, 255, 255, 0.35);
+  border: 1px solid var(--paper-edge);
+  border-radius: 2px;
+  padding: var(--space-3) var(--space-4);
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.form-group input::placeholder {
+  color: var(--paper-text-soft);
+  opacity: 0.7;
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: var(--accent-blue);
-  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+  border-color: var(--accent-warm);
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 0 0 3px rgba(199, 90, 58, 0.15);
 }
 
-.form-group input::placeholder {
-  color: var(--text-tertiary);
-}
-
-/* Submit button */
+/* Submit button — warm-red, picks up the accent used across redesigned
+   pages (matches the open-in-spotify hover on listening, etc.). */
 .submit-btn {
+  margin-top: var(--space-3);
   width: 100%;
   padding: var(--space-3) var(--space-4);
-  background: var(--accent-blue);
-  border: none;
-  border-radius: var(--radius-base);
-  color: white;
+  font-family: var(--font-primary);
   font-size: var(--font-base);
   font-weight: var(--font-semibold);
+  letter-spacing: 0.02em;
+  color: var(--paper);
+  background: var(--accent-warm);
+  border: 1px solid var(--accent-warm-deep);
+  border-radius: 2px;
   cursor: pointer;
-  transition: all var(--transition-fast);
-  margin-top: var(--space-2);
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .submit-btn:hover {
-  background: var(--accent-blue-hover);
+  background: var(--accent-warm-deep);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
 }
 
 .submit-btn:active {
   transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-/* Flash messages */
+/* ============================================
+   Flash messages — paper-aesthetic tints
+   ============================================ */
 .flash-messages {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
   margin-bottom: var(--space-5);
 }
 
 .flash-message {
   padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-base);
+  border-radius: 2px;
+  font-family: var(--font-primary);
   font-size: var(--font-sm);
-  line-height: var(--leading-relaxed);
+  line-height: 1.5;
   border: 1px solid;
   word-wrap: break-word;
   overflow-wrap: break-word;
-  word-break: break-all;
-  max-width: 100%;
-  overflow: hidden;
 }
 
 .flash-message.error {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
+  background: rgba(199, 90, 58, 0.10);
+  border-color: rgba(199, 90, 58, 0.45);
+  color: #6b2a18;
 }
 
 .flash-message.success {
-  background: rgba(34, 197, 94, 0.1);
-  border-color: rgba(34, 197, 94, 0.3);
-  color: #86efac;
+  background: rgba(76, 130, 80, 0.10);
+  border-color: rgba(76, 130, 80, 0.45);
+  color: #2f5532;
 }
 
 .flash-message.info {
-  background: rgba(88, 166, 255, 0.1);
-  border-color: rgba(88, 166, 255, 0.3);
-  color: var(--accent-blue);
+  background: rgba(110, 85, 54, 0.10);
+  border-color: rgba(110, 85, 54, 0.45);
+  color: var(--paper-text-soft);
 }
 
 .flash-message.warning {
-  background: rgba(251, 191, 36, 0.1);
-  border-color: rgba(251, 191, 36, 0.3);
-  color: #fcd34d;
+  background: rgba(189, 138, 50, 0.12);
+  border-color: rgba(189, 138, 50, 0.45);
+  color: #6e4f1a;
 }
 
-/* Responsive adjustments */
+/* ============================================
+   Responsive
+   ============================================ */
 @media (max-width: 640px) {
   .login-container {
-    padding: var(--space-6);
+    padding: var(--space-8) var(--space-6) var(--space-6);
   }
 
   .login-header h1 {

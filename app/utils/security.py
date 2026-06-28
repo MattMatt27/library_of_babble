@@ -4,7 +4,6 @@ Security utilities for input validation, sanitization, and protection against co
 import re
 import shlex
 import subprocess
-import imghdr
 import json
 from pathlib import Path
 from typing import List, Union, Tuple
@@ -14,6 +13,7 @@ from flask_login import current_user, login_required
 from functools import wraps
 from markupsafe import Markup
 import bleach
+from PIL import Image, UnidentifiedImageError
 
 
 # ==============================================================================
@@ -368,18 +368,31 @@ def validate_image_file(file_stream, filename: str) -> Tuple[bool, str]:
     if file_size == 0:
         return False, "File is empty"
 
-    # Check actual file type by reading header
-    header = file_stream.read(512)
-    file_stream.seek(0)
+    # Check actual file type by decoding it with Pillow rather than sniffing
+    # magic bytes. The old imghdr approach only recognized JPEGs with JFIF/Exif
+    # markers, so color-managed/scanned JPEGs (which lead with an ICC or Adobe
+    # APP marker) were wrongly rejected. Pillow identifies them correctly and is
+    # not deprecated/removed like imghdr (gone in Python 3.13).
+    try:
+        image = Image.open(file_stream)
+        format = (image.format or '').lower()
+        image.verify()  # detect truncated/corrupted data
+    except (UnidentifiedImageError, OSError, ValueError, SyntaxError):
+        return False, "Invalid or corrupted image file"
+    finally:
+        file_stream.seek(0)  # rewind for the caller to read/upload the file
 
-    format = imghdr.what(None, header)
     allowed_formats = ['jpeg', 'png', 'gif', 'webp', 'bmp']
 
     if format not in allowed_formats:
         return False, f"Invalid image format. Allowed: {', '.join(allowed_formats)}"
 
-    # Check file extension matches content
-    file_ext = filename.lower().split('.')[-1]
+    # Require a known image extension AND that it matches the decoded content.
+    # The extension is rejected outright if it isn't a recognized image type:
+    # callers store the file under this (attacker-supplied) extension, so a
+    # disguised name like "evil.html" wrapping valid image bytes must not pass
+    # — otherwise it can be served as text/html and execute as stored XSS.
+    file_ext = filename.lower().rsplit('.', 1)[-1] if '.' in filename else ''
     ext_to_format = {
         'jpg': 'jpeg',
         'jpeg': 'jpeg',
@@ -390,7 +403,9 @@ def validate_image_file(file_stream, filename: str) -> Tuple[bool, str]:
     }
 
     expected_format = ext_to_format.get(file_ext)
-    if expected_format and expected_format != format:
+    if expected_format is None:
+        return False, f"Invalid file extension. Allowed: {', '.join(ext_to_format)}"
+    if expected_format != format:
         return False, f"File extension .{file_ext} doesn't match content type {format}"
 
     return True, "Valid image"

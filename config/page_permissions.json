@@ -124,7 +124,7 @@
       "admin": true,
       "display_name": "Pondering",
       "page_name": "pondering",
-      "public": false,
+      "public": true,
       "route_name": "artworks.pondering",
       "show_in_navbar": true,
       "user": true,

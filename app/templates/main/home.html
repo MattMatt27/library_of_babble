@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="home-content" {% if home_backgrounds %}style="background-image: url('{{ static_url(home_backgrounds[0]) }}');"{% endif %}>
+<div class="home-content" {% if home_backgrounds %}style="background-image: url('{{ static_url(home_backgrounds[0].path) }}'); background-position: {{ home_backgrounds[0].focal }};"{% endif %}>
     <div class="hero-section">
         <h1>{{ site_owner }}</h1>
     </div>
@@ -33,14 +33,17 @@
         let currentIndex = 0;
 
         // Preload images
-        images.forEach(function(img) {
+        images.forEach(function(item) {
             const preload = new Image();
-            preload.src = STATIC_BASE_URL + img;
+            preload.src = STATIC_BASE_URL + item.path;
         });
 
         function changeBackground() {
             currentIndex = (currentIndex + 1) % images.length;
-            document.querySelector('.home-content').style.backgroundImage = `url('${STATIC_BASE_URL}${images[currentIndex]}')`;
+            const item = images[currentIndex];
+            const el = document.querySelector('.home-content');
+            el.style.backgroundImage = `url('${STATIC_BASE_URL}${item.path}')`;
+            el.style.backgroundPosition = item.focal || 'center';
         }
 
         setInterval(changeBackground, interval);

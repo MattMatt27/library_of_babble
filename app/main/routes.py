@@ -9,6 +9,27 @@ from app.main import main_bp
 from app.main.services import get_user_nav_items
 
 
+def _normalize_backgrounds(raw):
+    """Normalize home background entries to ``{path, focal}`` dicts.
+
+    Entries may be either a plain path string (defaults to a centered
+    crop) or a ``{"path": ..., "focal": ...}`` object. ``focal`` is any
+    CSS ``background-position`` value (e.g. ``"left"``, ``"right"``,
+    ``"25%"``, ``"30% 40%"``) used to pick the most sensible vertical
+    strip when landscape images are cropped on portrait/mobile screens.
+    """
+    normalized = []
+    for entry in raw or []:
+        if isinstance(entry, dict):
+            path = entry.get('path')
+            if not path:
+                continue
+            normalized.append({'path': path, 'focal': entry.get('focal') or 'center'})
+        elif isinstance(entry, str):
+            normalized.append({'path': entry, 'focal': 'center'})
+    return normalized
+
+
 @main_bp.route('/')
 def home():
     """Home page"""
@@ -17,7 +38,7 @@ def home():
     nav_items = get_user_nav_items()
 
     # Get background images and interval from settings
-    home_backgrounds = get_setting('home_background_images', [])
+    home_backgrounds = _normalize_backgrounds(get_setting('home_background_images', []))
     background_interval = get_setting('home_background_interval', 15000)
 
     return render_template(

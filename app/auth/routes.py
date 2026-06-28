@@ -32,6 +32,9 @@ def check_login():
 @limiter.limit("10 per minute")
 def login():
     """User login"""
+    import os
+    from flask import current_app
+
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -48,7 +51,16 @@ def login():
         else:
             flash('Invalid username or password', 'error')
 
-    return render_template('auth/login.html')
+    # Pull generative-art images for the faint rotating background. Same
+    # source as the error pages — keeps the visual signature consistent.
+    lunacy_path = os.path.join(current_app.static_folder, 'images/creating/lunacy')
+    images = []
+    if os.path.exists(lunacy_path):
+        images = [f for f in os.listdir(lunacy_path)
+                  if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
+                  and not f.startswith('.')]
+
+    return render_template('auth/login.html', images=images)
 
 
 @auth_bp.route('/logout')

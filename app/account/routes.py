@@ -946,12 +946,14 @@ def upload_artwork():
             }), 500
 
         # Create artwork database entry (store sanitized artist name - same as folder)
+        from app.artworks.medium_categories import categorize_medium
         artwork = Artworks(
             id=artwork_id,
             title=title,
             artist=safe_artist,  # Sanitized name (Unicode preserved, path chars removed)
             year=year,
             medium=medium or None,
+            medium_category=categorize_medium(medium),
             location=location or None,
             series=series or None,
             description=description or None,
@@ -1071,12 +1073,14 @@ def import_artworks_csv():
 
                     # Create new artwork (store sanitized artist name - same as folder)
                     import uuid
+                    from app.artworks.medium_categories import categorize_medium
                     artwork = Artworks(
                         id=str(uuid.uuid4()),
                         artist=safe_artist,  # Sanitized name (Unicode preserved, path chars removed)
                         title=title,
                         year=year,
                         medium=medium,
+                        medium_category=categorize_medium(medium),
                         location=location,
                         series=series,
                         description=description,

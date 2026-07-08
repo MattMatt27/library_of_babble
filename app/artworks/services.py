@@ -75,7 +75,8 @@ def normalize_year(year):
 
 
 def get_approved_artworks_from_db(page=1, per_page=100, sort_order='asc',
-                                  start_date=None, end_date=None, artist_filter=None, collection_filter=None, random_seed=None):
+                                  start_date=None, end_date=None, artist_filter=None, collection_filter=None,
+                                  medium_filter=None, random_seed=None):
     """
     Fetch artworks from the database with pagination, filtering, and sorting.
 
@@ -148,6 +149,10 @@ def get_approved_artworks_from_db(page=1, per_page=100, sort_order='asc',
     if artist_filter:
         query = query.filter(Artworks.artist.in_(artist_filter))
 
+    # Apply medium-category filter (OR logic within selected buckets)
+    if medium_filter:
+        query = query.filter(Artworks.medium_category.in_(medium_filter))
+
     # For date filtering, we need to handle the complex year normalization
     # For now, we'll apply simple filtering (can be enhanced later)
     # This is a simplified version - my original manula approach used complex SQL CASE statements
@@ -214,10 +219,24 @@ def get_approved_artworks_from_db(page=1, per_page=100, sort_order='asc',
             'series': artwork.series,
             'series_id': artwork.series_id,
             'medium': artwork.medium,
+            'medium_category': artwork.medium_category,
             'location': artwork.location
         })
 
     return artworks, total_pages, all_artists
+
+
+def get_medium_categories():
+    """Return [(category, count), ...] for site-approved artworks, ordered by
+    the canonical CATEGORY_ORDER, including only buckets that actually occur."""
+    from app.artworks.medium_categories import CATEGORY_ORDER
+    rows = db.session.query(
+        Artworks.medium_category, db.func.count(Artworks.id)
+    ).filter(
+        Artworks.site_approved == True
+    ).group_by(Artworks.medium_category).all()
+    counts = {cat: n for cat, n in rows if cat}
+    return [(cat, counts[cat]) for cat in CATEGORY_ORDER if cat in counts]
 
 
 def get_all_artworks():

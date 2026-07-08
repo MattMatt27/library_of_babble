@@ -74,6 +74,10 @@ class Artworks(db.Model):
     location = db.Column(db.String(500))
     description = db.Column(db.Text)
     medium = db.Column(db.Text)
+    # Coarse bucket derived from the free-text `medium` via
+    # app.artworks.medium_categories.categorize_medium(); kept in sync on save
+    # and backfilled, so the pondering page can filter/paginate in SQL.
+    medium_category = db.Column(db.String(50), index=True)
     collections = db.Column(db.Text)
     site_approved = db.Column(db.Boolean, default=False, nullable=False)
 

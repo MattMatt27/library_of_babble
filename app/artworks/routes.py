@@ -6,7 +6,8 @@ from flask_login import login_required, current_user
 from app.artworks import artworks_bp
 from app.utils.security import user_required, page_visible
 from app.artworks.models import Artworks, LikedArtworks
-from app.artworks.services import get_approved_artworks_from_db, get_all_artworks
+from app.artworks.services import get_approved_artworks_from_db, get_all_artworks, get_medium_categories
+from app.artworks.medium_categories import categorize_medium
 from app.extensions import db, limiter
 import time
 
@@ -25,12 +26,14 @@ def pondering():
     end_date = request.args.get('end_date', None, type=int)
     artist_filter = request.args.getlist('artist')
     collection_filter = request.args.getlist('collection')
+    medium_filter = request.args.getlist('medium')
     selected_artists = request.args.getlist('artist')
     selected_collections = request.args.getlist('collection')
+    selected_mediums = request.args.getlist('medium')
 
     # Generate a random seed for consistent random ordering across pagination
     # Reset seed when filters change or when switching back to random sort
-    filter_key = f"{','.join(sorted(artist_filter))}_{','.join(sorted(collection_filter))}"
+    filter_key = f"{','.join(sorted(artist_filter))}_{','.join(sorted(collection_filter))}_{','.join(sorted(medium_filter))}"
 
     if sort_order == 'random':
         # Get the previous sort order from session
@@ -76,6 +79,7 @@ def pondering():
         end_date=end_date,
         artist_filter=artist_filter,
         collection_filter=collection_filter,
+        medium_filter=medium_filter,
         random_seed=random_seed
     )
 
@@ -86,8 +90,10 @@ def pondering():
         total_pages=total_pages,
         all_artists=all_artists,
         all_galleries=all_galleries,
+        medium_categories=get_medium_categories(),
         selected_artists=selected_artists,
         selected_collections=selected_collections,
+        selected_mediums=selected_mediums,
         liked_artworks=liked_artworks
     )
 
@@ -308,6 +314,7 @@ def update_artwork():
         artwork.artist = data.get('artist', artwork.artist)
         artwork.year = data.get('year', artwork.year)
         artwork.medium = data.get('medium') or None
+        artwork.medium_category = categorize_medium(artwork.medium)
         artwork.location = data.get('location') or None
         artwork.series = data.get('series') or None
         artwork.description = data.get('description') or None

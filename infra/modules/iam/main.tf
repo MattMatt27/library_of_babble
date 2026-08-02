@@ -215,6 +215,37 @@ resource "aws_iam_role_policy" "s3_access" {
 }
 
 # ============================================================================
+# ECS Exec (SSM Session Manager) Access
+# ============================================================================
+# Lets us open a shell into the running container (aws ecs execute-command)
+# to run one-off admin tasks like `flask db upgrade`. The service already has
+# enableExecuteCommand=true, but the SSM agent inside the task can't establish
+# its channel without these ssmmessages permissions on the TASK role — without
+# them exec fails with TargetNotConnected.
+resource "aws_iam_role_policy" "ecs_exec" {
+  # Name matches the inline policy already applied to prod as a hotfix, so
+  # `terraform apply` upserts (adopts) it rather than creating a duplicate.
+  name = "ecs-exec-ssmmessages"
+  role = aws_iam_role.task.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ssmmessages:CreateControlChannel",
+          "ssmmessages:CreateDataChannel",
+          "ssmmessages:OpenControlChannel",
+          "ssmmessages:OpenDataChannel",
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# ============================================================================
 # OUTPUTS - IAM Role ARNs exported to compute module
 # ============================================================================
 output "task_execution_role_arn" {

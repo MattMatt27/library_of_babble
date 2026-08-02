@@ -164,6 +164,72 @@ class StorageService:
             current_app.logger.error(f"S3 delete failed: {str(e)}")
             return {'success': False, 'error': str(e)}
 
+    def move_file(self, old_path, new_path):
+        """
+        Move/rename a file within storage (local or S3).
+
+        Used when an artwork's artist is edited: the image lives under
+        ``images/artists/<artist>/<file>``, so a rename must relocate the
+        object or its URL 404s. No-op success if the source doesn't exist.
+
+        Args:
+            old_path: Current path relative to static root
+            new_path: New path relative to static root
+
+        Returns:
+            dict: {'success': bool, 'error': str}
+        """
+        if old_path == new_path:
+            return {'success': True}
+        if self.is_s3_enabled:
+            return self._move_in_s3(old_path, new_path)
+        else:
+            return self._move_in_local(old_path, new_path)
+
+    def _move_in_local(self, old_path, new_path):
+        """Move file on local filesystem"""
+        from app.utils.security import validate_file_path
+        try:
+            base_dir = Path(current_app.static_folder)
+            old_full = base_dir / old_path
+            new_full = base_dir / new_path
+
+            if not validate_file_path(base_dir, old_full) or not validate_file_path(base_dir, new_full):
+                return {'success': False, 'error': 'Invalid file path'}
+
+            if not old_full.exists():
+                return {'success': True}  # nothing to move
+
+            new_full.parent.mkdir(parents=True, exist_ok=True)
+            old_full.replace(new_full)
+            return {'success': True}
+
+        except Exception as e:
+            current_app.logger.error(f"Local move failed: {str(e)}")
+            return {'success': False, 'error': str(e)}
+
+    def _move_in_s3(self, old_path, new_path):
+        """Move object in S3 (copy then delete). Preserves metadata."""
+        try:
+            # No-op success if source is already gone
+            try:
+                self.s3_client.head_object(Bucket=self.bucket_name, Key=old_path)
+            except Exception:
+                return {'success': True}
+
+            self.s3_client.copy_object(
+                Bucket=self.bucket_name,
+                CopySource={'Bucket': self.bucket_name, 'Key': old_path},
+                Key=new_path,
+                MetadataDirective='COPY',  # keep ContentType/CacheControl
+            )
+            self.s3_client.delete_object(Bucket=self.bucket_name, Key=old_path)
+            return {'success': True}
+
+        except Exception as e:
+            current_app.logger.error(f"S3 move failed: {str(e)}")
+            return {'success': False, 'error': str(e)}
+
     def file_exists(self, relative_path):
         """Check if a file exists in storage"""
         if self.is_s3_enabled:

@@ -913,8 +913,10 @@ def upload_artwork():
         original_filename = secure_filename(file.filename)
         file_ext = Path(original_filename).suffix
 
-        # Sanitize artist name for filesystem (preserves Unicode, removes path traversal chars)
-        safe_artist = sanitize_artist_name(artist)
+        # Sanitize + NFC-normalize artist name so the DB value and the S3 key
+        # use identical Unicode (mixed NFC/NFD accents caused broken images).
+        import unicodedata
+        safe_artist = unicodedata.normalize('NFC', sanitize_artist_name(artist))
         if not safe_artist:
             return jsonify({
                 'success': False,
@@ -946,12 +948,14 @@ def upload_artwork():
             }), 500
 
         # Create artwork database entry (store sanitized artist name - same as folder)
+        from app.artworks.medium_categories import categorize_medium
         artwork = Artworks(
             id=artwork_id,
             title=title,
             artist=safe_artist,  # Sanitized name (Unicode preserved, path chars removed)
             year=year,
             medium=medium or None,
+            medium_category=categorize_medium(medium),
             location=location or None,
             series=series or None,
             description=description or None,
@@ -1046,8 +1050,11 @@ def import_artworks_csv():
                         skipped += 1
                         continue
 
-                    # Sanitize artist name (preserves Unicode, removes path traversal chars)
-                    safe_artist = sanitize_artist_name(artist)
+                    # Sanitize + NFC-normalize artist name so the DB value and
+                    # the S3 key use identical Unicode (mixed NFC/NFD accents
+                    # caused broken images).
+                    import unicodedata
+                    safe_artist = unicodedata.normalize('NFC', sanitize_artist_name(artist))
                     if not safe_artist:
                         errors.append(f'Row {row_num}: Invalid artist name "{artist}"')
                         skipped += 1
@@ -1071,12 +1078,14 @@ def import_artworks_csv():
 
                     # Create new artwork (store sanitized artist name - same as folder)
                     import uuid
+                    from app.artworks.medium_categories import categorize_medium
                     artwork = Artworks(
                         id=str(uuid.uuid4()),
                         artist=safe_artist,  # Sanitized name (Unicode preserved, path chars removed)
                         title=title,
                         year=year,
                         medium=medium,
+                        medium_category=categorize_medium(medium),
                         location=location,
                         series=series,
                         description=description,

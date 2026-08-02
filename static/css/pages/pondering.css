@@ -974,18 +974,32 @@
     width: 100%;
     min-width: 0;
   }
+  /* One artwork per row, each growing to fill the column width. Really tall
+     (portrait) pieces are capped by height instead so they don't overflow
+     the viewport; those come out narrower than the column and stay centered. */
   .artwork-grid {
-    gap: var(--space-6) var(--space-3);
+    gap: var(--space-6) 0;
+  }
+  .artwork-item {
+    flex: 0 0 100%;
+    max-width: 100%;
   }
   .artwork-mat {
     padding: 10px;
   }
   .artwork-mat img {
-    max-width: 240px;
-    max-height: 240px;
+    /* Scanned originals are far wider than a phone column, so max-width:100%
+       renders them at full column width; portrait pieces hit max-height first
+       and come out narrower (centered) rather than overflowing. auto sizing
+       keeps the aspect ratio exact — no distortion. */
+    max-width: 100%;
+    max-height: 82vh;
+    width: auto;
+    height: auto;
   }
   .artwork-frame {
     padding: 4px;
+    max-width: 100%;
   }
   .nav-arrow {
     width: 40px;
@@ -994,8 +1008,10 @@
 }
 
 @media (max-width: 480px) {
+  /* Keep the fill-width behavior from the 768px rule; just trim the height
+     cap a touch so very tall pieces leave room for the placard below. */
   .artwork-mat img {
-    max-width: 180px;
-    max-height: 180px;
+    max-width: 100%;
+    max-height: 78vh;
   }
 }

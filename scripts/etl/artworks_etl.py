@@ -134,7 +134,9 @@ def load_artworks_from_csv(csv_file='artworks.csv'):
                 artworks_skipped += 1
             else:
                 # New artwork - add it
+                from app.artworks.medium_categories import categorize_medium
                 data['id'] = str(uuid.uuid4())  # Generate a new random ID
+                data['medium_category'] = categorize_medium(data.get('medium'))
                 new_artwork = Artworks(**data)
                 db.session.add(new_artwork)
                 artworks_added += 1

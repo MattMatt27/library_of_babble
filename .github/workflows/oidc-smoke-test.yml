@@ -16,6 +16,11 @@ name: OIDC Smoke Test
 
 on:
   workflow_dispatch:
+  # TEMPORARY: auto-run on this branch to validate OIDC before merge.
+  # Removed before the PR is finalized (workflow_dispatch only works from the
+  # default branch, so this is how we test on the feature branch).
+  push:
+    branches: [infra/github-oidc]
 
 permissions:
   id-token: write # REQUIRED: lets the job request a GitHub OIDC token

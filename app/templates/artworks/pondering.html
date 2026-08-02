@@ -138,6 +138,8 @@
                 <div class="artwork-mat">
                     <img src="{{ static_url('images/artists/' + artwork.filesystem_artist + '/' + artwork.file_name) }}"
                          alt="{{ artwork.title }}"
+                         loading="lazy"
+                         decoding="async"
                          data-img-id="{{ artwork.id }}"
                          data-full-img="{{ static_url('images/artists/' + artwork.filesystem_artist + '/' + artwork.file_name) }}"
                          data-title="{{ artwork.title }}"

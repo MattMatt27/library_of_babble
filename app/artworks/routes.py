@@ -4,7 +4,7 @@ Artworks Routes
 from flask import render_template, request, jsonify, session
 from flask_login import login_required, current_user
 from app.artworks import artworks_bp
-from app.utils.security import user_required, page_visible
+from app.utils.security import user_required, page_visible, sanitize_artist_name
 from app.artworks.models import Artworks, LikedArtworks
 from app.artworks.services import get_approved_artworks_from_db, get_all_artworks, get_medium_categories
 from app.artworks.medium_categories import categorize_medium
@@ -309,9 +309,33 @@ def update_artwork():
         return jsonify({'success': False, 'error': 'Artwork not found'}), 404
 
     try:
+        # The image lives at images/artists/<artist>/<file_name>, so renaming
+        # the artist must also relocate the stored object or the URL 404s.
+        # Normalize to NFC + strip path chars so the DB value and the S3 key
+        # stay byte-identical (mixed NFC/NFD accents were a source of broken
+        # images). See app/services/storage.move_file.
+        import unicodedata
+        from app.services.storage import storage
+        old_artist = artwork.artist
+        new_artist_raw = data.get('artist', old_artist)
+        new_artist = old_artist
+        if new_artist_raw:
+            new_artist = unicodedata.normalize('NFC', sanitize_artist_name(new_artist_raw))
+
+        if new_artist != old_artist and artwork.file_name:
+            move = storage.move_file(
+                f"images/artists/{old_artist}/{artwork.file_name}",
+                f"images/artists/{new_artist}/{artwork.file_name}",
+            )
+            if not move.get('success'):
+                return jsonify({
+                    'success': False,
+                    'error': f"Failed to move artwork image: {move.get('error', 'unknown error')}"
+                }), 500
+
         # Update fields
         artwork.title = data.get('title', artwork.title)
-        artwork.artist = data.get('artist', artwork.artist)
+        artwork.artist = new_artist
         artwork.year = data.get('year', artwork.year)
         artwork.medium = data.get('medium') or None
         artwork.medium_category = categorize_medium(artwork.medium)

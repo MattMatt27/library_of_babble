@@ -913,8 +913,10 @@ def upload_artwork():
         original_filename = secure_filename(file.filename)
         file_ext = Path(original_filename).suffix
 
-        # Sanitize artist name for filesystem (preserves Unicode, removes path traversal chars)
-        safe_artist = sanitize_artist_name(artist)
+        # Sanitize + NFC-normalize artist name so the DB value and the S3 key
+        # use identical Unicode (mixed NFC/NFD accents caused broken images).
+        import unicodedata
+        safe_artist = unicodedata.normalize('NFC', sanitize_artist_name(artist))
         if not safe_artist:
             return jsonify({
                 'success': False,
@@ -1048,8 +1050,11 @@ def import_artworks_csv():
                         skipped += 1
                         continue
 
-                    # Sanitize artist name (preserves Unicode, removes path traversal chars)
-                    safe_artist = sanitize_artist_name(artist)
+                    # Sanitize + NFC-normalize artist name so the DB value and
+                    # the S3 key use identical Unicode (mixed NFC/NFD accents
+                    # caused broken images).
+                    import unicodedata
+                    safe_artist = unicodedata.normalize('NFC', sanitize_artist_name(artist))
                     if not safe_artist:
                         errors.append(f'Row {row_num}: Invalid artist name "{artist}"')
                         skipped += 1

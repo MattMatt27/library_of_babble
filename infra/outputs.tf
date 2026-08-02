@@ -75,7 +75,7 @@ output "static_url" {
 # ============================================================================
 output "next_steps" {
   description = "What to do after Terraform completes"
-  value = <<-EOT
+  value       = <<-EOT
 
   Infrastructure deployed successfully!
 
@@ -100,4 +100,9 @@ output "next_steps" {
      Visit https://${var.domain_name}
 
   EOT
+}
+
+output "github_deploy_role_arn" {
+  description = "ARN of the GitHub Actions OIDC deploy role (set as role-to-assume in deploy.yml)"
+  value       = module.github_oidc.deploy_role_arn
 }

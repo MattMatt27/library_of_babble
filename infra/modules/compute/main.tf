@@ -165,12 +165,13 @@ data "aws_region" "current" {}
 resource "aws_ecs_cluster" "main" {
   name = "${var.name_prefix}-cluster"
 
-  # Container Insights provides enhanced metrics and monitoring
-  # WHY: Gives you CPU, memory, network metrics per container in CloudWatch
-  # COST NOTE: Adds ~$1-2/month but very useful for debugging performance
+  # Container Insights disabled to cut CloudWatch cost. It publishes many
+  # per-task CPU/memory/network metrics as billable custom metrics, which we
+  # don't use for a single-task portfolio site. Basic ECS service metrics and
+  # the app log group remain available. Set to "enabled" to turn it back on.
   setting {
     name  = "containerInsights"
-    value = "enabled"
+    value = "disabled"
   }
 
   tags = {

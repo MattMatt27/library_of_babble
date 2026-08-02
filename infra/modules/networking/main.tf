@@ -161,61 +161,11 @@ resource "aws_db_subnet_group" "main" {
   }
 }
 
-# ============================================================================
-# VPC Flow Logs
-# ============================================================================
-# Captures network traffic metadata for forensics and anomaly detection.
-# Useful if anything ever looks suspicious; cheap to keep on at low retention.
-resource "aws_cloudwatch_log_group" "vpc_flow_log" {
-  # tfsec:ignore:aws-cloudwatch-log-group-customer-key — SSE with AWS-managed
-  #   key is sufficient for flow-log metadata. CMK adds cost without value here.
-  name              = "/aws/vpc/${var.name_prefix}-flow-log"
-  retention_in_days = 14
-}
-
-resource "aws_iam_role" "vpc_flow_log" {
-  name = "${var.name_prefix}-vpc-flow-log-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect    = "Allow"
-      Principal = { Service = "vpc-flow-logs.amazonaws.com" }
-      Action    = "sts:AssumeRole"
-    }]
-  })
-}
-
-resource "aws_iam_role_policy" "vpc_flow_log" {
-  name = "${var.name_prefix}-vpc-flow-log-policy"
-  role = aws_iam_role.vpc_flow_log.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Action = [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents",
-        "logs:DescribeLogGroups",
-        "logs:DescribeLogStreams",
-      ]
-      Resource = "${aws_cloudwatch_log_group.vpc_flow_log.arn}:*"
-    }]
-  })
-}
-
-resource "aws_flow_log" "main" {
-  iam_role_arn    = aws_iam_role.vpc_flow_log.arn
-  log_destination = aws_cloudwatch_log_group.vpc_flow_log.arn
-  traffic_type    = "ALL"
-  vpc_id          = aws_vpc.main.id
-
-  tags = {
-    Name = "${var.name_prefix}-vpc-flow-log"
-  }
-}
+# VPC Flow Logs were removed to cut CloudWatch cost: for a single-task site
+# behind a Cloudflare tunnel they only captured internet background scans
+# (all REJECTed by the security group), which is noise we never act on. The
+# app's own error logs (ECS log group) remain the useful signal. Re-add an
+# aws_flow_log + log group here if a specific network investigation ever needs it.
 
 # ============================================================================
 # OUTPUTS - Values exported to main.tf and other modules

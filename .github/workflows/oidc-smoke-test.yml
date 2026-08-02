@@ -1,0 +1,44 @@
+# ============================================================================
+# OIDC Smoke Test  (manual, safe — does NOT deploy anything)
+# ============================================================================
+# Proves the GitHub OIDC deploy role works before we switch the real deploy
+# over to it. Run it manually (Actions tab -> "OIDC Smoke Test" -> Run
+# workflow) AFTER the github_oidc Terraform is applied.
+#
+#   1. sts:get-caller-identity  -> confirms keyless OIDC auth succeeds and
+#      shows we assumed the scoped deploy role (not the admin user).
+#   2. ecs:describe-services    -> confirms the role's scoped permissions work.
+#
+# It intentionally does not push images or update the service. Delete this
+# workflow once the real deploy is cut over to OIDC.
+# ============================================================================
+name: OIDC Smoke Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write # REQUIRED: lets the job request a GitHub OIDC token
+  contents: read
+
+jobs:
+  verify:
+    name: Verify OIDC role
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials via OIDC (no stored keys)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          # library-of-babble-prod-github-deploy (account 426061360221)
+          role-to-assume: arn:aws:iam::426061360221:role/library-of-babble-prod-github-deploy
+          aws-region: us-east-1
+
+      - name: Who am I? (should be the assumed deploy role)
+        run: aws sts get-caller-identity
+
+      - name: Can I read the ECS service? (scoped permission check)
+        run: |
+          aws ecs describe-services \
+            --cluster library-of-babble-prod-cluster \
+            --services library-of-babble-prod-service \
+            --query 'services[0].status' --output text

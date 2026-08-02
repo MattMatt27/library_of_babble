@@ -302,5 +302,23 @@ module "compute" {
 }
 
 # ============================================================================
+# MODULE 7: GITHUB OIDC (keyless CI deploys)
+# ============================================================================
+# Lets GitHub Actions assume a scoped deploy role via OIDC instead of a
+# stored AdministratorAccess key. Additive — the key-based deploy keeps
+# working until deploy.yml is switched to this role.
+module "github_oidc" {
+  source = "./modules/github_oidc"
+
+  name_prefix = local.name_prefix
+  github_repo = "MattMatt27/library_of_babble"
+
+  ecr_repository_arn = module.ecr.repository_arn
+  ecs_cluster_arn    = module.compute.cluster_arn
+  # ECS service ARN (compute exposes the name, not the ARN)
+  ecs_service_arn = "arn:aws:ecs:${var.aws_region}:${local.account_id}:service/${module.compute.cluster_name}/${module.compute.service_name}"
+}
+
+# ============================================================================
 # OUTPUTS - See outputs.tf for all output definitions
 # ============================================================================

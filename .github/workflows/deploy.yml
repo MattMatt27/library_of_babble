@@ -27,9 +27,9 @@
 #    - ecs:UpdateService
 #    - ecs:DescribeServices
 #
-# 3. Add these secrets to your GitHub repository (Settings → Secrets and variables → Actions):
-#    - AWS_ACCESS_KEY_ID: Your IAM user access key
-#    - AWS_SECRET_ACCESS_KEY: Your IAM user secret key
+# 3. Auth is keyless via GitHub OIDC (no AWS access keys stored). The
+#    library-of-babble-prod-github-deploy role (see infra/modules/github_oidc)
+#    is assumed at runtime. Only these non-secret config values are needed:
 #    - AWS_REGION: us-east-1 (or your region)
 #    - ECR_REPOSITORY: library-of-babble-prod
 #    - ECS_CLUSTER: library-of-babble-prod-cluster (from Terraform output)
@@ -51,6 +51,13 @@ env:
   ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
   CONTAINER_NAME: app # Must match container name in task definition
 
+# Keyless auth: the job requests a short-lived GitHub OIDC token and trades it
+# for temporary AWS credentials (the library-of-babble-prod-github-deploy
+# role). No long-lived AWS keys are stored in GitHub.
+permissions:
+  id-token: write # REQUIRED to request the OIDC token
+  contents: read  # for actions/checkout
+
 jobs:
   deploy:
     name: Deploy to ECS
@@ -67,11 +74,10 @@ jobs:
       # Step 2: Configure AWS credentials
       # ========================================
       # Uses secrets from GitHub to authenticate with AWS
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials (OIDC — no stored keys)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::426061360221:role/library-of-babble-prod-github-deploy
           aws-region: ${{ env.AWS_REGION }}
 
       # ========================================

@@ -320,7 +320,7 @@ resource "aws_ecs_task_definition" "app" {
     # Cloudflare's edge — no public ingress needed.
     {
       name      = "cloudflared"
-      image     = "cloudflare/cloudflared:2026.3.0"
+      image     = "cloudflare/cloudflared:2026.10.3"
       essential = true
 
       command = ["tunnel", "--no-autoupdate", "run"]
